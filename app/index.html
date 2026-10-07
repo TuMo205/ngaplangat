@@ -516,20 +516,20 @@
   .man > .lui:hover { background:rgba(255,255,255,.26); }
   @media (min-width:900px) { .man > .lui { top:14px; left:-20px; } }
 
-  /* Màn hình chào: thương hiệu trên cùng, hình lớn ở giữa, nút ở đáy */
+  /* Màn hình chào: một trang gọn, logo, 3 tính năng, nút ở đáy */
   .man[data-man="chao"].hien { display:flex; flex-direction:column; min-height:calc(100dvh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
-  .chao-dau { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .chao-logo { display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700; line-height:1.25; color:var(--text); min-width:0; }
-  .chao-logo img { width:36px; height:36px; border-radius:11px; flex:none; box-shadow:0 4px 12px rgba(11,92,213,.25); }
-  .chao-dau .btn-lien { flex:none; color:var(--text-3); font-weight:600; }
-  .man[data-man="chao"] .slides { flex:1; display:flex; align-items:center; justify-content:center; min-height:300px; }
-  .man[data-man="chao"] .slide { padding-top:0; }
-  .man[data-man="chao"] .slide-ic { width:148px; height:148px; border-radius:46px; margin-bottom:34px;
-    box-shadow:0 0 0 14px var(--primary-soft), 0 26px 50px rgba(11,92,213,.25); }
-  .man[data-man="chao"] .slide-ic svg { width:64px; height:64px; }
-  .man[data-man="chao"] .slide h2 { font-size:26px; line-height:1.25; text-wrap:balance; }
-  .man[data-man="chao"] .slide p { max-width:330px; margin:0 auto; }
-  @media (min-width:900px) { .man[data-man="chao"].hien { min-height:560px; } }
+  .chao-than { flex:1; display:flex; flex-direction:column; justify-content:center; padding:12px 0 20px; }
+  .chao-anh { width:72px; height:72px; border-radius:20px; display:block; margin:0 0 20px; box-shadow:0 8px 20px rgba(11,92,213,.2); }
+  .chao-than h1 { font-size:26px; font-weight:800; line-height:1.25; letter-spacing:-.02em; margin:0 0 8px; text-wrap:balance; }
+  .chao-than > p { color:var(--text-2); font-size:15px; line-height:1.55; margin:0 0 26px; }
+  .chao-ds { list-style:none; margin:0; padding:0; display:grid; gap:16px; }
+  .chao-ds li { display:flex; gap:14px; align-items:flex-start; }
+  .chao-ds .ic { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:var(--primary-soft); color:var(--primary); flex:none; }
+  .chao-ds .ic svg { width:20px; height:20px; }
+  .chao-ds b { display:block; font-size:15px; }
+  .chao-ds small { display:block; font-size:13.5px; color:var(--text-2); line-height:1.45; margin-top:2px; }
+  .chao-cuoi .cuoi { margin-top:16px; }
+  @media (min-width:900px) { .man[data-man="chao"].hien { min-height:520px; } }
 
   /* Thẻ thiết bị trong mục Tài khoản */
   .tb { align-items:flex-start; padding:13px 0; }
@@ -612,21 +612,18 @@
   <div class="man hien" data-man="tai"><div class="auth-giua"><img class="auth-icon" src="icons/icon-192.png" alt=""><div class="sub">Đang tải…</div></div></div>
 
   <div class="man" data-man="chao">
-    <div class="chao-dau">
-      <span class="chao-logo"><img src="icons/icon-192.png" alt="">Thiết bị tự ngắt điện<br>khi nhà bị ngập nước</span>
-      <button class="btn-lien" data-den="dangnhap" id="btnBoQuaChao">Bỏ qua</button>
-    </div>
-    <div class="slides" id="slides">
-      <div class="slide hien"><div class="slide-ic" style="--c:linear-gradient(135deg,#0b5cd5,#1fb6ff)"><svg class="i"><use href="#i-drop"/></svg></div>
-        <h2>Biết ngay khi nước vào nhà</h2><p>Cảm biến đo mực nước liên tục. AI dự báo còn bao lâu nữa nước chạm mức nguy hiểm.</p></div>
-      <div class="slide"><div class="slide-ic" style="--c:linear-gradient(135deg,#b3121f,#ef4444)"><svg class="i"><use href="#i-power"/></svg></div>
-        <h2>Tự ngắt điện theo 3 cấp</h2><p>Ngắt tầng 1 trước khi nước chạm ổ cắm, tầng 2 vẫn có điện. Nước lên tới tủ điện tổng thì ngắt toàn bộ.</p></div>
-      <div class="slide"><div class="slide-ic" style="--c:linear-gradient(135deg,#6d3fd6,#a77bff)"><svg class="i"><use href="#i-bell"/></svg></div>
-        <h2>Báo người thân, báo xã</h2><p>Nhắn tin, gọi điện cho người nhà kể cả khi mất điện. Xã biết ngay nhà nào cần cứu hộ trước.</p></div>
+    <div class="chao-than">
+      <img class="chao-anh" src="icons/icon-192.png" alt="">
+      <h1>Thiết bị tự ngắt điện khi nhà bị ngập nước</h1>
+      <p>Theo dõi nước trong nhà và tự ngắt điện để giữ an toàn cho gia đình.</p>
+      <ul class="chao-ds">
+        <li><span class="ic"><svg class="i"><use href="#i-drop"/></svg></span><div><b>Theo dõi mực nước</b><small>Báo ngay trên điện thoại khi nước vào nhà.</small></div></li>
+        <li><span class="ic"><svg class="i"><use href="#i-power"/></svg></span><div><b>Tự ngắt điện</b><small>Ngắt tầng 1 trước, tầng trên vẫn có điện.</small></div></li>
+        <li><span class="ic"><svg class="i"><use href="#i-bell"/></svg></span><div><b>Báo người thân, báo xã</b><small>Nhắn tin, gọi điện kể cả khi mất điện.</small></div></li>
+      </ul>
     </div>
     <div class="chao-cuoi">
-      <div class="dots" id="dots"><i class="on"></i><i></i><i></i></div>
-      <button class="btn btn-primary" id="btnTiep">Tiếp tục</button>
+      <button class="btn btn-primary" id="btnTiep">Tạo tài khoản</button>
       <p class="cuoi">Đã có tài khoản? <button class="btn-lien" data-den="dangnhap">Đăng nhập</button></p>
     </div>
   </div>
@@ -916,7 +913,7 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.9.2';
+const PHIEN_BAN_APP = '1.9.3';
 const CO_GI_MOI = [
   'Thêm thiết bị bằng mã thiết bị và mã kích hoạt in trên tem (hoặc quét QR trên tem): app không nhận mã sai.',
   'Loại nhà (1 đến 5 tầng) tự lấy theo thiết bị. Vị trí lấy bằng GPS khi đứng cạnh thiết bị (có hiện sai số), hoặc nhập tay.',
@@ -1687,7 +1684,7 @@ const LOI = {
 const loiTV = e => { const k = e && e.code; return k && k in LOI ? LOI[k] : 'Có lỗi xảy ra, vui lòng thử lại.'; };  // '' = không báo (người dùng tự đóng cửa sổ)
 
 // ---------------- Trạng thái ----------------
-let nguoiDung = null, hoSo = null, laKhach = false, cheDoTL = 'dau', slide = 0;
+let nguoiDung = null, hoSo = null, laKhach = false, cheDoTL = 'dau';
 window.laCheDoKhach = () => laKhach;
 window.dongBoThietBiApp = () => { if (hoSo) dongBoThietBi(); };  // gọi khi thiết bị vừa kết nối (lại)
 
@@ -1814,27 +1811,14 @@ async function batDau() {
   } else if (cache && !navigator.onLine) {
     hoSo = cache; vaoApp();  // mất mạng: dùng hồ sơ đã lưu lần trước
   } else {
-    capSlide();
     man(docJ('nln_daXemChao', false) || TK.loiChuyenHuong ? 'dangnhap' : 'chao');
     if (TK.loiChuyenHuong) loi('loiDN', loiTV(TK.loiChuyenHuong));
   }
 }
 
 // ---------------- Màn hình chào ----------------
-function capSlide() {
-  Array.from($('slides').children).forEach((s, i) => s.classList.toggle('hien', i === slide));
-  Array.from($('dots').children).forEach((d, i) => d.classList.toggle('on', i === slide));
-  $('btnTiep').textContent = slide < 2 ? 'Tiếp tục' : 'Tạo tài khoản';
-}
-$('btnBoQuaChao').addEventListener('click', () => ghiJ('nln_daXemChao', true));
-$('btnTiep').onclick = () => { if (slide < 2) { slide++; capSlide(); } else { ghiJ('nln_daXemChao', true); man('dangky'); } };
-let xDau = null;
-$('slides').addEventListener('touchstart', e => { xDau = e.touches[0].clientX; }, { passive: true });
-$('slides').addEventListener('touchend', e => {
-  if (xDau === null) return;
-  const dx = e.changedTouches[0].clientX - xDau; xDau = null;
-  if (Math.abs(dx) > 50) { slide = Math.max(0, Math.min(2, slide + (dx < 0 ? 1 : -1))); capSlide(); }
-});
+$('btnTiep').onclick = () => { ghiJ('nln_daXemChao', true); man('dangky'); };
+document.querySelector('[data-man="chao"] [data-den="dangnhap"]').addEventListener('click', () => ghiJ('nln_daXemChao', true));
 
 document.querySelectorAll('[data-den]').forEach(b => b.addEventListener('click', () => man(b.dataset.den)));
 document.querySelectorAll('.hien-mk[data-cho]').forEach(b => b.addEventListener('click', () => {
