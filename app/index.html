@@ -596,12 +596,17 @@
         <option value="2">Nhà 2 tầng trở lên: ngắt tầng 1 trước, giữ điện tầng 2</option>
         <option value="1">Nhà 1 tầng: ngắt mạch ổ cắm trước, giữ đèn sáng để sơ tán</option>
       </select></label>
-      <div class="hang2"><label class="o"><span>Vĩ độ</span><input id="tlLat" type="number" step="0.0001"></label><label class="o"><span>Kinh độ</span><input id="tlLon" type="number" step="0.0001"></label></div>
+      <div class="hang2"><label class="o"><span>Vĩ độ</span><input id="tlLat" type="number" step="0.0001" placeholder="Bấm nút bên dưới"></label><label class="o"><span>Kinh độ</span><input id="tlLon" type="number" step="0.0001"></label></div>
       <button type="button" class="btn btn-ghost" id="btnViTri">Lấy vị trí hiện tại</button>
     </div>
+    <div id="tlDiaChi">
+      <div class="nhom-t" id="tlDiaChiT">Địa chỉ ngôi nhà</div>
+      <label class="o"><span>Tỉnh, thành phố</span><select id="tlTinh"></select></label>
+      <label class="o"><span>Xã, phường, đặc khu</span><select id="tlXa"></select></label>
+      <div class="sub" id="tlXaGoiY" style="margin:-6px 0 12px;font-size:12.5px"></div>
+      <label class="o"><span>Thôn, khu, tổ dân phố</span><select id="tlThonChon"></select><input id="tlThonNhap" placeholder="VD: Khu 3" style="display:none"></label>
+    </div>
     <div id="tlHo">
-      <div class="nhom-t">Địa chỉ</div>
-      <label class="o"><span>Thôn, khu nơi đặt nhà</span><select id="tlThonChon"></select><input id="tlThonNhap" placeholder="VD: Khu 3" style="display:none"></label>
       <div class="nhom-t">Thành viên trong nhà</div>
       <div class="sub" style="margin-bottom:6px">Giúp xã ưu tiên cứu hộ đúng nhà khi lũ lớn.</div>
       <div class="dem"><span>Người già (trên 70 tuổi)</span><input id="tlGia" type="number" min="0" max="20" inputmode="numeric"></div>
@@ -805,9 +810,10 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.6.0';
+const PHIEN_BAN_APP = '1.7.0';
 const CO_GI_MOI = [
-  'Chọn thôn, khu nơi đặt nhà (mục Tài khoản > Sửa thông tin) để xã cứu hộ đúng chỗ.',
+  'Dùng được ở mọi tỉnh, thành: chọn tỉnh, xã, phường (theo đơn vị hành chính mới từ 01/07/2025) cho từng ngôi nhà.',
+  'App tự gợi ý xã theo vị trí ngôi nhà. Vào Tài khoản > Sửa thông tin để thêm địa chỉ cho nhà đã có.',
   'Thông tin hộ chia sẻ với UBND xã giờ lưu trên máy chủ bảo mật, chỉ cán bộ xã xem được.',
   'Tắt "Đồng ý chia sẻ" hoặc xoá thiết bị thì thông tin tự xoá khỏi bảng của xã.',
   'Sửa lỗi: thẻ trạng thái chính không hiện khi nhà đang an toàn.',
@@ -1471,7 +1477,7 @@ const Demo = {
   async layHoSo(u) { const x = this.ds()[u.id]; return x ? x.hoSo : null; },
   async luuHoSo(u, hoSo) { const ds = this.ds(); if (ds[u.id]) { ds[u.id].hoSo = hoSo; ghiJ('nln_taiKhoan', ds); } },
   async xoaTaiKhoan(u) { const ds = this.ds(); delete ds[u.id]; ghiJ('nln_taiKhoan', ds); ghiJ('nln_phien', null); },
-  async layCaiDatXa() { return null; },
+  async layXa() { return null; },
 };
 
 // ---------------- Chế độ Firebase (tài khoản thật) ----------------
@@ -1505,16 +1511,22 @@ const Firebase = {
   async layHoSo(u) { const s = await this.fs.getDoc(this.fs.doc(this.db, 'nguoiDung', u.id)); return s.exists() ? s.data() : null; },
   async luuHoSo(u, hoSo) { await this.fs.setDoc(this.fs.doc(this.db, 'nguoiDung', u.id), hoSo); },
   async xoaTaiKhoan(u) { await this.fs.deleteDoc(this.fs.doc(this.db, 'nguoiDung', u.id)); await this.au.deleteUser(this.auth.currentUser); },
-  // Tên xã, danh sách thôn do UBND xã khai báo (ai cũng đọc được)
-  async layCaiDatXa() { const s = await this.fs.getDoc(this.fs.doc(this.db, 'xa', 'caiDat')); return s.exists() ? s.data() : null; },
+  // Cài đặt của một xã: danh sách thôn do UBND xã khai báo (ai cũng đọc được). Null: xã chưa dùng bảng điều hành.
+  async layXa(ma) {
+    const s = await this.fs.getDoc(this.fs.doc(this.db, 'dsXa', ma));
+    if (s.exists()) return s.data();
+    if (ma !== '07969') return null;  // Xã Đoan Hùng dùng từ bản một xã: cài đặt còn ở xa/caiDat
+    const cu = await this.fs.getDoc(this.fs.doc(this.db, 'xa', 'caiDat'));
+    return cu.exists() ? cu.data() : null;
+  },
   // Chia sẻ thông tin hộ với UBND xã: lưu trên máy chủ bảo mật, chỉ cán bộ xã có tài khoản mới đọc được
   async chiaSeXa(u, hs) {
     const nt = hs.nguoiThan[0];
     await Promise.all(hs.thietBi.map(tb => {
       const ref = this.fs.doc(this.db, 'hoDan', tb.ma);
-      if (!hs.chiaSeXa) return this.fs.deleteDoc(ref).catch(() => {});
-      return this.fs.setDoc(ref, { uid: u.id, chuHo: String(hs.hoTen || '').slice(0, 60), tenNha: String(tb.ten || '').slice(0, 60),
-        sdt: String((nt ? nt.sdt : hs.sdt) || '').slice(0, 20), thon: String(hs.thon || '').slice(0, 60),
+      if (!hs.chiaSeXa || !/^\d{5}$/.test(tb.xa || '')) return this.fs.deleteDoc(ref).catch(() => {});  // chưa có địa chỉ: chưa gửi cho xã nào
+      return this.fs.setDoc(ref, { uid: u.id, xa: tb.xa, chuHo: String(hs.hoTen || '').slice(0, 60), tenNha: String(tb.ten || '').slice(0, 60),
+        sdt: String((nt ? nt.sdt : hs.sdt) || '').slice(0, 20), thon: String(tb.thon || '').slice(0, 60),
         nguoiGia: hs.nguoiGia, treEm: hs.treEm, khuyetTat: hs.khuyetTat, oMotMinh: !!hs.oMotMinh, motTang: !!tb.motTang,
         lat: +tb.lat || 0, lon: +tb.lon || 0, capNhat: new Date().toISOString() }).catch(() => {});
     }));
@@ -1548,7 +1560,7 @@ window.dongBoThietBiApp = () => { if (hoSo) dongBoThietBi(); };  // gọi khi th
 
 function hoSoMoi(p) {
   return { hoTen: p.hoTen || '', dangNhap: p.dangNhap || '', sdt: p.sdt || '', thietBi: [], thietBiChon: '',
-    thon: '', nguoiGia: 0, treEm: 0, khuyetTat: 0, oMotMinh: false, nguoiThan: [], chiaSeXa: true, taoLuc: new Date().toISOString() };
+    nguoiGia: 0, treEm: 0, khuyetTat: 0, oMotMinh: false, nguoiThan: [], chiaSeXa: true, taoLuc: new Date().toISOString() };
 }
 function man(ten) {
   document.querySelectorAll('#manAuth .man').forEach(m => m.classList.toggle('hien', m.dataset.man === ten));
@@ -1593,14 +1605,71 @@ function vaoApp() {
 }
 
 // ---------------- Khởi động ----------------
-let dsThonXa = [];
+// Danh mục 34 tỉnh, thành và 3.321 xã, phường (từ 01/07/2025), tải khi mở màn hình địa chỉ
+let huaDVHC = null;
+const napDVHC = () => huaDVHC || (huaDVHC = fetch('lib/dvhc.json').then(r => { if (!r.ok) throw new Error('dvhc'); return r.json(); }).then(d => {
+  const tinh = new Map(d.t);
+  const xa = new Map(d.x.map(([ma, ten, maTinh, hop, cu]) => [ma, { ma, ten, maTinh, tinh: tinh.get(maTinh), hop, cu }]));
+  return { t: d.t, tinh, xa };
+}).catch(e => { huaDVHC = null; throw e; }));
+const boTienTo = t => String(t).replace(/^(Thành phố|Tỉnh|Xã|Phường|Đặc khu)\s+/, '');
+// Xã chứa điểm (lat, lon): trong các xã có khung toạ độ chứa điểm, chọn xã có tâm gần nhất
+function xaTheoViTri(d, lat, lon) {
+  let tot = null, gan = Infinity;
+  for (const x of d.xa.values()) {
+    const h = x.hop;
+    if (!h || lon < h[0] || lon > h[2] || lat < h[1] || lat > h[3]) continue;
+    const k = Math.hypot((h[0] + h[2]) / 2 - lon, (h[1] + h[3]) / 2 - lat);
+    if (k < gan) { gan = k; tot = x; }
+  }
+  return tot;
+}
+let dsThonXa = [], diaChiTay = false, tuGoiY = false;  // diaChiTay: người dùng đã tự chọn xã; tuGoiY: xã đang chọn do app gợi ý theo vị trí
+async function dungDiaChi(maXa, thon, lat, lon) {
+  const sT = $('tlTinh'), sX = $('tlXa');
+  sT.innerHTML = '<option value="">Đang tải danh sách…</option>'; sX.innerHTML = ''; $('tlXaGoiY').textContent = '';
+  let d;
+  try { d = await napDVHC(); } catch { sT.innerHTML = '<option value="">Không tải được, kiểm tra mạng</option>'; return; }
+  const goiY = !maXa && lat ? xaTheoViTri(d, lat, lon) : null, chon = d.xa.get(maXa) || goiY;
+  tuGoiY = !!goiY;
+  sT.innerHTML = '<option value="">Chọn tỉnh, thành phố</option>' + [...d.t].sort((a, b) => boTienTo(a[1]).localeCompare(boTienTo(b[1]), 'vi'))
+    .map(([ma, ten]) => `<option value="${ma}">${esc(ten)}</option>`).join('');
+  sT.value = chon ? chon.maTinh : '';
+  veXaTheoTinh(chon ? chon.ma : '', thon);
+}
+function veXaTheoTinh(maXa, thon) {
+  napDVHC().then(d => {
+    const ds = [...d.xa.values()].filter(x => x.maTinh === $('tlTinh').value).sort((a, b) => boTienTo(a.ten).localeCompare(boTienTo(b.ten), 'vi'));
+    $('tlXa').innerHTML = '<option value="">Chọn xã, phường</option>' + ds.map(x => `<option value="${x.ma}">${esc(x.ten)}</option>`).join('');
+    $('tlXa').value = maXa || '';
+    doiXa(thon);
+  }).catch(() => {});
+}
+// Đổi xã: hiện các đơn vị cũ, lấy danh sách thôn của xã (nếu xã đã dùng bảng điều hành)
+async function doiXa(thon) {
+  const ma = $('tlXa').value, d = await napDVHC().catch(() => null), x = d && d.xa.get(ma);
+  dsThonXa = [];
+  let caiDat = null;
+  if (x) { try { caiDat = await TK.layXa(ma); } catch {} }
+  if (ma !== $('tlXa').value) return;  // người dùng đã chọn xã khác trong lúc chờ
+  dsThonXa = caiDat && Array.isArray(caiDat.dsThon) ? caiDat.dsThon.map(t => String(t).trim().slice(0, 60)).filter(Boolean) : [];
+  $('tlXaGoiY').textContent = !x ? '' : (tuGoiY ? 'Đã tự chọn theo vị trí ngôi nhà. ' : '') + (x.cu ? 'Gồm các đơn vị cũ: ' + x.cu + '. ' : '')
+    + (caiDat ? 'Xã đã dùng bảng điều hành chống ngập.' : 'Xã chưa dùng bảng điều hành; khi xã tham gia sẽ thấy ngay nhà bạn.');
+  const coDs = dsThonXa.length > 0;
+  thon = thon === undefined ? (coDs ? $('tlThonChon').value : $('tlThonNhap').value) : thon || '';
+  $('tlThonChon').style.display = coDs ? '' : 'none';
+  $('tlThonNhap').style.display = coDs ? 'none' : '';
+  $('tlThonChon').innerHTML = '<option value="">Chọn thôn, khu</option>'
+    + [...dsThonXa, ...(thon && !dsThonXa.includes(thon) ? [thon] : [])].map(t => `<option>${esc(t)}</option>`).join('');
+  $('tlThonChon').value = thon; $('tlThonNhap').value = thon;
+}
+$('tlTinh').onchange = () => { diaChiTay = true; tuGoiY = false; veXaTheoTinh('', ''); };
+$('tlXa').onchange = () => { diaChiTay = true; tuGoiY = false; doiXa(''); };
+
 async function batDau() {
   $('ghiChuCheDo').textContent = TK.ten === 'firebase' ? 'Tài khoản được bảo mật và đồng bộ trên mọi thiết bị.'
     : 'Bản demo: tài khoản được lưu trên trình duyệt của máy này.';
   try { nguoiDung = await TK.khoiTao(); } catch { nguoiDung = null; }
-  TK.layCaiDatXa().then(c => {  // danh sách thôn của xã, dùng khi hộ dân chọn thôn
-    dsThonXa = c && Array.isArray(c.dsThon) ? c.dsThon.map(t => String(t).trim().slice(0, 60)).filter(Boolean) : [];
-  }).catch(() => {});
   const khach = docJ('nln_khach', null), cache = docJ('nln_hoSoCache', null);
   if (nguoiDung) {
     try { hoSo = await TK.layHoSo(nguoiDung); } catch { hoSo = cache; }
@@ -1703,7 +1772,7 @@ document.addEventListener('click', async e => {
 $('btnKhach').onclick = () => {
   laKhach = true;
   hoSo = hoSoMoi({ hoTen: 'Khách' });
-  hoSo.thietBi = [{ ma: 'nln-doanhung-001', ten: 'Mô hình dự thi', lat: 21.62, lon: 105.18 }];
+  hoSo.thietBi = [{ ma: 'nln-doanhung-001', ten: 'Mô hình dự thi', lat: 21.62, lon: 105.18, xa: '07969', tenXa: 'Xã Đoan Hùng', tinh: 'Tỉnh Phú Thọ', thon: '' }];
   hoSo.thietBiChon = 'nln-doanhung-001';
   hoSo.nguoiGia = 1; hoSo.treEm = 1;
   ghiJ('nln_khach', hoSo);
@@ -1722,16 +1791,15 @@ function moThietLap(cheDo) {
   $('btnLuuTL').textContent = cheDo === 'dau' ? 'Hoàn tất' : 'Lưu';
   if (cheDo !== 'ho') {
     $('tlMa').value = ''; $('tlTenNha').value = hoSo.thietBi.length ? '' : 'Nhà của tôi';
-    $('tlLat').value = 21.62; $('tlLon').value = 105.18; $('btnViTri').textContent = 'Lấy vị trí hiện tại';
+    $('tlLat').value = ''; $('tlLon').value = ''; $('btnViTri').textContent = 'Lấy vị trí hiện tại';
     $('tlLoaiNha').value = '2';
   }
-  // Thôn, khu: chọn theo danh sách xã khai báo; xã chưa khai báo thì gõ tay
-  const coDs = dsThonXa.length > 0, thon = hoSo.thon || '';
-  $('tlThonChon').style.display = coDs ? '' : 'none';
-  $('tlThonNhap').style.display = coDs ? 'none' : '';
-  $('tlThonChon').innerHTML = '<option value="">Chọn thôn, khu</option>'
-    + [...dsThonXa, ...(thon && !dsThonXa.includes(thon) ? [thon] : [])].map(t => `<option>${esc(t)}</option>`).join('');
-  $('tlThonChon').value = thon; $('tlThonNhap').value = thon;
+  // Địa chỉ: nhà mới thì chọn (hoặc tự gợi ý theo vị trí); sửa thông tin thì sửa địa chỉ ngôi nhà đang xem
+  const tb = cheDo === 'ho' ? thietBiDangChon() : null;
+  diaChiTay = false;
+  $('tlDiaChiT').textContent = tb ? 'Địa chỉ: ' + tb.ten : 'Địa chỉ ngôi nhà';
+  $('tlDiaChi').style.display = cheDo === 'ho' && !tb ? 'none' : '';
+  dungDiaChi(tb ? tb.xa || '' : '', tb ? tb.thon || '' : '', tb ? +tb.lat : 0, tb ? +tb.lon : 0);
   $('tlGia').value = hoSo.nguoiGia; $('tlTre').value = hoSo.treEm; $('tlKT').value = hoSo.khuyetTat;
   $('tlMotMinh').checked = hoSo.oMotMinh; $('tlChiaSe').checked = hoSo.chiaSeXa;
   $('tlSdt').value = hoSo.nguoiThan[0] ? hoSo.nguoiThan[0].sdt : '';
@@ -1740,21 +1808,33 @@ function moThietLap(cheDo) {
 $('btnHuyTL').onclick = () => $('manAuth').classList.remove('hien');
 
 $('btnLuuTL').onclick = () => cho($('btnLuuTL'), async () => {
+  // Địa chỉ ngôi nhà (tỉnh, xã, thôn)
+  const chiaSe = cheDoTL === 'them' ? hoSo.chiaSeXa : $('tlChiaSe').checked;
+  const dv = await napDVHC().catch(() => null), x = dv && dv.xa.get($('tlXa').value);
+  const thon = (dsThonXa.length ? $('tlThonChon').value : $('tlThonNhap').value).trim().slice(0, 60);
+  const coDiaChi = $('tlDiaChi').style.display !== 'none';
+  if (coDiaChi && chiaSe && !x) return loi('loiTL', 'Chọn tỉnh và xã, phường nơi đặt nhà để xã biết nhà bạn ở đâu khi cần cứu hộ.');
+  if (coDiaChi && chiaSe && !thon && dsThonXa.length) return loi('loiTL', 'Chọn thôn, khu để xã biết nhà bạn ở đâu khi cần cứu hộ.');
+  const diaChi = x ? { xa: x.ma, tenXa: x.ten, tinh: x.tinh, thon } : { xa: '', tenXa: '', tinh: '', thon };
   if (cheDoTL !== 'ho') {
-    const ma = $('tlMa').value.trim().toLowerCase(), lat = +$('tlLat').value, lon = +$('tlLon').value;
+    const ma = $('tlMa').value.trim().toLowerCase();
+    let lat = parseFloat($('tlLat').value), lon = parseFloat($('tlLon').value);
     if (!/^[a-z0-9-]{4,40}$/.test(ma)) return loi('loiTL', 'Mã thiết bị chỉ gồm chữ thường, số và dấu gạch ngang (in trên tem dán ở hộp).');
     if (hoSo.thietBi.some(t => t.ma === ma)) return loi('loiTL', 'Thiết bị này đã có trong danh sách.');
-    if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) return loi('loiTL', 'Vị trí chưa hợp lệ. Bấm "Lấy vị trí hiện tại" khi đang ở trong nhà.');
-    hoSo.thietBi.push({ ma, ten: $('tlTenNha').value.trim() || 'Nhà của tôi', lat, lon, motTang: $('tlLoaiNha').value === '1' });
+    if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110) && x && x.hop) {  // chưa lấy được vị trí: dùng trung tâm xã
+      lat = +((x.hop[1] + x.hop[3]) / 2).toFixed(5); lon = +((x.hop[0] + x.hop[2]) / 2).toFixed(5);
+    }
+    if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) return loi('loiTL', 'Bấm "Lấy vị trí hiện tại" khi đang ở trong nhà, hoặc chọn xã, phường nơi đặt nhà.');
+    hoSo.thietBi.push(Object.assign({ ma, ten: $('tlTenNha').value.trim() || 'Nhà của tôi', lat, lon, motTang: $('tlLoaiNha').value === '1' }, diaChi));
     hoSo.thietBiChon = ma;
+  } else if (coDiaChi) {
+    Object.assign(thietBiDangChon(), diaChi);
   }
   if (cheDoTL !== 'them') {
     const so = v => Math.max(0, Math.min(20, parseInt(v, 10) || 0));
     const sdtNhap = $('tlSdt').value.trim(), sdt = chuanHoa(sdtNhap).sdt;
     if (sdtNhap && !sdt) return loi('loiTL', 'Số điện thoại người thân chưa đúng (VD: 0912345678).');
-    const thon = (dsThonXa.length ? $('tlThonChon').value : $('tlThonNhap').value).trim().slice(0, 60);
-    if (!thon && $('tlChiaSe').checked && dsThonXa.length) return loi('loiTL', 'Chọn thôn, khu để xã biết nhà bạn ở đâu khi cần cứu hộ.');
-    hoSo.thon = thon;
+    delete hoSo.thon;  // bản 1.6.0 lưu thôn theo tài khoản, nay lưu theo từng ngôi nhà
     hoSo.nguoiGia = so($('tlGia').value); hoSo.treEm = so($('tlTre').value); hoSo.khuyetTat = so($('tlKT').value);
     hoSo.oMotMinh = $('tlMotMinh').checked; hoSo.chiaSeXa = $('tlChiaSe').checked;
     if (sdt) { hoSo.nguoiThan = hoSo.nguoiThan.filter(n => n.sdt !== sdt); hoSo.nguoiThan.unshift({ ten: 'Người thân', sdt }); }
@@ -1770,6 +1850,7 @@ $('btnViTri').onclick = () => {
   navigator.geolocation.getCurrentPosition(p => {
     $('tlLat').value = p.coords.latitude.toFixed(5); $('tlLon').value = p.coords.longitude.toFixed(5);
     $('btnViTri').textContent = 'Đã lấy vị trí ✓';
+    if (!diaChiTay) dungDiaChi('', '', p.coords.latitude, p.coords.longitude);  // tự chọn xã theo vị trí
   }, () => {
     $('btnViTri').textContent = 'Lấy vị trí hiện tại';
     loi('loiTL', 'Không lấy được vị trí. Hãy bật định vị và cho phép trình duyệt truy cập vị trí.');
@@ -1819,14 +1900,14 @@ function veTaiKhoan() {
     <div class="card" style="margin-top:0">
       ${hoSo.thietBi.map(t => `<div class="tb ${t.ma === hoSo.thietBiChon ? 'chon' : ''}">
         <span class="ic"><svg class="i"><use href="#i-house2"/></svg></span>
-        <div class="tt"><b>${esc(t.ten)}</b><small>${esc(t.ma)} · <button class="btn-lien" data-loai="${esc(t.ma)}" style="font-size:12px;padding:0">${t.motTang ? 'Nhà 1 tầng' : 'Nhà 2 tầng'}</button></small></div>
+        <div class="tt"><b>${esc(t.ten)}</b><small>${esc(t.ma)} · <button class="btn-lien" data-loai="${esc(t.ma)}" style="font-size:12px;padding:0">${t.motTang ? 'Nhà 1 tầng' : 'Nhà 2 tầng'}</button></small>
+          <small>${esc([t.thon, t.tenXa, t.tinh].filter(Boolean).join(', ') || 'Chưa có địa chỉ (Sửa thông tin để thêm)')}</small></div>
         ${t.ma === hoSo.thietBiChon ? '<span class="pill on">Đang xem</span>' : `<button class="act" data-chon="${esc(t.ma)}">Xem</button>`}
         <button class="xoa" data-xoa="${esc(t.ma)}" aria-label="Xoá thiết bị">×</button></div>`).join('')}
       <button class="btn btn-ghost" id="tkThemTB" style="margin-top:12px">+ Thêm thiết bị</button>
     </div>
     <div class="group-t">Hộ gia đình</div>
     <div class="card" style="margin-top:0">
-      <div class="tk-row"><span>Thôn, khu</span><b>${esc(hoSo.thon || 'Chưa chọn')}</b></div>
       <div class="tk-row"><span>Người già</span><b>${hoSo.nguoiGia}</b></div>
       <div class="tk-row"><span>Trẻ em dưới 6 tuổi</span><b>${hoSo.treEm}</b></div>
       <div class="tk-row"><span>Người khuyết tật, bệnh nặng</span><b>${hoSo.khuyetTat}</b></div>
