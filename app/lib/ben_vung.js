@@ -44,6 +44,8 @@
   };
 
   // Trả về người dùng Firebase, hoặc null nếu phải chuyển hướng cả trang (kết quả lấy bằng getRedirectResult khi trang tải lại).
+  // Ưu tiên cửa sổ bật lên: app nằm ở github.io còn trang đăng nhập ở firebaseapp.com, kiểu chuyển hướng cả trang
+  // hay hỏng trên trình duyệt mới (chặn lưu dữ liệu giữa hai tên miền). Chỉ chuyển hướng khi cửa sổ bật lên bị chặn.
   window.dangNhapMXH = async function (au, auth, ten) {
     let p;
     if (ten === 'google') { p = new au.GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' }); }
@@ -51,9 +53,6 @@
     else if (ten === 'apple') { p = new au.OAuthProvider('apple.com'); p.addScope('email'); p.addScope('name'); p.setCustomParameters({ locale: 'vi_VN' }); }
     else if (ten === 'microsoft') { p = new au.OAuthProvider('microsoft.com'); p.setCustomParameters({ prompt: 'select_account' }); }
     else throw { code: 'auth/operation-not-allowed' };
-    // App đã cài lên màn hình chính (nhất là iPhone) hay chặn cửa sổ bật lên -> chuyển hướng cả trang
-    const daCai = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-    if (daCai) { await au.signInWithRedirect(auth, p); return null; }
     try { return (await au.signInWithPopup(auth, p)).user; }
     catch (e) {
       if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) {

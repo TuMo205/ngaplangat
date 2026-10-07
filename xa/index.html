@@ -560,7 +560,7 @@
 <script src="../app/lib/chart.umd.min.js"></script>
 <script src="../app/lib/leaflet.min.js"></script>
 <script src="../app/lib/mqtt.min.js"></script>
-<script src="../app/lib/ben_vung.js?v=10"></script>
+<script src="../app/lib/ben_vung.js?v=11"></script>
 <script>
 // ===================== CẤU HÌNH =====================
 const TAM_XA = [21.62, 105.18];
@@ -623,6 +623,12 @@ window.DS_THON = THON.map(t => t.ten);
 // Phạm vi xem: trưởng thôn chỉ thấy các hộ trong thôn mình phụ trách
 let phamViThon = '';
 const hoHienThi = () => phamViThon ? cacHo.filter(h => h.thon === phamViThon) : cacHo;
+// Khách xem thử chỉ thấy tên, số điện thoại của hộ mô phỏng; hộ thật hiện ẩn danh để giữ thông tin cá nhân
+let anDanh = false;
+const anHo = h => anDanh && !h.moPhong;
+const tenHo = h => anHo(h) ? 'dân (ẩn danh)' : h.ten;
+const sdtHo = h => anHo(h) ? 'ẩn' : h.sdt;
+window.datAnDanh = v => { anDanh = !!v; };
 
 // ===================== MÔ PHỎNG LŨ =====================
 // Chu kỳ 6 phút: khô -> nước sông dâng -> đỉnh lũ -> rút. Tua nhanh để demo.
@@ -706,7 +712,7 @@ function veBanDo() {
     m.setStyle({ fillColor: matKetNoi(h) ? MAU_OFF : MAU_TT[h.trangThai] });
     m.setRadius(6 + Math.min(h.muc, 15) * 0.7);
     const nhom = [h.nguoiGia && `${h.nguoiGia} người già`, h.treEm && `${h.treEm} trẻ nhỏ`, h.khuyetTat && 'người khuyết tật'].filter(Boolean).join(', ') || 'không';
-    m.bindPopup(`<b>Hộ ${escH(h.ten)}</b><br>${escH(h.thon)} · ${escH(h.sdt)}<br>Trạng thái: <b>${matKetNoi(h) ? 'Mất kết nối' : TEN_TT[h.trangThai]}</b><br>Mực nước: ${h.muc.toFixed(1)} cm<br>Nhóm dễ tổn thương: ${nhom}${h.oMotMinh ? '<br><b>Người già ở một mình</b>' : ''}`);
+    m.bindPopup(`<b>Hộ ${escH(tenHo(h))}</b><br>${escH(h.thon)} · ${escH(sdtHo(h))}<br>Trạng thái: <b>${matKetNoi(h) ? 'Mất kết nối' : TEN_TT[h.trangThai]}</b><br>Mực nước: ${h.muc.toFixed(1)} cm<br>Nhóm dễ tổn thương: ${nhom}${h.oMotMinh ? '<br><b>Người già ở một mình</b>' : ''}`);
   }
 }
 $('locThon').onchange = $('locTT').onchange = veBanDo;
@@ -739,11 +745,11 @@ function veBang() {
     const s = Math.round((Date.now() - h.lanCuoi) / 1000);
     const capNhat = !h.lanCuoi ? 'Chưa có số liệu' : s < 5 ? 'Vừa xong' : s < 60 ? s + ' giây trước' : s < 3600 ? Math.floor(s / 60) + ' phút trước' : Math.floor(s / 3600) + ' giờ trước';
     tr.innerHTML = `<td style="color:var(--text-3);font-weight:700">${i + 1}</td>
-      <td><div class="ho" data-id="${escH(h.id)}"><span class="av" style="background:${h.mauAv}1f;color:${h.mauAv}">${escH(h.vietTat)}</span><div><b>Hộ ${escH(h.ten)}</b><small>${escH(h.thon)}</small></div></div></td>
+      <td><div class="ho" data-id="${escH(h.id)}"><span class="av" style="background:${h.mauAv}1f;color:${h.mauAv}">${escH(anHo(h) ? 'HD' : h.vietTat)}</span><div><b>Hộ ${escH(tenHo(h))}</b><small>${escH(h.thon)}</small></div></div></td>
       <td>${badge(nhan, mau, nen)}<span class="score">${d}</span></td>
       <td>${badgeTrangThai(h)}</td>
       <td><div class="water"><span class="bar"><i style="width:${pct}%;background:${mauNuoc}"></i></span><b>${h.muc.toFixed(1)}</b> cm</div></td>
-      <td>${xuHuong}</td><td>${nhom}</td><td>${escH(h.sdt)}</td>
+      <td>${xuHuong}</td><td>${nhom}</td><td>${escH(sdtHo(h))}</td>
       <td style="color:var(--text-3)">${capNhat}</td>
       <td>${nutCuDoi(h.id)}</td>`;
     tbody.appendChild(tr);
@@ -767,7 +773,7 @@ $('chiCanHoTro').onchange = veBang;
 $('btnCSV').onclick = () => {
   const dong = [['STT', 'Mức ưu tiên', 'Điểm', 'Hộ', 'Thôn', 'Điện thoại', 'Trạng thái', 'Mực nước (cm)', 'Người già', 'Trẻ nhỏ', 'Khuyết tật', 'Ở một mình', 'Đã cử đội', 'Người cử', 'Lúc cử']];
   hoHienThi().filter(canHoTro).map(h => ({ h, d: diemUuTien(h) })).sort((a, b) => b.d - a.d).forEach(({ h, d }, i) => {
-    dong.push([i + 1, nhanUuTien(d)[0], d, 'Hộ ' + h.ten, h.thon, h.sdt, matKetNoi(h) ? 'Mất kết nối' : TEN_TT[h.trangThai],
+    dong.push([i + 1, nhanUuTien(d)[0], d, 'Hộ ' + tenHo(h), h.thon, sdtHo(h), matKetNoi(h) ? 'Mất kết nối' : TEN_TT[h.trangThai],
       h.muc.toFixed(1), h.nguoiGia, h.treEm, h.khuyetTat, h.oMotMinh ? 'Có' : '', daCu(h.id) ? 'Có' : '',
       daCu(h.id) ? cuDoi[h.id].boi : '', daCu(h.id) ? new Date(cuDoi[h.id].luc).toLocaleString('vi-VN') : '']);
   });
@@ -937,7 +943,7 @@ function taoBaoCao() {
   d.push('');
   if (uu.length) {
     d.push(`2. CẦN HỖ TRỢ NGAY (${uu.length} hộ chưa cử đội${soCu ? ', ' + soCu + ' hộ đã cử đội' : ''}):`);
-    uu.slice(0, 5).forEach(({ h, diem }, i) => d.push(`   ${i + 1}) Hộ ${h.ten}, ${h.thon} [${nhanUuTien(diem)[0]}]: ${lyDoUuTien(h)}. ĐT ${h.sdt}`));
+    uu.slice(0, 5).forEach(({ h, diem }, i) => d.push(`   ${i + 1}) Hộ ${tenHo(h)}, ${h.thon} [${nhanUuTien(diem)[0]}]: ${lyDoUuTien(h)}. ĐT ${sdtHo(h)}`));
     if (uu.length > 5) d.push(`   … và ${uu.length - 5} hộ khác (xem bảng "Hộ cần ưu tiên").`);
   } else d.push(soCu ? `2. Các hộ cần hỗ trợ đều đã được cử đội (${soCu} hộ).` : '2. Chưa có hộ nào cần hỗ trợ.');
   d.push('', '3. VIỆC CẦN LÀM:');
@@ -1004,7 +1010,7 @@ setInterval(layMua, 30 * 60000);
 
 <!-- ===================== TÀI KHOẢN CÁN BỘ: đăng nhập, phân quyền, cử đội, nhật ký ===================== -->
 <script>window.FIREBASE_CONFIG = null;</script>
-<script src="../app/firebase-config.js?v=9"></script>
+<script src="../app/firebase-config.js?v=10"></script>
 <script type="module">
 // Dùng chung cấu hình Firebase với app người dân (../app/firebase-config.js).
 // Chưa cấu hình -> chế độ demo: tài khoản, nhật ký, cử đội lưu trên trình duyệt của máy này.
@@ -1234,8 +1240,9 @@ function hienTenXa() {
   $('tenXa').textContent = ten; $('dnTenXa').textContent = ten;
   document.title = 'Điều hành chống ngập · ' + ten;
 }
+const laKhachMay = () => nd && nd.vaiTro === 'khach' && TK.ten === 'firebase';  // khách khi đã bật Firebase
 function ghiNK(hanhDong) {
-  if (!nd) return;
+  if (!nd || laKhachMay()) return;
   TK.ghiNhatKy(nd, hanhDong).then(() => { if (nd && nd.vaiTro === 'quanTri') veNhatKy(); }).catch(() => {});
 }
 window.ghiNhatKyXa = ghiNK;
@@ -1245,9 +1252,8 @@ async function batDau() {
   const demo = TK.ten === 'demo';
   $('dnCheDo').textContent = demo ? 'Bản demo: tài khoản lưu trên trình duyệt của máy này.' : 'Kết nối máy chủ bảo mật.';
   $('tlCheDo').textContent = $('dnCheDo').textContent;
-  $('btnXemThu').style.display = demo ? '' : 'none';
   try { nd = await TK.khoiTao(); } catch { nd = null; }
-  if (!nd && demo && docJ('nln_xa_khach', false, sessionStorage)) nd = KHACH;
+  if (!nd && docJ('nln_xa_khach', false, sessionStorage)) nd = KHACH;
   let loiMang = false;
   try { caiDat = await TK.caiDatXa(); } catch { loiMang = true; }
   hienTenXa();
@@ -1268,8 +1274,9 @@ function vaoHeThong(ghiLog) {
   $('umEmail').textContent = nd.email || 'Chế độ xem thử';
   $('umDoiMk').style.display = nd.vaiTro === 'khach' ? 'none' : '';
   ['navCanBo', 'navNhatKy', 'can-bo', 'nhat-ky'].forEach(id => { $(id).style.display = laQT ? '' : 'none'; });
+  window.datAnDanh(nd.vaiTro === 'khach');
   window.datPhamVi(nd.vaiTro === 'thon' ? nd.thon : '');
-  if (!daTheoDoi) { daTheoDoi = true; TK.theoDoiCuDoi(ds => { cuDoiHienTai = ds; window.nhanCuDoi(ds); }); }
+  if (!daTheoDoi && !laKhachMay()) { daTheoDoi = true; TK.theoDoiCuDoi(ds => { cuDoiHienTai = ds; window.nhanCuDoi(ds); }); }
   if (laQT) { veCanBo(); veNhatKy(); }
   if (ghiLog) ghiNK('Đăng nhập hệ thống');
 }
@@ -1358,6 +1365,7 @@ $('btnDMK').onclick = () => cho($('btnDMK'), async () => {
 window.yeuCauCuDoi = async (maHo, co, tuDong) => {
   if (!nd || dangXuLyCuDoi.has(maHo)) return;
   if (tuDong && !cuDoiHienTai[maHo]) return;
+  if (laKhachMay()) { if (!tuDong) alert('Chế độ xem thử chỉ để xem. Đăng nhập tài khoản cán bộ để cử đội.'); return; }
   dangXuLyCuDoi.add(maHo);
   try {
     const ds = await TK.datCuDoi(maHo, co, nd);
