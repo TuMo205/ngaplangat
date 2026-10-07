@@ -1,6 +1,6 @@
 {
-  "name": "Ngập Là Ngắt – Cảnh báo ngập & tự ngắt điện",
-  "short_name": "Ngập Là Ngắt",
+  "name": "Thiết bị tự ngắt điện khi nhà bị ngập nước",
+  "short_name": "Thiết bị tự ngắt điện khi nhà bị ngập nước",
   "description": "Theo dõi mực nước trong nhà, AI dự báo nguy cơ ngập, tự ngắt điện tầng 1 khi nhà bị ngập.",
   "lang": "vi",
   "id": "./index.html",

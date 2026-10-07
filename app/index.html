@@ -11,8 +11,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Ngập Là Ngắt">
-<title>Ngập Là Ngắt</title>
+<meta name="apple-mobile-web-app-title" content="Thiết bị tự ngắt điện khi nhà bị ngập nước">
+<title>Thiết bị tự ngắt điện khi nhà bị ngập nước</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -361,6 +361,14 @@
     #tab-bieudo .card, #tab-bando .card { margin-top:12px; }
   }
 
+  /* Tên sản phẩm dài: tự xuống dòng, không đẩy chip kết nối ra ngoài màn hình */
+  .topbar { gap:12px; }
+  .logo { min-width:0; }
+  .logo .ten-sp { min-width:0; font-size:14px; line-height:1.25; letter-spacing:-.01em; }
+  .logo .ten-sp small { margin-top:2px; }
+  .conn { flex:none; }
+  @media (min-width:1000px) { nav.tabbar { padding-top:120px; } }  /* chừa chỗ cho tên 3 dòng ở đầu menu */
+
   /* Nút đăng nhập bằng mạng xã hội */
   .mxh { display:grid; gap:10px; }
   .nut-mxh { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; font:inherit; font-size:15px; font-weight:600;
@@ -417,7 +425,7 @@
   </div>
 
   <div class="man" data-man="dangnhap">
-    <div class="auth-dau"><img class="auth-icon" src="icons/icon-192.png" alt=""><h1>Đăng nhập</h1><div class="sub">Chào mừng bạn quay lại Ngập Là Ngắt</div></div>
+    <div class="auth-dau"><img class="auth-icon" src="icons/icon-192.png" alt=""><h1>Đăng nhập</h1><div class="sub">Thiết bị tự ngắt điện khi nhà bị ngập nước</div></div>
     <div class="loi" id="loiDN"></div>
     <div class="mxh" id="mxhDN"></div>
     <div class="hoac-mxh">hoặc dùng email, số điện thoại</div>
@@ -490,7 +498,7 @@
 <div class="topbar">
   <div class="logo">
     <div class="mark"><img src="icons/icon-192.png" alt=""></div>
-    <div>Ngập Là Ngắt<small id="tenNha">Nhà của tôi</small></div>
+    <div class="ten-sp">Thiết bị tự ngắt điện khi nhà bị ngập nước<small id="tenNha">Nhà của tôi</small></div>
   </div>
   <div class="tb-trang" id="tieuDeTrang">Tổng quan</div>
   <div class="conn" id="ketNoi"><span class="dot"></span><span id="ketNoiTxt">Đang kết nối</span></div>
@@ -501,7 +509,7 @@
   <section id="tab-tongquan" class="tab active">
     <div class="install" id="goiYCai">
       <img src="icons/icon-192.png" alt="">
-      <div class="t"><b>Cài Ngập Là Ngắt lên máy</b>Mở nhanh từ màn hình chính, nhận cảnh báo như app thật.</div>
+      <div class="t"><b>Cài app lên máy</b>Mở nhanh từ màn hình chính, nhận cảnh báo như app thật.</div>
       <button class="btn btn-primary" id="btnCaiNhanh">Cài đặt</button>
       <button class="x" id="btnBoQuaCai" aria-label="Đóng">×</button>
     </div>
@@ -616,7 +624,7 @@
         </ol>
       </div>
       <div class="field"><button class="btn btn-primary" id="btnCaiApp">Cài đặt app</button></div>
-      <div class="field"><div class="sub">Phiên bản 1.0 · Dự án "Ngập Là Ngắt" – Cuộc thi Học sinh, sinh viên với ý tưởng khởi nghiệp tỉnh Phú Thọ 2026–2027</div></div>
+      <div class="field"><div class="sub">Phiên bản 1.0 · Dự án "Thiết bị tự ngắt điện khi nhà bị ngập nước" – Cuộc thi Học sinh, sinh viên với ý tưởng khởi nghiệp tỉnh Phú Thọ 2026–2027</div></div>
     </div>
     <div class="group-t">Thông báo</div>
     <div class="card" style="margin-top:0">
@@ -824,7 +832,7 @@ function nhanDuLieu(d) {
       'Đã ngắt điện tầng một. Không chạm vào ổ cắm và thiết bị điện.',
     ][duLieu.trangthai];
     ghiNhatKy(loiBao, duLieu.trangthai);
-    thongBao('Ngập Là Ngắt: ' + TEN_TT[duLieu.trangthai], loiBao);
+    thongBao(TEN_TT[duLieu.trangthai], loiBao);  // tên app đã hiện sẵn ở đầu thông báo
     docTo(loiBao);
     ttTruoc = duLieu.trangthai;
   }
@@ -1022,7 +1030,7 @@ function capNhatNutCai() {
   $('goiYCai').classList.toggle('hien', coTheCai && !daBoQua);
   $('btnCaiApp').style.display = laApp ? 'none' : '';
   $('huongDanIOS').style.display = laIOS && !laApp ? '' : 'none';
-  $('trangThaiCai').textContent = laApp ? 'Đã cài: bạn đang dùng Ngập Là Ngắt như một app.'
+  $('trangThaiCai').textContent = laApp ? 'Đã cài: bạn đang dùng ứng dụng như một app thật.'
     : laIOS ? 'Trên iPhone, iPad: làm theo 3 bước dưới đây.'
     : suKienCai ? 'Bấm nút bên dưới để cài app lên máy.'
     : 'Mở trang bằng Chrome hoặc Edge, rồi chọn "Cài đặt ứng dụng" (hoặc "Thêm vào màn hình chính") trong menu ⋮.';
@@ -1337,7 +1345,7 @@ function moThietLap(cheDo) {
   $('tlHo').style.display = cheDo === 'them' ? 'none' : '';
   $('btnHuyTL').style.display = cheDo === 'dau' ? 'none' : '';
   $('tlTieuDe').textContent = { dau: 'Kết nối thiết bị', them: 'Thêm thiết bị', ho: 'Thông tin hộ gia đình' }[cheDo];
-  $('tlMoTa').textContent = { dau: 'Bước cuối: kết nối thiết bị Ngập Là Ngắt của nhà bạn', them: 'Thêm một ngôi nhà khác, ví dụ nhà bố mẹ',
+  $('tlMoTa').textContent = { dau: 'Bước cuối: kết nối thiết bị tự ngắt điện của nhà bạn', them: 'Thêm một ngôi nhà khác, ví dụ nhà bố mẹ',
     ho: 'Giúp xã ưu tiên cứu hộ đúng nhà khi lũ lớn' }[cheDo];
   $('btnLuuTL').textContent = cheDo === 'dau' ? 'Hoàn tất' : 'Lưu';
   if (cheDo !== 'ho') {
@@ -1500,7 +1508,7 @@ document.addEventListener('click', async e => {
 // ---------------- Điều khoản, chính sách ----------------
 const VAN_BAN = {
   dieukhoan: ['Điều khoản sử dụng', `
-    <p><b>1. Dịch vụ.</b> Ngập Là Ngắt cung cấp ứng dụng theo dõi mực nước, cảnh báo ngập và điều khiển thiết bị tự ngắt điện tầng 1 khi nhà bị ngập.</p>
+    <p><b>1. Dịch vụ.</b> Dự án "Thiết bị tự ngắt điện khi nhà bị ngập nước" cung cấp ứng dụng theo dõi mực nước, cảnh báo ngập và điều khiển thiết bị tự ngắt điện tầng 1 khi nhà bị ngập.</p>
     <p><b>2. Thiết bị là lớp bảo vệ bổ sung.</b> Thiết bị không thay thế cầu dao chống giật, hệ thống điện đạt chuẩn và hướng dẫn của chính quyền. Khi có lũ, người dùng vẫn phải chủ động sơ tán theo chỉ đạo của địa phương.</p>
     <p><b>3. Lắp đặt.</b> Phần nối vào điện lưới 220V phải do thợ điện có chuyên môn thực hiện.</p>
     <p><b>4. Trách nhiệm người dùng.</b> Cung cấp số điện thoại người thân chính xác, giữ bí mật mật khẩu, không dùng ứng dụng để điều khiển thiết bị của người khác.</p>

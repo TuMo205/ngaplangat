@@ -292,6 +292,10 @@
     .um-nut small { display:none; }
   }
 
+  /* Tên sản phẩm dài ở thanh bên: tự xuống dòng */
+  .logo .ten-sp { min-width:0; font-size:14px; line-height:1.25; }
+  .logo .ten-sp small { margin-top:2px; }
+
   /* Nút đăng nhập bằng mạng xã hội */
   .mxh { display:grid; gap:10px; }
   .nut-mxh { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; font:inherit; font-size:15px; font-weight:600;
@@ -334,7 +338,7 @@
 <!-- ===================== ĐĂNG NHẬP CÁN BỘ ===================== -->
 <div class="dn hien" id="manDN">
   <div class="dn-trai">
-    <div class="dn-logo"><div class="mark"><svg class="i"><use href="#i-drop"/></svg></div><div>Ngập Là Ngắt<small>Điều hành cấp xã</small></div></div>
+    <div class="dn-logo"><div class="mark"><svg class="i"><use href="#i-drop"/></svg></div><div>Thiết bị tự ngắt điện khi nhà bị ngập nước<small>Điều hành cấp xã</small></div></div>
     <div class="dn-giua">
       <h2>Hệ thống điều hành<br>phòng chống ngập</h2>
       <p>Theo dõi mọi hộ dân có lắp thiết bị, biết ngay nhà nào đang ngập, nhà nào có người già, trẻ nhỏ để ưu tiên cứu hộ.</p>
@@ -411,7 +415,7 @@
 <aside>
   <div class="logo">
     <div class="mark"><img src="../app/icons/icon-192.png" alt=""></div>
-    <div>Ngập Là Ngắt<small>Điều hành cấp xã</small></div>
+    <div class="ten-sp">Thiết bị tự ngắt điện khi nhà bị ngập nước<small>Điều hành cấp xã</small></div>
   </div>
   <nav>
     <a href="#tong-quan" class="active"><svg class="i"><use href="#i-grid"/></svg><span class="dai">Tổng quan</span><span class="ngan">Tổng quan</span></a>
