@@ -372,7 +372,7 @@
 
     <div class="man" data-man="thietlap">
       <button class="lui" data-den="dangnhap">‹ Quay lại đăng nhập</button>
-      <div class="dn-dau"><span class="dn-xa">Dùng được cho mọi xã, phường trên cả nước</span><h1>Đăng ký xã, phường</h1><div class="sub">Tạo tài khoản quản trị cho xã, phường của bạn. Quản trị viên sẽ cấp tài khoản cho các cán bộ khác.</div></div>
+      <div class="dn-dau"><span class="dn-xa">Dùng được cho mọi xã, phường trên cả nước</span><h1>Đăng ký xã, phường</h1><div class="sub">Dành cho cán bộ UBND xã, phường. Nhóm phát triển sẽ gọi điện xác minh với UBND xã trước khi kích hoạt, thường trong 1 ngày làm việc.</div></div>
       <div class="loi" id="loiTL"></div>
       <div class="hai-cot">
         <label class="o"><span>Tỉnh, thành phố</span><select id="tlTinh"></select></label>
@@ -380,11 +380,23 @@
       </div>
       <div class="dn-ghi" id="tlGoiY" style="text-align:left;margin:-6px 0 14px"></div>
       <label class="o"><span>Họ tên quản trị viên</span><input id="tlHoTen" autocomplete="name"></label>
+      <div class="hai-cot">
+        <label class="o"><span>Chức vụ</span><input id="tlChucVu" placeholder="VD: Công chức Văn phòng"></label>
+        <label class="o"><span>Số điện thoại</span><input id="tlSdt" type="tel" inputmode="tel" autocomplete="tel" placeholder="Để xác minh"></label>
+      </div>
       <label class="o"><span>Email</span><input id="tlEmail" type="email" autocomplete="username" autocapitalize="off"></label>
       <label class="o"><span>Mật khẩu (ít nhất 8 ký tự)</span><div class="mk"><input id="tlMk" type="password" autocomplete="new-password"><button type="button" class="hien-mk" data-cho="tlMk">Hiện</button></div></label>
       <label class="o"><span>Nhập lại mật khẩu</span><input id="tlMk2" type="password" autocomplete="new-password"></label>
-      <button class="btn btn-primary btn-day" id="btnTL">Tạo tài khoản quản trị</button>
+      <button class="btn btn-primary btn-day" id="btnTL">Gửi đăng ký</button>
       <div class="dn-ghi" id="tlCheDo"></div>
+    </div>
+
+    <div class="man" data-man="dagui">
+      <div class="dn-dau"><span class="dn-xa">Đã gửi đăng ký</span><h1>Đang chờ xác minh</h1>
+        <div class="sub" id="daGuiTxt"></div></div>
+      <div class="dn-ghi" style="text-align:left;margin-bottom:18px">Nhóm phát triển sẽ gọi vào số điện thoại bạn đã đăng ký để xác minh với UBND xã.
+        Sau khi được duyệt, bạn đăng nhập bằng email và mật khẩu vừa tạo. Trong lúc chờ, bạn vẫn xem thử được bản đồ của xã.</div>
+      <button class="btn btn-primary btn-day" data-den="dangnhap">Về trang đăng nhập</button>
     </div>
 
     <div class="man" data-man="quenmk">
@@ -457,6 +469,7 @@
     <a href="#bao-cao"><svg class="i"><use href="#i-doc"/></svg><span class="dai">Báo cáo nhanh</span><span class="ngan">Báo cáo</span></a>
     <a href="#thong-ke"><svg class="i"><use href="#i-chart"/></svg><span class="dai">Thống kê</span><span class="ngan">Thống kê</span></a>
     <a href="#can-bo" id="navCanBo" style="display:none"><svg class="i"><use href="#i-user"/></svg><span class="dai">Cán bộ</span><span class="ngan">Cán bộ</span></a>
+    <a href="#duyet-xa" id="navDuyet" style="display:none"><svg class="i"><use href="#i-check"/></svg><span class="dai">Duyệt xã đăng ký</span><span class="ngan">Duyệt xã</span></a>
     <a href="#nhat-ky" id="navNhatKy" style="display:none"><svg class="i"><use href="#i-clock"/></svg><span class="dai">Nhật ký</span><span class="ngan">Nhật ký</span></a>
   </nav>
   <div class="side-foot"><b>Số liệu thật</b>Chỉ hiện các hộ có lắp thiết bị và đồng ý chia sẻ với xã. Bảng chỉ để theo dõi, không điều khiển điện nhà dân.</div>
@@ -584,6 +597,21 @@
         </table>
       </div>
       <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span><b>Quản trị:</b> toàn quyền, quản lý tài khoản. <b>Cán bộ xã:</b> xem toàn xã, cử đội, tạo báo cáo. <b>Trưởng thôn:</b> chỉ xem và cử đội cho các hộ trong thôn mình phụ trách.</span></div>
+    </section>
+
+    <!-- DUYỆT XÃ ĐĂNG KÝ (chỉ nhóm phát triển) -->
+    <section class="card full" id="duyet-xa" style="display:none">
+      <div class="card-h">
+        <div class="card-t"><span class="ic"><svg class="i"><use href="#i-check"/></svg></span><div>Duyệt xã, phường đăng ký<small id="demDuyet">—</small></div></div>
+        <button class="btn btn-ghost" id="btnTaiDuyet">Làm mới</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Xã, phường</th><th>Người đăng ký</th><th>Liên hệ</th><th>Gửi lúc</th><th></th></tr></thead>
+          <tbody id="bangDuyet"></tbody>
+        </table>
+      </div>
+      <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span>Gọi vào số điện thoại người đăng ký, hoặc số UBND xã trên cổng thông tin của tỉnh, để xác minh đúng là cán bộ xã rồi mới bấm Duyệt. Từ chối thì xã đó được đăng ký lại.</span></div>
     </section>
 
     <!-- NHẬT KÝ THAO TÁC (chỉ quản trị) -->
@@ -1093,7 +1121,7 @@ $('btnChepBC').onclick = async () => {
 const quanSat = new IntersectionObserver(es => es.forEach(e => {
   if (e.isIntersecting) document.querySelectorAll('aside nav a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
 }), { rootMargin: '-40% 0px -55% 0px' });
-['tong-quan', 'ban-do', 'uu-tien', 'bao-cao', 'thong-ke', 'can-bo', 'nhat-ky'].forEach(id => quanSat.observe($(id)));
+['tong-quan', 'ban-do', 'uu-tien', 'bao-cao', 'thong-ke', 'can-bo', 'duyet-xa', 'nhat-ky'].forEach(id => quanSat.observe($(id)));
 
 // ===================== VÒNG LẶP =====================
 // Gọi từ phần tài khoản
@@ -1133,7 +1161,7 @@ setInterval(layMua, 30 * 60000);
 // Chưa cấu hình -> chế độ demo: tài khoản, nhật ký, cử đội lưu trên trình duyệt của máy này.
 const $ = id => document.getElementById(id);
 const cfg = window.FIREBASE_CONFIG;
-const VAI_TRO = { quanTri: 'Quản trị', canBo: 'Cán bộ xã', thon: 'Trưởng thôn', khach: 'Khách tham quan' };
+const VAI_TRO = { quanTri: 'Quản trị', canBo: 'Cán bộ xã', thon: 'Trưởng thôn', khach: 'Khách tham quan', sieuQuanTri: 'Nhóm phát triển' };
 const MAU_VT = { quanTri: ['var(--ai)', 'var(--ai-soft)'], canBo: ['var(--primary)', 'var(--primary-soft)'], thon: ['var(--ok)', 'var(--ok-soft)'], khach: ['var(--off)', 'var(--off-soft)'] };
 const KHACH = { id: 'khach', hoTen: 'Khách tham quan', email: '', vaiTro: 'khach', thon: '', trangThai: 'hoatDong' };
 // Nhiều xã, phường: mỗi cán bộ thuộc một xã (trường xa = mã xã của Tổng cục Thống kê).
@@ -1210,6 +1238,7 @@ const Demo = {
     return this.congKhai(u);
   },
   async layXa(ma) { const c = docJ('nln_xa_caiDat', null); return c && (c.xa || MA_XA_CU) === ma ? c : null; },
+  async dsChoDuyet() { return []; },
   async taoCanBo({ hoTen, email, mk, vaiTro, thon, xa }) {
     const ds = this.canBo();
     if (ds[email]) throw { code: 'trung' };
@@ -1279,15 +1308,48 @@ const Firebase = {
     try { await au.getRedirectResult(this.auth); } catch (e) { this.loiChuyenHuong = e; }  // hoàn tất đăng nhập Google kiểu chuyển hướng
     await this.auth.authStateReady();
     if (!this.auth.currentUser) return null;
-    try { return await this.layCanBo(this.auth.currentUser.uid); }
-    catch (e) { await au.signOut(this.auth); this.loiChuyenHuong = e; return null; }
+    try { return await this.sauDangNhap(this.auth.currentUser); }
+    catch (e) { this.loiChuyenHuong = e; return null; }
   },
   async layCanBo(uid) {
     const s = await this.fs.getDoc(this.fs.doc(this.db, 'canBo', uid));
     if (!s.exists()) throw { code: 'khong-phai-can-bo' };
     const d = Object.assign({ id: uid }, s.data());
+    if (d.trangThai === 'choDuyet') throw { code: 'cho-duyet' };
     if (d.trangThai !== 'hoatDong') throw { code: 'bi-khoa' };
     return d;
+  },
+  // Sau khi đăng nhập: cán bộ của một xã, hoặc tài khoản nhóm phát triển (chỉ duyệt xã, không xem thông tin hộ dân)
+  async sauDangNhap(u) {
+    let nd = null, loi = null;
+    try { nd = await this.layCanBo(u.uid); } catch (e) { loi = e; }
+    const sieu = await this.laSieu();
+    if (nd) return Object.assign(nd, { sieu });
+    if (sieu && loi.code === 'khong-phai-can-bo') return { id: u.uid, hoTen: u.displayName || u.email, email: u.email, vaiTro: 'sieuQuanTri', sieu: true, xa: maXaUrl() || MA_XA_CU };
+    await this.au.signOut(this.auth);
+    throw loi;
+  },
+  // Máy chủ chỉ cho tài khoản nhóm phát triển đọc danh sách đăng ký chờ duyệt
+  async laSieu() {
+    try { await this.fs.getDocs(this.fs.query(this.fs.collection(this.db, 'canBo'), this.fs.where('trangThai', '==', 'choDuyet'), this.fs.limit(1))); return true; }
+    catch { return false; }
+  },
+  async dsChoDuyet() {
+    const q = this.fs.query(this.fs.collection(this.db, 'canBo'), this.fs.where('trangThai', '==', 'choDuyet'));
+    return (await this.fs.getDocs(q)).docs.map(d => Object.assign({ id: d.id }, d.data()));
+  },
+  async duyetXa(u, dongY) {
+    const b = this.fs.writeBatch(this.db), luc = new Date().toISOString();
+    const refXa = this.fs.doc(this.db, 'dsXa', u.xa), xa = await this.fs.getDoc(refXa);
+    const cuaNguoiNay = xa.exists() && xa.data().uidQuanTri === u.id;
+    if (dongY) {
+      b.update(this.fs.doc(this.db, 'canBo', u.id), { trangThai: 'hoatDong', duyetLuc: luc });
+      if (cuaNguoiNay) b.update(refXa, { trangThai: 'daDuyet', duyetLuc: luc });
+    } else {
+      b.delete(this.fs.doc(this.db, 'canBo', u.id));
+      if (cuaNguoiNay) b.delete(refXa);
+    }
+    await b.commit();
   },
   // Cài đặt của một xã (dsXa/<mã xã>). Xã Đoan Hùng dùng từ bản một xã thì còn ở xa/caiDat.
   async layXa(ma) {
@@ -1298,20 +1360,22 @@ const Firebase = {
     return cu.exists() ? cu.data() : null;
   },
   // Đăng ký xã mới: tạo tài khoản quản trị và cài đặt xã cùng lúc (máy chủ chỉ cho phép khi xã chưa có quản trị)
-  async thietLapLanDau({ xa, tenXa, tinh, hoTen, email, mk }) {
+  // Xã mới ở trạng thái chờ duyệt: nhóm phát triển xác minh với UBND xã rồi mới kích hoạt. Trả về null (chưa đăng nhập được).
+  async thietLapLanDau({ xa, tenXa, tinh, hoTen, chucVu, sdt, email, mk }) {
     if (await this.layXa(xa)) throw { code: 'xa-da-co' };
     const c = await this.au.createUserWithEmailAndPassword(this.auth, email, mk);
     const luc = new Date().toISOString(), b = this.fs.writeBatch(this.db);
-    b.set(this.fs.doc(this.db, 'canBo', c.user.uid), { email, hoTen, vaiTro: 'quanTri', thon: '', trangThai: 'hoatDong', taoLuc: luc, xa });
-    b.set(this.fs.doc(this.db, 'dsXa', xa), { tenXa, tinh, dsThon: [], taoLuc: luc });
+    b.set(this.fs.doc(this.db, 'canBo', c.user.uid), { email, hoTen, chucVu, sdt, vaiTro: 'quanTri', thon: '', trangThai: 'choDuyet', taoLuc: luc, xa });
+    b.set(this.fs.doc(this.db, 'dsXa', xa), { tenXa, tinh, dsThon: [], taoLuc: luc, trangThai: 'choDuyet', uidQuanTri: c.user.uid });
     try { await b.commit(); }
     catch (e) { try { await this.au.deleteUser(c.user); } catch {} throw e && e.code === 'permission-denied' ? { code: 'xa-da-co' } : e; }
-    return this.layCanBo(c.user.uid);
+    await this.au.signOut(this.auth);
+    return null;
   },
   async dangNhap(email, mk, nho) {
     await this.au.setPersistence(this.auth, nho ? this.au.browserLocalPersistence : this.au.browserSessionPersistence);
     const c = await this.au.signInWithEmailAndPassword(this.auth, email, mk);
-    try { return await this.layCanBo(c.user.uid); } catch (e) { await this.au.signOut(this.auth); throw e; }
+    return this.sauDangNhap(c.user);
   },
   // Cán bộ dùng Gmail: quản trị tạo tài khoản bằng đúng địa chỉ Gmail đó, cán bộ bấm "Tiếp tục với Google".
   // Tài khoản Google chưa có trong danh sách cán bộ thì bị từ chối và đăng xuất ngay.
@@ -1319,7 +1383,7 @@ const Firebase = {
     await this.au.setPersistence(this.auth, nho ? this.au.browserLocalPersistence : this.au.browserSessionPersistence);
     const u = await window.dangNhapMXH(this.au, this.auth, ten);
     if (!u) return null;
-    try { return await this.layCanBo(u.uid); } catch (e) { await this.au.signOut(this.auth); throw e; }
+    return this.sauDangNhap(u);
   },
   async dangXuat() { await this.au.signOut(this.auth); },
   async quenMatKhau(email) { await this.au.sendPasswordResetEmail(this.auth, email); },
@@ -1380,7 +1444,8 @@ const LOI = {
   'sai-mk-cu': 'Mật khẩu hiện tại chưa đúng.', 'auth/weak-password': 'Mật khẩu quá yếu.', 'auth/invalid-email': 'Email không hợp lệ.',
   'auth/network-request-failed': 'Không có mạng, vui lòng thử lại.', 'auth/too-many-requests': 'Thử sai quá nhiều lần, vui lòng đợi ít phút.',
   'permission-denied': 'Bạn không có quyền thực hiện thao tác này.', 'da-thiet-lap': 'Hệ thống đã được thiết lập trước đó.',
-  'xa-da-co': 'Xã, phường này đã có quản trị viên. Liên hệ quản trị viên của xã để được cấp tài khoản cán bộ.',
+  'xa-da-co': 'Xã, phường này đã có người đăng ký (đang hoạt động hoặc chờ duyệt). Liên hệ quản trị viên của xã để được cấp tài khoản cán bộ.',
+  'cho-duyet': 'Đăng ký của xã đang chờ nhóm phát triển xác minh. Bạn đăng nhập được ngay sau khi được duyệt.',
   'demo-quen': 'Bản demo lưu tài khoản trên máy này nên không gửi email được. Nhờ quản trị viên tạo lại tài khoản.',
   'demo-mxh': 'Đăng nhập bằng Google cần bật máy chủ Firebase (xem app/HUONG_DAN_FIREBASE.txt). Trong lúc chờ, hãy dùng email cán bộ.',
   'auth/popup-closed-by-user': '', 'auth/cancelled-popup-request': '', 'auth/user-cancelled': '',
@@ -1422,7 +1487,8 @@ function hienTenXa() {
   $('tenTinh').textContent = caiDat && caiDat.tinh ? caiDat.tinh + ' · ' : '';
   document.title = 'Điều hành chống ngập' + (ten ? ' · ' + ten : '');
 }
-const laKhachMay = () => nd && nd.vaiTro === 'khach' && TK.ten === 'firebase';  // khách khi đã bật Firebase
+// Chỉ xem (không đọc thông tin hộ dân): khách, và nhóm phát triển khi không phải cán bộ xã nào
+const laKhachMay = () => nd && (nd.vaiTro === 'khach' || nd.vaiTro === 'sieuQuanTri') && TK.ten === 'firebase';
 function ghiNK(hanhDong) {
   if (!nd || laKhachMay()) return;
   TK.ghiNhatKy(nd, hanhDong).then(() => { if (nd && nd.vaiTro === 'quanTri') veNhatKy(); }).catch(() => {});
@@ -1459,11 +1525,14 @@ async function vaoHeThong(ghiLog) {
   $('umVaiTro').textContent = VAI_TRO[nd.vaiTro] + (nd.thon ? ' · ' + nd.thon : '');
   $('umTen2').textContent = nd.hoTen;
   $('umEmail').textContent = nd.email || 'Chế độ xem thử';
-  $('umDoiMk').style.display = nd.vaiTro === 'khach' ? 'none' : '';
+  $('umDoiMk').style.display = nd.vaiTro === 'khach' || nd.vaiTro === 'sieuQuanTri' ? 'none' : '';
   ['navCanBo', 'navNhatKy', 'can-bo', 'nhat-ky'].forEach(id => { $(id).style.display = laQT ? '' : 'none'; });
   $('umCaiDat').style.display = laQT ? '' : 'none';
-  $('umDoiXa').style.display = nd.vaiTro === 'khach' ? '' : 'none';
-  window.datAnDanh(nd.vaiTro === 'khach');
+  const chiXem = nd.vaiTro === 'khach' || nd.vaiTro === 'sieuQuanTri';
+  $('umDoiXa').style.display = chiXem ? '' : 'none';
+  ['navDuyet', 'duyet-xa'].forEach(id => { $(id).style.display = nd.sieu ? '' : 'none'; });
+  if (nd.sieu) veDuyet();
+  window.datAnDanh(chiXem);
   window.datPhamVi(nd.vaiTro === 'thon' ? nd.thon : '');
   theoDoiHoDan();
   if (huyCuDoi) { huyCuDoi(); huyCuDoi = null; }
@@ -1495,14 +1564,23 @@ $('dnMk').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnDN').c
 
 $('btnTL').onclick = () => cho($('btnTL'), async () => {
   const xa = $('tlXa').value, hoTen = $('tlHoTen').value.trim(), email = $('tlEmail').value.trim().toLowerCase(), mk = $('tlMk').value;
+  const chucVu = $('tlChucVu').value.trim().slice(0, 60), sdt = $('tlSdt').value.replace(/[^\d+]/g, '').slice(0, 15);
   if (!/^\d{5}$/.test(xa)) return loi('loiTL', 'Chọn tỉnh, thành phố và xã, phường.');
+  if (chucVu.length < 2) return loi('loiTL', 'Nhập chức vụ của bạn tại UBND xã.');
+  if (!/^(\+84|0)\d{9,10}$/.test(sdt)) return loi('loiTL', 'Nhập số điện thoại để nhóm phát triển gọi xác minh.');
   if (hoTen.length < 2) return loi('loiTL', 'Nhập họ tên quản trị viên.');
   if (!laEmail(email)) return loi('loiTL', 'Email không hợp lệ.');
   if (mk.length < 8) return loi('loiTL', 'Mật khẩu quản trị cần ít nhất 8 ký tự.');
   if (mk !== $('tlMk2').value) return loi('loiTL', 'Hai mật khẩu chưa khớp nhau.');
   try {
     const x = (await napDVHC()).xa.get(xa);
-    nd = await TK.thietLapLanDau({ xa, tenXa: x.ten, tinh: x.tinh, hoTen, email, mk });
+    const u = await TK.thietLapLanDau({ xa, tenXa: x.ten, tinh: x.tinh, hoTen, chucVu, sdt, email, mk });
+    ['tlMk', 'tlMk2'].forEach(id => { $(id).value = ''; });
+    if (!u) {  // máy chủ thật: chờ duyệt
+      $('daGuiTxt').textContent = `${x.ten}, ${x.tinh}. Người đăng ký: ${hoTen} (${chucVu}), ${sdt}.`;
+      return man('dagui');
+    }
+    nd = u;
     await vaoHeThong(false);
     ghiNK('Đăng ký ' + x.ten + ', tạo tài khoản quản trị');
   } catch (e) { loi('loiTL', loiTV(e)); }
@@ -1536,14 +1614,14 @@ $('mxhXa').addEventListener('click', e => {
   });
 });
 
-function moChonXa() { dungChonXa('cx', (nd && nd.vaiTro === 'khach' && nd.xa) || maXaUrl() || MA_XA_CU); moMD('mdChonXa'); }
+function moChonXa() { dungChonXa('cx', (nd && nd.xa) || maXaUrl() || MA_XA_CU); moMD('mdChonXa'); }
 $('btnXemThu').onclick = moChonXa;
 $('umDoiXa').onclick = () => { $('umDrop').classList.remove('hien'); moChonXa(); };
 $('btnChonXa').onclick = () => cho($('btnChonXa'), async () => {
   const xa = $('cxXa').value;
   if (!/^\d{5}$/.test(xa)) return loi('loiCX', 'Chọn tỉnh, thành phố và xã, phường.');
-  nd = Object.assign({}, KHACH, { xa });
-  ghiJ('nln_xa_khach', xa, sessionStorage);
+  if (nd && nd.vaiTro === 'sieuQuanTri') nd = Object.assign({}, nd, { xa });
+  else { nd = Object.assign({}, KHACH, { xa }); ghiJ('nln_xa_khach', xa, sessionStorage); }
   dongMD('mdChonXa');
   await vaoHeThong(true);
 });
@@ -1556,6 +1634,7 @@ $('umDangXuat').onclick = async () => {
   if (!confirm('Đăng xuất khỏi hệ thống?')) return;
   ghiNK('Đăng xuất');
   if (nd && nd.vaiTro !== 'khach') { try { await TK.dangXuat(); } catch {} }
+  ['navDuyet', 'duyet-xa'].forEach(id => { $(id).style.display = 'none'; });
   ghiJ('nln_xa_khach', null, sessionStorage);
   nd = null;
   theoDoiHoDan();  // xoá thông tin hộ dân khỏi màn hình
@@ -1688,6 +1767,34 @@ $('btnThemCB').onclick = () => cho($('btnThemCB'), async () => {
     alert('Đã tạo tài khoản cho ' + hoTen + '.\n\nGửi cho cán bộ:\n• Email: ' + email + '\n• Mật khẩu tạm: ' + mk + '\n\nNhắc cán bộ đổi mật khẩu sau lần đăng nhập đầu tiên.');
   } catch (e) { loi('loiCB', loiTV(e)); }
 });
+
+// ---------------- Duyệt xã đăng ký (nhóm phát triển) ----------------
+async function veDuyet() {
+  let ds, d;
+  try { [ds, d] = await Promise.all([TK.dsChoDuyet(), napDVHC().catch(() => null)]); }
+  catch (e) { $('bangDuyet').innerHTML = `<tr><td colspan="5" class="empty">${esc(loiTV(e))}</td></tr>`; return; }
+  ds.sort((a, b) => String(a.taoLuc).localeCompare(String(b.taoLuc)));
+  $('demDuyet').textContent = ds.length ? ds.length + ' xã, phường đang chờ duyệt' : 'Không có đăng ký nào đang chờ';
+  $('bangDuyet').innerHTML = ds.length ? ds.map(u => {
+    const x = d && d.xa.get(u.xa);
+    return `<tr><td><b>${esc(x ? x.ten : 'Mã ' + u.xa)}</b><br><small style="color:var(--text-3)">${esc(x ? x.tinh : '')} · mã ${esc(u.xa)}</small></td>
+      <td><b>${esc(u.hoTen)}</b><br><small style="color:var(--text-3)">${esc(u.chucVu || '')}</small></td>
+      <td>${u.sdt ? `<a href="tel:${esc(u.sdt)}">${esc(u.sdt)}</a><br>` : ''}<small style="color:var(--text-3)">${esc(u.email)}</small></td>
+      <td style="color:var(--text-3)">${esc(ngayGio(u.taoLuc))}</td>
+      <td style="white-space:nowrap"><button class="act" data-duyet="${esc(u.id)}">Duyệt</button> <button class="act" data-tuchoi="${esc(u.id)}">Từ chối</button></td></tr>`;
+  }).join('') : '<tr><td colspan="5" class="empty">Không có đăng ký nào đang chờ duyệt.</td></tr>';
+  veDuyet.ds = ds;
+}
+$('btnTaiDuyet').onclick = veDuyet;
+$('bangDuyet').onclick = async e => {
+  const b = e.target.closest('[data-duyet],[data-tuchoi]');
+  if (!b) return;
+  const dongY = !!b.dataset.duyet, u = (veDuyet.ds || []).find(x => x.id === (b.dataset.duyet || b.dataset.tuchoi));
+  if (!u) return;
+  const ten = (await napDVHC().catch(() => null))?.xa.get(u.xa)?.ten || u.xa;
+  if (!confirm(dongY ? `Duyệt ${ten}? ${u.hoTen} sẽ thành quản trị viên của xã.` : `Từ chối đăng ký ${ten} của ${u.hoTen}?`)) return;
+  try { await TK.duyetXa(u, dongY); veDuyet(); } catch (er) { alert(loiTV(er)); }
+};
 
 // ---------------- Nhật ký thao tác (quản trị) ----------------
 async function veNhatKy() {
