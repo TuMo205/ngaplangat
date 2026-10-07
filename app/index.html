@@ -879,7 +879,7 @@
       <div class="field switch-row"><div><b style="font-size:14px">Phiên bản <span id="phienBanApp"></span></b>
         <div class="sub">App tự cập nhật mỗi khi mở, không cần gỡ ra cài lại.</div></div>
         <button class="act" id="btnKiemTraCapNhat">Kiểm tra</button></div>
-      <div class="field"><div class="sub">Dự án "Thiết bị tự ngắt điện khi nhà bị ngập nước" – Cuộc thi Học sinh, sinh viên với ý tưởng khởi nghiệp tỉnh Phú Thọ 2026–2027</div></div>
+      <div class="field"><div class="sub">Thiết bị tự ngắt điện khi nhà bị ngập nước · Sản phẩm của Trường THCS Đoan Hùng, Phú Thọ.</div></div>
     </div>
     <div class="group-t">Hỗ trợ</div>
     <div class="card" style="margin-top:0;padding-top:6px;padding-bottom:6px">
@@ -916,7 +916,7 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.9.1';
+const PHIEN_BAN_APP = '1.9.2';
 const CO_GI_MOI = [
   'Thêm thiết bị bằng mã thiết bị và mã kích hoạt in trên tem (hoặc quét QR trên tem): app không nhận mã sai.',
   'Loại nhà (1 đến 5 tầng) tự lấy theo thiết bị. Vị trí lấy bằng GPS khi đứng cạnh thiết bị (có hiện sai số), hoặc nhập tay.',
@@ -1346,7 +1346,8 @@ function capNhatBanDo() {
   for (const [id, d] of cacNha) {
     let m = dauCham.get(id);
     if (!m) {
-      m = d.laNhaToi ? L.marker([d.lat, d.lon], { zIndexOffset: 1000 }) : L.circleMarker([d.lat, d.lon], { radius: 9, weight: 2, fillOpacity: .9 });
+      m = d.laNhaToi ? L.marker([d.lat, d.lon], { zIndexOffset: 1000, icon: L.divIcon({ className: '', iconSize: [38, 38] }) })
+        : L.circleMarker([d.lat, d.lon], { radius: 9, weight: 2, fillOpacity: .9 });
       m.addTo(banDo); dauCham.set(id, m);
     }
     m.setLatLng([d.lat, d.lon]);
@@ -1906,7 +1907,7 @@ document.addEventListener('click', async e => {
 $('btnKhach').onclick = () => {
   laKhach = true;
   hoSo = hoSoMoi({ hoTen: 'Khách' });
-  hoSo.thietBi = [{ ma: 'nln-doanhung-001', ten: 'Mô hình dự thi', lat: 21.62, lon: 105.18, soTang: 2, xacMinh: true, xa: '07969', tenXa: 'Xã Đoan Hùng', tinh: 'Tỉnh Phú Thọ', thon: '' }];
+  hoSo.thietBi = [{ ma: 'nln-doanhung-001', ten: 'Nhà mẫu', lat: 21.62, lon: 105.18, soTang: 2, xacMinh: true, xa: '07969', tenXa: 'Xã Đoan Hùng', tinh: 'Tỉnh Phú Thọ', thon: '' }];
   hoSo.thietBiChon = 'nln-doanhung-001';
   hoSo.nguoiGia = 1; hoSo.treEm = 1;
   ghiJ('nln_khach', hoSo);
@@ -2202,7 +2203,7 @@ const VAN_BAN = {
     <p><b>Chia sẻ:</b> thông tin hộ gia đình chỉ được chia sẻ với UBND xã khi bạn bật "Đồng ý chia sẻ", lưu trên máy chủ bảo mật và chỉ cán bộ xã có tài khoản mới xem được (trưởng thôn chỉ xem hộ trong thôn mình). Tắt "Đồng ý chia sẻ" hoặc xoá thiết bị thì thông tin bị xoá khỏi bảng của xã. Chúng tôi không bán dữ liệu.</p>
     <p><b>Mật khẩu:</b> được mã hoá, nhóm phát triển không xem được mật khẩu của bạn.</p>
     <p><b>Quyền của bạn:</b> xem, sửa thông tin bất kỳ lúc nào trong mục Tài khoản; xoá tài khoản cùng toàn bộ dữ liệu bằng nút "Xoá tài khoản".</p>
-    <p class="sub">Bản thử nghiệm phục vụ cuộc thi "Học sinh, sinh viên với ý tưởng khởi nghiệp" tỉnh Phú Thọ năm học 2026–2027.</p>`],
+    <p class="sub">Sản phẩm của Trường THCS Đoan Hùng, Phú Thọ.</p>`],
   camnang: ['Cẩm nang an toàn khi ngập', `
     <h4>Trước mùa mưa lũ</h4>
     <ul><li>Lưu số người thân trong app để thiết bị nhắn tin, gọi điện khi nước vào nhà.</li>
