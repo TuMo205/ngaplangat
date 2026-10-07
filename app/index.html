@@ -71,6 +71,7 @@
   .o > span { display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--text-2); }
   .o input { width:100%; font:inherit; font-size:15.5px; padding:13px 14px; border-radius:14px; border:1.5px solid var(--line); background:var(--surface); color:var(--text); outline:none; }
   .o input:focus { border-color:var(--primary); box-shadow:0 0 0 4px var(--primary-soft); }
+  .o select { width:100%; font:inherit; font-size:15px; padding:12px 14px; border-radius:14px; border:1.5px solid var(--line); background:var(--surface); color:var(--text); }
   .mk { position:relative; }
   .mk input { padding-right:82px; }
   .hien-mk { position:absolute; right:6px; top:50%; transform:translateY(-50%); border:none; background:var(--surface-2); color:var(--primary);
@@ -374,6 +375,10 @@
   .nha .den.tat .quang { opacity:0; }
   .nha .den.tat .bong { fill:var(--surface); stroke:var(--text-3); }
   .nha .vach { stroke-width:3; stroke-linecap:round; }
+  .nha .o-cam rect { fill:var(--surface); stroke:#0e9f6e; stroke-width:1.6; transition:stroke .3s; }
+  .nha .o-cam circle { fill:#0e9f6e; transition:fill .3s; }
+  .nha .o-cam.tat rect { stroke:var(--text-3); }
+  .nha .o-cam.tat circle { fill:var(--text-3); }
   .nha-so { margin-top:4px; white-space:nowrap; }
   .nha-so b { font-size:26px; font-weight:800; letter-spacing:-.02em; }
   .nha-so span { font-size:12px; color:var(--text-3); margin-left:3px; }
@@ -496,6 +501,10 @@
       <div class="nhom-t">Thiết bị</div>
       <label class="o"><span>Mã thiết bị (in trên tem dán ở hộp)</span><div class="mk"><input id="tlMa" placeholder="VD: nln-doanhung-001" autocapitalize="off"><button type="button" class="hien-mk" id="btnQuetQR">Quét QR</button></div></label>
       <label class="o"><span>Đặt tên cho ngôi nhà</span><input id="tlTenNha" placeholder="VD: Nhà ở Đoan Hùng"></label>
+      <label class="o"><span>Loại nhà</span><select id="tlLoaiNha">
+        <option value="2">Nhà 2 tầng trở lên: ngắt tầng 1 trước, giữ điện tầng 2</option>
+        <option value="1">Nhà 1 tầng: ngắt mạch ổ cắm trước, giữ đèn sáng để sơ tán</option>
+      </select></label>
       <div class="hang2"><label class="o"><span>Vĩ độ</span><input id="tlLat" type="number" step="0.0001"></label><label class="o"><span>Kinh độ</span><input id="tlLon" type="number" step="0.0001"></label></div>
       <button type="button" class="btn btn-ghost" id="btnViTri">Lấy vị trí hiện tại</button>
     </div>
@@ -542,7 +551,7 @@
     <div class="hero cho" id="theTT">
       <div class="hero-row">
         <div class="nha">
-          <svg viewBox="0 0 120 120" role="img" aria-label="Ngôi nhà: mực nước và điện từng tầng">
+          <svg id="nhaHai" viewBox="0 0 120 120" role="img" aria-label="Ngôi nhà 2 tầng: mực nước và điện từng tầng">
             <defs><clipPath id="trongNha"><rect x="19" y="51" width="82" height="57"/></clipPath></defs>
             <rect class="than" x="18" y="50" width="84" height="58" rx="2"/>
             <g clip-path="url(#trongNha)">
@@ -557,6 +566,20 @@
             <g id="den2" class="den tat"><circle class="quang" cx="60" cy="60" r="10"/><circle class="bong" cx="60" cy="60" r="4.5"/></g>
             <g id="den1" class="den tat"><circle class="quang" cx="60" cy="90" r="10"/><circle class="bong" cx="60" cy="90" r="4.5"/></g>
             <path class="mai" d="M10 54 L60 16 L110 54"/>
+            <line class="dat" x1="4" y1="108.5" x2="116" y2="108.5"/>
+          </svg>
+          <svg id="nhaMot" viewBox="0 0 120 120" role="img" aria-label="Nhà 1 tầng: mực nước, mạch ổ cắm và mạch đèn" style="display:none">
+            <defs><clipPath id="trongNhaM"><rect x="19" y="63" width="82" height="45"/></clipPath></defs>
+            <rect class="than" x="18" y="62" width="84" height="46" rx="2"/>
+            <g clip-path="url(#trongNhaM)">
+              <g id="nuocNhaM" class="nuoc" style="transform:translateY(108px)"><path class="song" d="M-6 0 q6 -3.5 12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 V70 H-6 Z"/></g>
+            </g>
+            <line id="vachCBM" class="vach" x1="96" x2="102" stroke="#e08a00"/>
+            <line id="vachNgatM" class="vach" x1="96" x2="102" stroke="#e02d3c"/>
+            <line id="vachHetM" class="vach" x1="96" x2="102" stroke="#9b1c1c"/>
+            <g id="denM" class="den tat"><circle class="quang" cx="60" cy="72" r="10"/><circle class="bong" cx="60" cy="72" r="4.5"/></g>
+            <g id="oCamM" class="o-cam tat"><rect x="30" y="95" width="13" height="9" rx="2"/><circle cx="34.5" cy="99.5" r="1.1"/><circle cx="38.5" cy="99.5" r="1.1"/></g>
+            <path class="mai" d="M10 66 L60 30 L110 66"/>
             <line class="dat" x1="4" y1="108.5" x2="116" y2="108.5"/>
           </svg>
           <div class="nha-so"><b id="mucNuoc">--</b><span>cm nước</span></div>
@@ -604,15 +627,15 @@
     <div class="card the-dien">
       <div class="card-h"><div class="card-t"><span class="ic"><svg class="i"><use href="#i-power"/></svg></span>Điện trong nhà</div></div>
       <div class="power-row">
-        <div class="name"><span class="ic"><svg class="i"><use href="#i-house2"/></svg></span>Tầng 1</div>
+        <div class="name"><span class="ic"><svg class="i"><use href="#i-house2"/></svg></span><span id="tenMach1">Tầng 1</span></div>
         <span class="pill cho" id="dien1">Chưa rõ</span>
       </div>
       <div class="power-row">
-        <div class="name"><span class="ic"><svg class="i"><use href="#i-layers"/></svg></span>Tầng 2</div>
+        <div class="name"><span class="ic"><svg class="i"><use href="#i-layers"/></svg></span><span id="tenMach2">Tầng 2</span></div>
         <span class="pill cho" id="dien2">Chưa rõ</span>
       </div>
       <div class="cam-bien" id="camBien">Cảm biến: chưa có số liệu</div>
-      <button class="btn btn-danger" id="btnNgat"><svg class="i"><use href="#i-power"/></svg>Ngắt điện tầng 1 từ xa</button>
+      <button class="btn btn-danger" id="btnNgat"><svg class="i"><use href="#i-power"/></svg><span id="chuNut1">Ngắt điện tầng 1 từ xa</span></button>
       <button class="btn btn-danger" id="btnNgatHet" style="margin-top:8px"><svg class="i"><use href="#i-power"/></svg>Ngắt toàn bộ (cả nhà đã sơ tán)</button>
       <div class="note"><svg class="i"><use href="#i-info"/></svg><span>Thiết bị tự ngắt tầng 1 khi nước gần chạm ổ cắm, tự ngắt toàn bộ khi nước gần chạm tủ điện tổng. Vì an toàn, app không thể đóng điện lại từ xa: phải giữ nút RESET tại thiết bị khi nước đã rút hết.</span></div>
     </div>
@@ -633,7 +656,7 @@
         <span><i style="background:#0b5cd5"></i>Mực nước</span>
         <span><i style="background:#6d3fd6"></i>AI dự báo</span>
         <span><i style="background:#e08a00"></i>Mức cảnh báo</span>
-        <span><i style="background:#e02d3c"></i>Ngắt tầng 1</span>
+        <span><i style="background:#e02d3c"></i><span class="nhan-muc1">Ngắt tầng 1</span></span>
         <span><i style="background:#9b1c1c"></i>Ngắt toàn bộ</span>
       </div>
       <div class="note"><svg class="i"><use href="#i-info"/></svg><span>Số liệu thật từ thiết bị (gửi 5 giây một lần): 10 phút gần nhất và AI dự báo 5 phút tới, bằng hồi quy tuyến tính trên số liệu 2 phút gần nhất.</span></div>
@@ -649,7 +672,7 @@
       <div class="legend" style="padding:0 6px 4px">
         <span><i style="background:var(--ok)"></i>Bình thường</span>
         <span><i style="background:var(--warn)"></i>Cảnh báo</span>
-        <span><i style="background:var(--bad)"></i>Ngắt tầng 1</span>
+        <span><i style="background:var(--bad)"></i><span class="nhan-muc1">Ngắt tầng 1</span></span>
         <span><i style="background:var(--crit)"></i>Ngắt toàn bộ</span>
       </div>
     </div>
@@ -701,13 +724,11 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.3.0';
+const PHIEN_BAN_APP = '1.4.0';
 const CO_GI_MOI = [
-  'Hình ngôi nhà hiện mực nước và đèn từng tầng theo đúng thiết bị.',
-  'Ngắt điện theo 3 cấp: ngắt tầng 1, báo trước, ngắt toàn bộ khi nước tới tủ điện tổng.',
-  'Chỉ hiện số liệu thật từ thiết bị, báo rõ khi thiết bị mất kết nối.',
-  'Nhật ký sự kiện được lưu lại, điện thoại rung khi chuyển sang mức nguy hiểm.',
-  'App tự cập nhật, không cần gỡ ra cài lại.',
+  'Hỗ trợ nhà 1 tầng: ngắt mạch ổ cắm trước, giữ đèn sáng để sơ tán; nước tới tủ điện tổng thì ngắt toàn bộ.',
+  'Chọn loại nhà khi thêm thiết bị, hoặc bấm dòng "Nhà 2 tầng" / "Nhà 1 tầng" trong mục Tài khoản để đổi. Thiết bị tự nhận cài đặt mới.',
+  'Hình ngôi nhà, chữ trong app, tin nhắn và giọng nói của thiết bị đổi theo loại nhà.',
 ];
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong lib/ben_vung.js (khớp với code ESP32)
 const MUC_CANH_BAO = 3, MUC_NGAT_MAC_DINH = 10, MUC_NGAT_HET_MAC_DINH = 14, MUC_BAO_TRUOC_HET = 12;  // cm, khớp code ESP32
@@ -719,6 +740,36 @@ const MO_TA_TT = [
   'Tầng 2 vẫn có điện. Không chạm vào ổ cắm, thiết bị điện ở tầng 1.',
   'Nước đã tới mức tủ điện tổng nên ngắt cả tầng 2. Dùng đèn pin, không lội qua nước.',
 ];
+// Nhà 2 tầng: relay 1 = điện tầng 1, relay 2 = điện tầng 2.
+// Nhà 1 tầng: relay 1 = mạch ổ cắm (sát sàn, nguy hiểm trước), relay 2 = mạch đèn (giữ sáng để sơ tán).
+const CHU_NHA = {
+  hai: {
+    mach1: 'Tầng 1', mach2: 'Tầng 2', ngat1: 'Đã ngắt điện tầng 1', ngat1Ngan: 'Đã ngắt tầng 1', duDien: 'Có điện cả 2 tầng',
+    nut1: 'Ngắt điện tầng 1 từ xa', lenh1: 'ngắt điện tầng 1', muc1: 'Ngắt tầng 1', ca2: 'cả tầng 2',
+    moTa: ['Chưa có nước trong nhà. Thiết bị đang theo dõi liên tục.', 'Nước đã vào nhà. Kê đồ lên cao, chuẩn bị lên tầng 2.',
+      'Tầng 2 vẫn có điện. Không chạm vào ổ cắm, thiết bị điện ở tầng 1.', 'Nước đã tới mức tủ điện tổng nên ngắt cả tầng 2. Dùng đèn pin, không lội qua nước.'],
+    noi2: 'Đã ngắt điện tầng một. Không chạm vào ổ cắm và thiết bị điện.',
+    noi3: 'Đã ngắt toàn bộ điện trong nhà, kể cả tầng hai. Dùng đèn pin, không lội qua nước.',
+    lyDo2: 'Thiết bị đã ngắt điện tầng 1, tầng 2 vẫn có điện.', lyDo3: 'Thiết bị đã ngắt toàn bộ điện, kể cả tầng 2.',
+    baoTruoc: 'Nước sắp chạm tủ điện tổng. Hãy sạc điện thoại, chuẩn bị đèn pin: sắp ngắt cả tầng hai.',
+    hoi1: 'Ngắt điện tầng 1 ngay bây giờ?\nTầng 2 vẫn có điện. Chỉ đóng lại được bằng nút RESET tại thiết bị.',
+    hoi3: 'Ngắt TOÀN BỘ điện trong nhà, kể cả tầng 2?\nChỉ dùng khi cả nhà đã sơ tán. Chỉ đóng lại được bằng nút RESET tại thiết bị.',
+  },
+  mot: {
+    mach1: 'Mạch ổ cắm', mach2: 'Mạch đèn', ngat1: 'Đã ngắt mạch ổ cắm', ngat1Ngan: 'Đã ngắt ổ cắm', duDien: 'Có điện đầy đủ',
+    nut1: 'Ngắt mạch ổ cắm từ xa', lenh1: 'ngắt mạch ổ cắm', muc1: 'Ngắt ổ cắm', ca2: 'cả đèn',
+    moTa: ['Chưa có nước trong nhà. Thiết bị đang theo dõi liên tục.', 'Nước đã vào nhà. Kê đồ lên cao, chuẩn bị đến chỗ cao ráo.',
+      'Đèn vẫn sáng để đi lại. Không chạm vào ổ cắm và thiết bị điện.', 'Nước đã tới mức tủ điện tổng nên ngắt toàn bộ, kể cả đèn. Dùng đèn pin, không lội qua nước.'],
+    noi2: 'Đã ngắt mạch ổ cắm, đèn vẫn sáng. Không chạm vào ổ cắm và thiết bị điện.',
+    noi3: 'Đã ngắt toàn bộ điện trong nhà, kể cả đèn. Dùng đèn pin, không lội qua nước.',
+    lyDo2: 'Thiết bị đã ngắt mạch ổ cắm, đèn vẫn sáng.', lyDo3: 'Thiết bị đã ngắt toàn bộ điện, kể cả đèn.',
+    baoTruoc: 'Nước sắp chạm tủ điện tổng. Hãy sạc điện thoại, chuẩn bị đèn pin: sắp ngắt toàn bộ, kể cả đèn.',
+    hoi1: 'Ngắt mạch ổ cắm ngay bây giờ?\nĐèn vẫn sáng. Chỉ đóng lại được bằng nút RESET tại thiết bị.',
+    hoi3: 'Ngắt TOÀN BỘ điện trong nhà, kể cả đèn?\nChỉ dùng khi cả nhà đã sơ tán. Chỉ đóng lại được bằng nút RESET tại thiết bị.',
+  },
+};
+let motTang = docLuu('motTang', false);  // loại nhà của thiết bị đang xem
+const chu = () => motTang ? CHU_NHA.mot : CHU_NHA.hai;
 const MAU = { ok: '#0e9f6e', warn: '#e08a00', bad: '#e02d3c', crit: '#9b1c1c', primary: '#0b5cd5', ai: '#6d3fd6' };
 
 function docLuu(khoa, macDinh) {
@@ -825,8 +876,8 @@ function tinhDuBao() {
 
   let diem = 0;
   const lyDo = [];
-  if (duLieu.trangthai === 3) { diem = 99; lyDo.push('Thiết bị đã ngắt toàn bộ điện, kể cả tầng 2.'); }
-  else if (duLieu.trangthai === 2) { diem = 99; lyDo.push('Thiết bị đã ngắt điện tầng 1, tầng 2 vẫn có điện.'); }
+  if (duLieu.trangthai === 3) { diem = 99; lyDo.push(chu().lyDo3); }
+  else if (duLieu.trangthai === 2) { diem = 99; lyDo.push(chu().lyDo2); }
   if (+duLieu.sieuamloi === 1) lyDo.push('Cảm biến siêu âm đang lỗi: thiết bị dùng phao dự phòng để ngắt điện.');
   if (phutDenNgatHet !== null && phutDenNgatHet < 30) lyDo.push(`Dự kiến chạm mức tủ điện tổng (ngắt toàn bộ) sau khoảng ${Math.ceil(phutDenNgatHet)} phút.`);
   if (duLieu.muc >= (duLieu.muccb || MUC_CANH_BAO)) { diem += 2; lyDo.push(`Nước trong nhà đã ${duLieu.muc.toFixed(1)} cm.`); }
@@ -862,12 +913,17 @@ async function layDuBaoMua() {
 function veNha() {
   const mn2 = duLieu.mucngat2 || MUC_NGAT_HET_MAC_DINH, k = 21.6 / mn2;
   const y = cm => (108 - cm * k).toFixed(1);
-  const h = Math.min(58, Math.max(0, duLieu.muc * k));
-  $('nuocNha').style.transform = `translateY(${108 - h}px)`;
-  [['vachCB', duLieu.muccb || MUC_CANH_BAO], ['vachNgat', duLieu.mucngat || MUC_NGAT_MAC_DINH], ['vachHet', mn2]]
-    .forEach(([id, cm]) => { $(id).setAttribute('y1', y(cm)); $(id).setAttribute('y2', y(cm)); });
+  const h = Math.max(0, duLieu.muc * k);
+  $('nuocNha').style.transform = `translateY(${108 - Math.min(58, h)}px)`;   // nhà 2 tầng cao 58
+  $('nuocNhaM').style.transform = `translateY(${108 - Math.min(45, h)}px)`;  // nhà 1 tầng cao 45
+  for (const sfx of ['', 'M'])
+    [['vachCB', duLieu.muccb || MUC_CANH_BAO], ['vachNgat', duLieu.mucngat || MUC_NGAT_MAC_DINH], ['vachHet', mn2]]
+      .forEach(([id, cm]) => { $(id + sfx).setAttribute('y1', y(cm)); $(id + sfx).setAttribute('y2', y(cm)); });
+  // relay 1: tầng 1 / mạch ổ cắm; relay 2: tầng 2 / mạch đèn
   $('den1').classList.toggle('tat', duLieu.trangthai >= 2);
   $('den2').classList.toggle('tat', duLieu.trangthai === 3);
+  $('oCamM').classList.toggle('tat', duLieu.trangthai >= 2);
+  $('denM').classList.toggle('tat', duLieu.trangthai === 3);
 }
 veNha();  // đặt sẵn vạch mức và mặt nước
 function capNhatGiaoDien() {
@@ -879,7 +935,7 @@ function capNhatGiaoDien() {
   $('mucNuoc').textContent = $('mucNuoc2').textContent = duLieu.muc.toFixed(1);
   veNha();
   $('chipNguong').textContent = mn + ' / ' + (duLieu.mucngat2 || MUC_NGAT_HET_MAC_DINH);  // ngắt tầng 1 / ngắt toàn bộ
-  $('chipDien').textContent = tt === 3 ? 'Đã ngắt toàn bộ' : tt === 2 ? 'Đã ngắt tầng 1' : 'Có điện cả 2 tầng';
+  $('chipDien').textContent = tt === 3 ? 'Đã ngắt toàn bộ' : tt === 2 ? chu().ngat1Ngan : chu().duDien;
   $('tocDo').textContent = duBaoAI.doDoc.toFixed(2);
   $('dien1').textContent = tt >= 2 ? 'Đã ngắt' : 'Có điện';
   $('dien1').className = 'pill ' + (tt >= 2 ? 'off' : 'on');
@@ -897,12 +953,24 @@ function capNhatGiaoDien() {
   [...$('meter').children].forEach((el, i) => el.style.background = i <= muc ? mauMuc : '');
 
   $('duBao').textContent = tt === 3 ? 'Đã ngắt toàn bộ điện'
-    : tt === 2 ? (duBaoAI.phutDenNgatHet !== null ? `Khoảng ${Math.ceil(duBaoAI.phutDenNgatHet)} phút nữa sẽ ngắt cả tầng 2` : 'Đã ngắt điện tầng 1')
+    : tt === 2 ? (duBaoAI.phutDenNgatHet !== null ? `Khoảng ${Math.ceil(duBaoAI.phutDenNgatHet)} phút nữa sẽ ngắt ${chu().ca2}` : chu().ngat1)
     : duBaoAI.phutDenNgat !== null ? `Khoảng ${Math.ceil(duBaoAI.phutDenNgat)} phút nữa sẽ ngắt điện`
     : duBaoAI.doDoc < -0.05 ? 'Nước đang rút' : 'Nước chưa dâng';
   $('lyDo').innerHTML = '';
   for (const l of duBaoAI.lyDo) { const li = document.createElement('li'); li.textContent = l; $('lyDo').appendChild(li); }
 }
+
+function apDungLoaiNha() {
+  const c = chu();
+  TEN_TT[2] = c.ngat1;
+  MO_TA_TT.splice(0, 4, ...c.moTa);
+  $('tenMach1').textContent = c.mach1; $('tenMach2').textContent = c.mach2;
+  $('chuNut1').textContent = c.nut1;
+  document.querySelectorAll('.nhan-muc1').forEach(e => { e.textContent = c.muc1; });
+  $('nhaHai').style.display = motTang ? 'none' : ''; $('nhaMot').style.display = motTang ? '' : 'none';
+  if (thietBiOnline()) { tinhDuBao(); capNhatGiaoDien(); } else kiemTraThietBi();
+}
+window.datLoaiNha = v => { motTang = !!v; ghiLuu('motTang', motTang); apDungLoaiNha(); };
 
 function hienCho(tieuDe, moTa) {
   $('theTT').className = 'hero cho';
@@ -910,7 +978,7 @@ function hienCho(tieuDe, moTa) {
   $('ttMoTa').textContent = moTa;
   $('chipDien').textContent = 'Chưa rõ tình trạng điện';
   for (const id of ['dien1', 'dien2']) { $(id).textContent = 'Chưa rõ'; $(id).className = 'pill cho'; }
-  $('den1').classList.add('tat'); $('den2').classList.add('tat');
+  ['den1', 'den2', 'denM', 'oCamM'].forEach(id => $(id).classList.add('tat'));
   // Không có số liệu mới thì không đưa ra dự báo
   $('nguyCo').textContent = '—'; $('nguyCo').style.background = ''; $('nguyCo').style.color = 'var(--text-3)';
   [...$('meter').children].forEach(el => { el.style.background = ''; });
@@ -936,6 +1004,12 @@ function nhanDuLieu(d) {
   lanNhanCuoi = Date.now();
   daBaoMatKetNoi = false;
   datKetNoi('online', 'Trực tuyến');
+  if (d.motang !== null && d.motang !== undefined && (d.motang === 1) !== motTang) {
+    if (window.laCheDoKhach && window.laCheDoKhach()) window.datLoaiNha(d.motang === 1);   // khách: hiện đúng như thiết bị
+    else if (Date.now() - (nhanDuLieu.lanGuiLoai || 0) > 30000 && window.dongBoThietBiApp) {  // chủ nhà: gửi lại cài đặt
+      nhanDuLieu.lanGuiLoai = Date.now(); window.dongBoThietBiApp();
+    }
+  }
   if (lanDau) {
     ghiNhatKy('Đã kết nối thiết bị ' + cauHinh.ma + '.');
     if (window.dongBoThietBiApp) window.dongBoThietBiApp();  // gửi lại số người thân phòng khi thiết bị vừa khởi động lại
@@ -953,8 +1027,8 @@ function nhanDuLieu(d) {
     const loiBao = [
       'Nước đã rút. Nhà đã trở lại bình thường.',
       `Cảnh báo! Nước đã vào nhà, mực nước ${duLieu.muc.toFixed(1)} xăng ti mét.`,
-      'Đã ngắt điện tầng một. Không chạm vào ổ cắm và thiết bị điện.',
-      'Đã ngắt toàn bộ điện trong nhà, kể cả tầng hai. Dùng đèn pin, không lội qua nước.',
+      chu().noi2,
+      chu().noi3,
     ][duLieu.trangthai];
     ghiNhatKy(loiBao, duLieu.trangthai);
     thongBao(TEN_TT[duLieu.trangthai], loiBao);  // tên app đã hiện sẵn ở đầu thông báo
@@ -966,12 +1040,12 @@ function nhanDuLieu(d) {
   // Báo trước 1 lần khi nước sắp chạm tủ điện tổng (thiết bị gửi cờ baotruoc2)
   if (duLieu.trangthai === 2 && +duLieu.baotruoc2 === 1 && !daBaoTruocHet) {
     daBaoTruocHet = true;
-    const t = 'Nước sắp chạm tủ điện tổng. Hãy sạc điện thoại, chuẩn bị đèn pin: sắp ngắt cả tầng hai.';
+    const t = chu().baoTruoc;
     ghiNhatKy(t, 2); thongBao('Sắp ngắt toàn bộ điện', t); docTo(t);
   }
   if (duLieu.trangthai < 2) daBaoTruocHet = false;
   // Thiết bị đã làm theo lệnh ngắt từ xa
-  if (lenhCho && duLieu.trangthai >= lenhCho.cap) { toast('Thiết bị đã ' + (lenhCho.cap === 3 ? 'ngắt toàn bộ điện' : 'ngắt điện tầng 1')); lenhCho = null; }
+  if (lenhCho && duLieu.trangthai >= lenhCho.cap) { toast('Thiết bị đã ' + (lenhCho.cap === 3 ? 'ngắt toàn bộ điện' : chu().lenh1)); lenhCho = null; }
 }
 
 // ===================== BIỂU ĐỒ =====================
@@ -1055,6 +1129,7 @@ function locDuLieu(d) {
   const lat = soTrong(d.lat, 8, 24), lon = soTrong(d.lon, 102, 110);
   return { muc: soTrong(d.muc, 0, 300) || 0, trangthai: Math.round(soTrong(d.trangthai, 0, 3) || 0),
     mucngat: soTrong(d.mucngat, 1, 100) || MUC_NGAT_MAC_DINH, mucngat2: soTrong(d.mucngat2, 1, 300) || MUC_NGAT_HET_MAC_DINH,
+    motang: d.motang === 1 || d.motang === 0 ? d.motang : null,
     baotruoc2: +d.baotruoc2 === 1 ? 1 : 0, muccb: soTrong(d.muccb, 0.5, 100) || MUC_CANH_BAO,
     phao1: +d.phao1 === 1 ? 1 : 0, phao2: +d.phao2 === 1 ? 1 : 0, sieuamloi: +d.sieuamloi === 1 ? 1 : 0, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
 }
@@ -1087,16 +1162,14 @@ function ketNoiMQTT() {
 // ===================== NGẮT ĐIỆN TỪ XA =====================
 // cap = 2: ngắt tầng 1 (lệnh NGAT); cap = 3: ngắt toàn bộ cả tầng 2 (lệnh NGAT_HET)
 function ngatTuXa(cap) {
-  if (duLieu.trangthai >= cap) { toast(cap === 3 ? 'Đã ngắt toàn bộ điện rồi' : 'Điện tầng 1 đã được ngắt rồi'); return; }
+  if (duLieu.trangthai >= cap) { toast(cap === 3 ? 'Đã ngắt toàn bộ điện rồi' : chu().ngat1 + ' rồi'); return; }
   // Khách dùng thử chỉ được xem thiết bị thật, muốn điều khiển phải đăng nhập (tránh người lạ ngắt điện nhà người khác)
   if (window.laCheDoKhach && window.laCheDoKhach()) { toast('Đăng nhập tài khoản để điều khiển thiết bị'); return; }
   // Lệnh không được lưu lại chờ thiết bị: thiết bị mất kết nối thì lệnh sẽ mất
   if (!thietBiOnline()) { toast('Thiết bị đang mất kết nối nên chưa gửi lệnh được'); return; }
-  const hoi = cap === 3
-    ? 'Ngắt TOÀN BỘ điện trong nhà, kể cả tầng 2?\nChỉ dùng khi cả nhà đã sơ tán. Chỉ đóng lại được bằng nút RESET tại thiết bị.'
-    : 'Ngắt điện tầng 1 ngay bây giờ?\nTầng 2 vẫn có điện. Chỉ đóng lại được bằng nút RESET tại thiết bị.';
+  const hoi = cap === 3 ? chu().hoi3 : chu().hoi1;
   if (!confirm(hoi)) return;
-  const ten = cap === 3 ? 'ngắt toàn bộ điện' : 'ngắt điện tầng 1';
+  const ten = cap === 3 ? 'ngắt toàn bộ điện' : chu().lenh1;
   if (ketNoi) ketNoi.gui(`ngaplangat/${cauHinh.ma}/cmd`, cap === 3 ? 'NGAT_HET' : 'NGAT');
   ghiNhatKy(`Đã gửi lệnh ${ten}, đang chờ thiết bị làm theo…`, cap);
   toast('Đã gửi lệnh ' + ten);
@@ -1121,6 +1194,7 @@ window.guiLenhThietBi = (ma, loai, noiDung, giu) => {
 // Chọn thiết bị đang xem. Trả về true nếu phải tải lại trang để chuyển sang thiết bị khác.
 window.apDungThietBi = tb => {
   $('tenNha').textContent = tb.ten;
+  if (!!tb.motTang !== motTang) window.datLoaiNha(!!tb.motTang);
   if (tb.ma === cauHinh.ma && tb.lat === cauHinh.viDo && tb.lon === cauHinh.kinhDo) return false;
   ghiLuu('ma', tb.ma); ghiLuu('viDo', tb.lat); ghiLuu('kinhDo', tb.lon);
   location.reload();
@@ -1140,6 +1214,7 @@ $('btnThongBao').onclick = async () => {
 };
 
 // ===================== KHỞI ĐỘNG =====================
+apDungLoaiNha();
 kiemTraThietBi();
 
 // ===================== CÀI APP (PWA), MẤT MẠNG =====================
@@ -1369,9 +1444,10 @@ function dongBoThietBi() {
   const nt = hoSo.nguoiThan[0];
   for (const tb of hoSo.thietBi) {
     if (nt) window.guiLenhThietBi(tb.ma, 'cmd', 'SDT:' + sdtQuocTe(nt.sdt));
+    window.guiLenhThietBi(tb.ma, 'cmd', tb.motTang ? 'LOAI:1' : 'LOAI:2');  // loại nhà: thiết bị lưu vào bộ nhớ
     window.guiLenhThietBi(tb.ma, 'info', hoSo.chiaSeXa ? JSON.stringify({
       chuHo: hoSo.hoTen, tenNha: tb.ten, sdt: nt ? nt.sdt : hoSo.sdt, nguoiGia: hoSo.nguoiGia, treEm: hoSo.treEm,
-      khuyetTat: hoSo.khuyetTat, oMotMinh: hoSo.oMotMinh, lat: tb.lat, lon: tb.lon }) : '', true);
+      khuyetTat: hoSo.khuyetTat, oMotMinh: hoSo.oMotMinh, motTang: !!tb.motTang, lat: tb.lat, lon: tb.lon }) : '', true);
   }
 }
 
@@ -1513,6 +1589,7 @@ function moThietLap(cheDo) {
   if (cheDo !== 'ho') {
     $('tlMa').value = ''; $('tlTenNha').value = hoSo.thietBi.length ? '' : 'Nhà của tôi';
     $('tlLat').value = 21.62; $('tlLon').value = 105.18; $('btnViTri').textContent = 'Lấy vị trí hiện tại';
+    $('tlLoaiNha').value = '2';
   }
   $('tlGia').value = hoSo.nguoiGia; $('tlTre').value = hoSo.treEm; $('tlKT').value = hoSo.khuyetTat;
   $('tlMotMinh').checked = hoSo.oMotMinh; $('tlChiaSe').checked = hoSo.chiaSeXa;
@@ -1527,7 +1604,7 @@ $('btnLuuTL').onclick = () => cho($('btnLuuTL'), async () => {
     if (!/^[a-z0-9-]{4,40}$/.test(ma)) return loi('loiTL', 'Mã thiết bị chỉ gồm chữ thường, số và dấu gạch ngang (in trên tem dán ở hộp).');
     if (hoSo.thietBi.some(t => t.ma === ma)) return loi('loiTL', 'Thiết bị này đã có trong danh sách.');
     if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) return loi('loiTL', 'Vị trí chưa hợp lệ. Bấm "Lấy vị trí hiện tại" khi đang ở trong nhà.');
-    hoSo.thietBi.push({ ma, ten: $('tlTenNha').value.trim() || 'Nhà của tôi', lat, lon });
+    hoSo.thietBi.push({ ma, ten: $('tlTenNha').value.trim() || 'Nhà của tôi', lat, lon, motTang: $('tlLoaiNha').value === '1' });
     hoSo.thietBiChon = ma;
   }
   if (cheDoTL !== 'them') {
@@ -1598,7 +1675,7 @@ function veTaiKhoan() {
     <div class="card" style="margin-top:0">
       ${hoSo.thietBi.map(t => `<div class="tb ${t.ma === hoSo.thietBiChon ? 'chon' : ''}">
         <span class="ic"><svg class="i"><use href="#i-house2"/></svg></span>
-        <div class="tt"><b>${esc(t.ten)}</b><small>${esc(t.ma)}</small></div>
+        <div class="tt"><b>${esc(t.ten)}</b><small>${esc(t.ma)} · <button class="btn-lien" data-loai="${esc(t.ma)}" style="font-size:12px;padding:0">${t.motTang ? 'Nhà 1 tầng' : 'Nhà 2 tầng'}</button></small></div>
         ${t.ma === hoSo.thietBiChon ? '<span class="pill on">Đang xem</span>' : `<button class="act" data-chon="${esc(t.ma)}">Xem</button>`}
         <button class="xoa" data-xoa="${esc(t.ma)}" aria-label="Xoá thiết bị">×</button></div>`).join('')}
       <button class="btn btn-ghost" id="tkThemTB" style="margin-top:12px">+ Thêm thiết bị</button>
@@ -1646,6 +1723,17 @@ document.addEventListener('click', async e => {
   else if (t.dataset.xoant !== undefined) {
     hoSo.nguoiThan.splice(+t.dataset.xoant, 1);
     await luuHoSo(); dongBoThietBi(); veTaiKhoan();
+  }
+  else if (t.dataset.loai) {
+    if (laKhach) { window.toast('Đăng ký tài khoản để đổi loại nhà'); return; }
+    const tb = hoSo.thietBi.find(x => x.ma === t.dataset.loai);
+    const moi = !tb.motTang;
+    if (!confirm(moi ? 'Đổi thành NHÀ 1 TẦNG?\nRelay 1 ngắt mạch ổ cắm trước, relay 2 ngắt mạch đèn khi nước tới tủ điện tổng.'
+                     : 'Đổi thành NHÀ 2 TẦNG?\nRelay 1 ngắt điện tầng 1 trước, relay 2 ngắt tầng 2 khi nước tới tủ điện tổng.')) return;
+    tb.motTang = moi;
+    await luuHoSo(); dongBoThietBi();
+    if (tb.ma === hoSo.thietBiChon) window.datLoaiNha(moi);
+    veTaiKhoan(); window.toast('Đã đổi, thiết bị sẽ nhận cài đặt mới');
   }
   else if (t.id === 'tkThemTB') moThietLap('them');
   else if (t.id === 'tkSuaHo') moThietLap('ho');

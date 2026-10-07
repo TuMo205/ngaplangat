@@ -483,7 +483,7 @@
       <div class="legend">
         <span><i style="background:var(--ok)"></i>An toàn</span>
         <span><i style="background:var(--warn)"></i>Cảnh báo</span>
-        <span><i style="background:var(--bad)"></i>Ngắt tầng 1</span>
+        <span><i style="background:var(--bad)"></i>Ngắt một phần</span>
         <span><i style="background:var(--crit)"></i>Ngắt toàn bộ</span>
         <span><i style="background:var(--off)"></i>Mất kết nối</span>
       </div>
@@ -523,7 +523,7 @@
           <tbody id="bang"></tbody>
         </table>
       </div>
-      <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span>Điểm ưu tiên = trạng thái thiết bị + độ sâu và tốc độ nước dâng + số người già, trẻ nhỏ, người khuyết tật + người già ở một mình + mất kết nối khi đang ngập.</span></div>
+      <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span>Điểm ưu tiên = trạng thái thiết bị + độ sâu và tốc độ nước dâng + số người già, trẻ nhỏ, người khuyết tật + người già ở một mình + nhà 1 tầng (không có tầng trên để lánh) + mất kết nối khi đang ngập.</span></div>
     </section>
 
     <!-- THỐNG KÊ -->
@@ -571,7 +571,7 @@
 const TAM_XA = [21.62, 105.18];
 const MUC_CANH_BAO = 3, MUC_NGAT = 10, MUC_NGAT_HET = 14;  // khớp code ESP32
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong ../app/lib/ben_vung.js
-const TEN_TT = ['An toàn', 'Cảnh báo', 'Ngắt tầng 1', 'Ngắt toàn bộ'];
+const TEN_TT = ['An toàn', 'Cảnh báo', 'Ngắt một phần', 'Ngắt toàn bộ'];  // một phần: tầng 1 (nhà 2 tầng) hoặc mạch ổ cắm (nhà 1 tầng)
 const MAU_TT = ['#0e9f6e', '#e08a00', '#e02d3c', '#9b1c1c'];
 const MAU_OFF = '#64748b';
 const MAT_KET_NOI_MS = 30000;
@@ -615,6 +615,7 @@ THON.forEach(th => {
       doCao: th.doCao + ngauNhien() * 2.5,
       nguoiGia, treEm, khuyetTat,
       oMotMinh: nguoiGia > 0 && ngauNhien() < 0.4,
+      motTang: soHo % 3 === 0,
       muc: 0, tocDo: 0, trangThai: 0, daNgat: false, lanCuoi: Date.now(), mocMucTruoc: null, moPhong: true,
     });
   }
@@ -677,7 +678,7 @@ const matKetNoi = h => Date.now() - h.lanCuoi > MAT_KET_NOI_MS;
 const soNguoiDeTonThuong = h => h.nguoiGia + h.treEm + h.khuyetTat;
 function diemUuTien(h) {
   let d = h.trangThai * 15 + Math.min(h.muc, 20) * 1.5 + Math.min(Math.max(0, h.tocDo), 10)
-    + soNguoiDeTonThuong(h) * 12 + (h.oMotMinh ? 20 : 0);
+    + soNguoiDeTonThuong(h) * 12 + (h.oMotMinh ? 20 : 0) + (h.motTang && h.trangThai > 0 ? 15 : 0);
   if (matKetNoi(h) && h.muc >= MUC_CANH_BAO) d += 30;
   return Math.round(d);
 }
@@ -741,7 +742,8 @@ function veBang() {
     const tr = document.createElement('tr');
     if (daCu(h.id)) tr.className = 'da-cu';
     const nhom = [h.nguoiGia && `<span class="tag">Người già ${h.nguoiGia}</span>`, h.treEm && `<span class="tag">Trẻ nhỏ ${h.treEm}</span>`,
-      h.khuyetTat && '<span class="tag">Khuyết tật</span>', h.oMotMinh && '<span class="tag alone">Ở một mình</span>']
+      h.khuyetTat && '<span class="tag">Khuyết tật</span>', h.oMotMinh && '<span class="tag alone">Ở một mình</span>',
+      h.motTang && '<span class="tag alone">Nhà 1 tầng</span>']
       .filter(Boolean).join('') || '<span style="color:var(--text-3)">—</span>';
     const pct = Math.min(h.muc / 15, 1) * 100;
     const mauNuoc = h.muc >= MUC_NGAT ? 'var(--bad)' : h.muc >= MUC_CANH_BAO ? 'var(--warn)' : 'var(--primary)';
@@ -776,10 +778,10 @@ $('chiCanHoTro').onchange = veBang;
 
 // Xuất CSV (mở được bằng Excel, có dấu tiếng Việt)
 $('btnCSV').onclick = () => {
-  const dong = [['STT', 'Mức ưu tiên', 'Điểm', 'Hộ', 'Thôn', 'Điện thoại', 'Trạng thái', 'Mực nước (cm)', 'Người già', 'Trẻ nhỏ', 'Khuyết tật', 'Ở một mình', 'Đã cử đội', 'Người cử', 'Lúc cử']];
+  const dong = [['STT', 'Mức ưu tiên', 'Điểm', 'Hộ', 'Thôn', 'Điện thoại', 'Trạng thái', 'Mực nước (cm)', 'Người già', 'Trẻ nhỏ', 'Khuyết tật', 'Ở một mình', 'Nhà 1 tầng', 'Đã cử đội', 'Người cử', 'Lúc cử']];
   hoHienThi().filter(canHoTro).map(h => ({ h, d: diemUuTien(h) })).sort((a, b) => b.d - a.d).forEach(({ h, d }, i) => {
     dong.push([i + 1, nhanUuTien(d)[0], d, 'Hộ ' + tenHo(h), h.thon, sdtHo(h), matKetNoi(h) ? 'Mất kết nối' : TEN_TT[h.trangThai],
-      h.muc.toFixed(1), h.nguoiGia, h.treEm, h.khuyetTat, h.oMotMinh ? 'Có' : '', daCu(h.id) ? 'Có' : '',
+      h.muc.toFixed(1), h.nguoiGia, h.treEm, h.khuyetTat, h.oMotMinh ? 'Có' : '', h.motTang ? 'Có' : '', daCu(h.id) ? 'Có' : '',
       daCu(h.id) ? cuDoi[h.id].boi : '', daCu(h.id) ? new Date(cuDoi[h.id].luc).toLocaleString('vi-VN') : '']);
   });
   const o = c => { const t = String(c); return '"' + (/^[=+\-@\t\r]/.test(t) ? "'" + t : t).replace(/"/g, '""') + '"'; };  // chặn chèn công thức Excel
@@ -899,7 +901,7 @@ function ketNoiMQTT() {
     if (!h) {
       if (!d.lat || !d.lon) return;
       h = { id, ten: `${id} (chưa đăng ký)`, vietTat: 'TB', mauAv: '#64748b', thon: 'Chưa xác định', sdt: '—', lat: d.lat, lon: d.lon, doCao: 0,
-        nguoiGia: 0, treEm: 0, khuyetTat: 0, oMotMinh: false, muc: 0, tocDo: 0, trangThai: 0,
+        nguoiGia: 0, treEm: 0, khuyetTat: 0, oMotMinh: false, motTang: false, muc: 0, tocDo: 0, trangThai: 0,
         lanCuoi: loai === 'info' ? 0 : Date.now(), mocMucTruoc: null, moPhong: false };
       cacHo.push(h);
     }
@@ -914,11 +916,12 @@ function ketNoiMQTT() {
         ten: tenNha ? `${ten} · ${tenNha}` : ten,
         vietTat: ten.split(/\s+/).slice(-2).map(w => w[0] || '').join('').toUpperCase() || 'TB',
         sdt: chu(d.sdt, 16).replace(/[^\d+ ]/g, '') || '—', lat: d.lat || h.lat, lon: d.lon || h.lon,
-        nguoiGia: so(d.nguoiGia, 0, 20), treEm: so(d.treEm, 0, 20), khuyetTat: so(d.khuyetTat, 0, 20), oMotMinh: d.oMotMinh === true,
+        nguoiGia: so(d.nguoiGia, 0, 20), treEm: so(d.treEm, 0, 20), khuyetTat: so(d.khuyetTat, 0, 20), oMotMinh: d.oMotMinh === true, motTang: d.motTang === true,
       });
       if (h.thon === 'Chưa xác định') h.thon = 'Hộ đăng ký qua app';
       return;
     }
+    if (d.motang === 1 || d.motang === 0) h.motTang = d.motang === 1;
     capNhatHo(h, so(d.muc, 0, 300), Date.now(), Math.round(so(d.trangthai, 0, 3)));
     datKetNoi('online', `Trực tuyến · ${cacHo.length} thiết bị`);
     },
@@ -929,8 +932,9 @@ function ketNoiMQTT() {
 // ===================== BÁO CÁO NHANH =====================
 // Soạn theo mẫu cố định ngay trên máy: không cần mạng, không tốn phí, chỉ dùng số liệu có thật trên bảng.
 function lyDoUuTien(h) {
-  const ly = [matKetNoi(h) ? 'mất kết nối khi đang ngập' : h.trangThai === 3 ? 'đã ngắt toàn bộ điện' : h.trangThai === 2 ? 'đã ngắt điện tầng 1' : 'đang cảnh báo',
+  const ly = [matKetNoi(h) ? 'mất kết nối khi đang ngập' : h.trangThai === 3 ? 'đã ngắt toàn bộ điện' : h.trangThai === 2 ? (h.motTang ? 'đã ngắt mạch ổ cắm' : 'đã ngắt điện tầng 1') : 'đang cảnh báo',
     'nước ' + h.muc.toFixed(0) + ' cm' + (h.tocDo > 0.05 ? ', đang dâng' : '')];
+  if (h.motTang) ly.push('nhà 1 tầng');
   if (h.oMotMinh) ly.push('người già ở một mình');
   else if (h.nguoiGia) ly.push(h.nguoiGia + ' người già');
   if (h.treEm) ly.push(h.treEm + ' trẻ nhỏ');
