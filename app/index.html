@@ -573,6 +573,11 @@
     border:3px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,.3); }
   .ghim-nha svg { transform:rotate(45deg); width:18px; height:18px; stroke:#fff; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
   #tab-bando .legend { gap:6px 12px; font-size:12px; }
+  /* Kết quả kiểm tra thiết bị */
+  .xac-minh:empty { display:none; }
+  .xac-minh { margin-top:10px; padding:11px 13px; border-radius:12px; font-size:13.5px; font-weight:600; line-height:1.45; background:var(--ok-soft); color:var(--ok); }
+  .xac-minh.sai { background:var(--bad-soft); color:var(--bad); }
+  .tb-the button.chua { color:var(--warn); background:var(--warn-soft); }
 </style>
 </head>
 <body>
@@ -672,13 +677,12 @@
     <div id="tlThietBi">
       <div class="nhom-t">Thiết bị</div>
       <label class="o"><span>Mã thiết bị (in trên tem dán ở hộp)</span><div class="mk"><input id="tlMa" placeholder="VD: nln-doanhung-001" autocapitalize="off"><button type="button" class="hien-mk" id="btnQuetQR">Quét QR</button></div></label>
-      <label class="o"><span>Đặt tên cho ngôi nhà</span><input id="tlTenNha" placeholder="VD: Nhà ở Đoan Hùng"></label>
-      <label class="o"><span>Loại nhà</span><select id="tlLoaiNha">
-        <option value="2">Nhà 2 tầng trở lên: ngắt tầng 1 trước, giữ điện tầng 2</option>
-        <option value="1">Nhà 1 tầng: ngắt mạch ổ cắm trước, giữ đèn sáng để sơ tán</option>
-      </select></label>
-      <div class="hang2"><label class="o"><span>Vĩ độ</span><input id="tlLat" type="number" step="0.0001" placeholder="Bấm nút bên dưới"></label><label class="o"><span>Kinh độ</span><input id="tlLon" type="number" step="0.0001"></label></div>
-      <button type="button" class="btn btn-ghost" id="btnViTri">Lấy vị trí hiện tại</button>
+      <label class="o"><span>Mã kích hoạt (in cạnh mã thiết bị)</span><input id="tlPin" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="VD: 4827 1934"></label>
+      <button type="button" class="btn btn-ghost" id="btnXacMinh">Kiểm tra thiết bị</button>
+      <div class="xac-minh" id="tlXacMinh" role="status"></div>
+      <label class="o" style="margin-top:14px"><span>Đặt tên cho ngôi nhà</span><input id="tlTenNha" placeholder="VD: Nhà ở Đoan Hùng"></label>
+      <div class="hang2"><label class="o"><span>Vĩ độ</span><input id="tlLat" type="number" step="0.00001" inputmode="decimal"></label><label class="o"><span>Kinh độ</span><input id="tlLon" type="number" step="0.00001" inputmode="decimal"></label></div>
+      <div class="sub" style="font-size:12.5px;margin:-6px 0 4px">Vị trí lấy theo thiết bị, có thể sửa tay.</div>
     </div>
     <div id="tlDiaChi">
       <div class="nhom-t" id="tlDiaChiT">Địa chỉ ngôi nhà</div>
@@ -911,13 +915,13 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.8.0';
+const PHIEN_BAN_APP = '1.9.0';
 const CO_GI_MOI = [
-  'Giao diện hoàn thiện: màn hình chào mới, thanh trên cùng hiện địa chỉ ngôi nhà, số liệu ghi kiểu Việt Nam (6,4 cm).',
-  'Khi nước vào nhà: hiện nút gọi nhanh 112, 114, 115 và Cẩm nang an toàn khi ngập.',
-  'Mục Tài khoản có thêm Hỗ trợ: cẩm nang, hướng dẫn sử dụng, số khẩn cấp.',
-  'Dùng được ở mọi tỉnh, thành: chọn tỉnh, xã cho từng ngôi nhà, app tự gợi ý xã theo vị trí.',
-]
+  'Thêm thiết bị bằng mã thiết bị và mã kích hoạt in trên tem (hoặc quét QR trên tem): app không nhận mã sai.',
+  'Loại nhà (1 đến 5 tầng) và vị trí tự lấy theo thiết bị; vị trí vẫn sửa tay được.',
+  'Thiết bị thêm từ bản cũ: vào Tài khoản, bấm "Chưa xác minh" và nhập mã kích hoạt để tiếp tục chia sẻ với xã.',
+  'Khi nước vào nhà: nút gọi nhanh 112, 114, 115 và Cẩm nang an toàn khi ngập.',
+];
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong lib/ben_vung.js (khớp với code ESP32)
 const MUC_CANH_BAO = 3, MUC_NGAT_MAC_DINH = 10, MUC_NGAT_HET_MAC_DINH = 14, MUC_BAO_TRUOC_HET = 12;  // cm, khớp code ESP32
 const TEN_TT = ['An toàn', 'Cảnh báo ngập', 'Đã ngắt điện tầng 1', 'Đã ngắt toàn bộ điện'];
@@ -958,6 +962,7 @@ const CHU_NHA = {
   },
 };
 let motTang = docLuu('motTang', false);  // loại nhà của thiết bị đang xem
+let soTang = docLuu('soTang', motTang ? 1 : 2);  // 1-5 tầng, khai theo thiết bị trong kho thiết bị
 const chu = () => motTang ? CHU_NHA.mot : CHU_NHA.hai;
 const MAU = { ok: '#0e9f6e', warn: '#e08a00', bad: '#e02d3c', crit: '#9b1c1c', primary: '#0b5cd5', ai: '#6d3fd6' };
 // Số hiển thị theo kiểu Việt Nam, 1 chữ số thập phân: 6,4
@@ -1169,13 +1174,13 @@ function apDungLoaiNha() {
   const c = chu();
   TEN_TT[2] = c.ngat1;
   MO_TA_TT.splice(0, 4, ...c.moTa);
-  $('tenMach1').textContent = c.mach1; $('tenMach2').textContent = c.mach2;
+  $('tenMach1').textContent = c.mach1; $('tenMach2').textContent = !motTang && soTang > 2 ? 'Tầng 2–' + soTang : c.mach2;
   $('chuNut1').textContent = c.nut1;
   document.querySelectorAll('.nhan-muc1').forEach(e => { e.textContent = c.muc1; });
   $('nhaHai').style.display = motTang ? 'none' : ''; $('nhaMot').style.display = motTang ? '' : 'none';
   if (thietBiOnline()) { tinhDuBao(); capNhatGiaoDien(); } else kiemTraThietBi();
 }
-window.datLoaiNha = v => { motTang = !!v; ghiLuu('motTang', motTang); apDungLoaiNha(); };
+window.datLoaiNha = (v, n) => { motTang = !!v; soTang = motTang ? 1 : Math.max(2, Math.min(5, n || 2)); ghiLuu('motTang', motTang); ghiLuu('soTang', soTang); apDungLoaiNha(); };
 
 function hienCho(tieuDe, moTa) {
   $('theTT').className = 'hero cho';
@@ -1427,7 +1432,8 @@ window.apDungThietBi = tb => {
   $('tenNha').textContent = tb.ten;
   $('diaChiNha').textContent = [tb.thon, tb.tenXa, (tb.tinh || '').replace(/^(Tỉnh|Thành phố)\s+/, '')].filter(Boolean).join(', ')
     || 'Thiết bị tự ngắt điện khi nhà bị ngập nước';
-  if (!!tb.motTang !== motTang) window.datLoaiNha(!!tb.motTang);
+  const n = tb.soTang || (tb.motTang ? 1 : 2);
+  if (!!tb.motTang !== motTang || (!tb.motTang && n !== soTang)) window.datLoaiNha(!!tb.motTang, n);
   if (tb.ma === cauHinh.ma && tb.lat === cauHinh.viDo && tb.lon === cauHinh.kinhDo) return false;
   ghiLuu('ma', tb.ma); ghiLuu('viDo', tb.lat); ghiLuu('kinhDo', tb.lon);
   location.reload();
@@ -1591,6 +1597,8 @@ const Demo = {
   async luuHoSo(u, hoSo) { const ds = this.ds(); if (ds[u.id]) { ds[u.id].hoSo = hoSo; ghiJ('nln_taiKhoan', ds); } },
   async xoaTaiKhoan(u) { const ds = this.ds(); delete ds[u.id]; ghiJ('nln_taiKhoan', ds); ghiJ('nln_phien', null); },
   async layXa() { return null; },
+  async xacMinhThietBi() { return { soTang: 2, lat: null, lon: null }; },  // bản demo không có kho thiết bị
+  async boThietBi() {},
 };
 
 // ---------------- Chế độ Firebase (tài khoản thật) ----------------
@@ -1637,7 +1645,7 @@ const Firebase = {
     const nt = hs.nguoiThan[0];
     await Promise.all(hs.thietBi.map(tb => {
       const ref = this.fs.doc(this.db, 'hoDan', tb.ma);
-      if (!hs.chiaSeXa || !/^\d{5}$/.test(tb.xa || '')) return this.fs.deleteDoc(ref).catch(() => {});  // chưa có địa chỉ: chưa gửi cho xã nào
+      if (!hs.chiaSeXa || !tb.xacMinh || !/^\d{5}$/.test(tb.xa || '')) return this.fs.deleteDoc(ref).catch(() => {});  // chưa xác minh hoặc chưa có địa chỉ: chưa gửi cho xã nào
       return this.fs.setDoc(ref, { uid: u.id, xa: tb.xa, chuHo: String(hs.hoTen || '').slice(0, 60), tenNha: String(tb.ten || '').slice(0, 60),
         sdt: String((nt ? nt.sdt : hs.sdt) || '').slice(0, 20), thon: String(tb.thon || '').slice(0, 60),
         nguoiGia: hs.nguoiGia, treEm: hs.treEm, khuyetTat: hs.khuyetTat, oMotMinh: !!hs.oMotMinh, motTang: !!tb.motTang,
@@ -1645,12 +1653,22 @@ const Firebase = {
     }));
   },
   async boChiaSe(ma) { await this.fs.deleteDoc(this.fs.doc(this.db, 'hoDan', ma)).catch(() => {}); },
+  // Nhận thiết bị: chỉ thành công khi mã thiết bị có trong kho và đúng mã kích hoạt in trên tem
+  async xacMinhThietBi(u, ma, pin) {
+    const ref = this.fs.doc(this.db, 'thietBi', ma);
+    try { await this.fs.updateDoc(ref, { nguoiDung: this.fs.arrayUnion(u.id), pinThu: pin + ':' + u.id }); }
+    catch (e) { throw { code: e && e.code === 'unavailable' ? 'auth/network-request-failed' : 'sai-ma-tb' }; }
+    const d = (await this.fs.getDoc(ref)).data() || {};
+    return { soTang: Math.min(5, Math.max(1, Math.round(+d.soTang || 2))), lat: +d.lat || null, lon: +d.lon || null };
+  },
+  async boThietBi(u, ma) { await this.fs.updateDoc(this.fs.doc(this.db, 'thietBi', ma), { nguoiDung: this.fs.arrayRemove(u.id) }).catch(() => {}); },
 };
 
 const TK = cfg && cfg.apiKey ? Firebase : Demo;
 
 const LOI = {
   trung: 'Email hoặc số điện thoại này đã được đăng ký.', 'auth/email-already-in-use': 'Email hoặc số điện thoại này đã được đăng ký.',
+  'sai-ma-tb': 'Mã thiết bị hoặc mã kích hoạt không đúng. Kiểm tra lại tem dán trên hộp thiết bị.',
   sai: 'Sai tài khoản hoặc mật khẩu.', 'auth/invalid-credential': 'Sai tài khoản hoặc mật khẩu.',
   'auth/wrong-password': 'Sai tài khoản hoặc mật khẩu.', 'auth/user-not-found': 'Sai tài khoản hoặc mật khẩu.',
   'auth/weak-password': 'Mật khẩu cần ít nhất 6 ký tự.', 'auth/invalid-email': 'Email không hợp lệ.',
@@ -1715,6 +1733,7 @@ function vaoApp() {
   $('manAuth').classList.remove('hien');
   veTaiKhoan();
   dongBoThietBi();
+  if (coTbTuLink() && !laKhach) moThietLap('them');
 }
 
 // ---------------- Khởi động ----------------
@@ -1886,7 +1905,7 @@ document.addEventListener('click', async e => {
 $('btnKhach').onclick = () => {
   laKhach = true;
   hoSo = hoSoMoi({ hoTen: 'Khách' });
-  hoSo.thietBi = [{ ma: 'nln-doanhung-001', ten: 'Mô hình dự thi', lat: 21.62, lon: 105.18, xa: '07969', tenXa: 'Xã Đoan Hùng', tinh: 'Tỉnh Phú Thọ', thon: '' }];
+  hoSo.thietBi = [{ ma: 'nln-doanhung-001', ten: 'Mô hình dự thi', lat: 21.62, lon: 105.18, soTang: 2, xacMinh: true, xa: '07969', tenXa: 'Xã Đoan Hùng', tinh: 'Tỉnh Phú Thọ', thon: '' }];
   hoSo.thietBiChon = 'nln-doanhung-001';
   hoSo.nguoiGia = 1; hoSo.treEm = 1;
   ghiJ('nln_khach', hoSo);
@@ -1904,9 +1923,11 @@ function moThietLap(cheDo) {
     ho: 'Giúp xã ưu tiên cứu hộ đúng nhà khi lũ lớn' }[cheDo];
   $('btnLuuTL').textContent = cheDo === 'dau' ? 'Hoàn tất' : 'Lưu';
   if (cheDo !== 'ho') {
-    $('tlMa').value = ''; $('tlTenNha').value = hoSo.thietBi.length ? '' : 'Nhà của tôi';
-    $('tlLat').value = ''; $('tlLon').value = ''; $('btnViTri').textContent = 'Lấy vị trí hiện tại';
-    $('tlLoaiNha').value = '2';
+    const tuLink = layTbTuLink();  // mở app từ mã QR trên tem: điền sẵn mã thiết bị, mã kích hoạt
+    $('tlMa').value = tuLink ? tuLink.ma : ''; $('tlPin').value = tuLink ? tuLink.pin : '';
+    $('tlTenNha').value = hoSo.thietBi.length ? '' : 'Nhà của tôi';
+    $('tlLat').value = ''; $('tlLon').value = '';
+    tbXacMinh = null; ketQuaXacMinh('');
   }
   // Địa chỉ: nhà mới thì chọn (hoặc tự gợi ý theo vị trí); sửa thông tin thì sửa địa chỉ ngôi nhà đang xem
   const tb = cheDo === 'ho' ? thietBiDangChon() : null;
@@ -1932,14 +1953,14 @@ $('btnLuuTL').onclick = () => cho($('btnLuuTL'), async () => {
   const diaChi = x ? { xa: x.ma, tenXa: x.ten, tinh: x.tinh, thon } : { xa: '', tenXa: '', tinh: '', thon };
   if (cheDoTL !== 'ho') {
     const ma = $('tlMa').value.trim().toLowerCase();
+    if (!tbXacMinh || tbXacMinh.ma !== ma) { if (!(await xacMinh())) return; }
     let lat = parseFloat($('tlLat').value), lon = parseFloat($('tlLon').value);
-    if (!/^[a-z0-9-]{4,40}$/.test(ma)) return loi('loiTL', 'Mã thiết bị chỉ gồm chữ thường, số và dấu gạch ngang (in trên tem dán ở hộp).');
-    if (hoSo.thietBi.some(t => t.ma === ma)) return loi('loiTL', 'Thiết bị này đã có trong danh sách.');
     if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110) && x && x.hop) {  // chưa lấy được vị trí: dùng trung tâm xã
       lat = +((x.hop[1] + x.hop[3]) / 2).toFixed(5); lon = +((x.hop[0] + x.hop[2]) / 2).toFixed(5);
     }
-    if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) return loi('loiTL', 'Bấm "Lấy vị trí hiện tại" khi đang ở trong nhà, hoặc chọn xã, phường nơi đặt nhà.');
-    hoSo.thietBi.push(Object.assign({ ma, ten: $('tlTenNha').value.trim() || 'Nhà của tôi', lat, lon, motTang: $('tlLoaiNha').value === '1' }, diaChi));
+    if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) return loi('loiTL', 'Nhập vĩ độ, kinh độ của ngôi nhà, hoặc chọn xã, phường nơi đặt nhà.');
+    const n = tbXacMinh.soTang;
+    hoSo.thietBi.push(Object.assign({ ma, ten: $('tlTenNha').value.trim() || 'Nhà của tôi', lat, lon, soTang: n, motTang: n === 1, xacMinh: true }, diaChi));
     hoSo.thietBiChon = ma;
   } else if (coDiaChi) {
     Object.assign(thietBiDangChon(), diaChi);
@@ -1958,18 +1979,45 @@ $('btnLuuTL').onclick = () => cho($('btnLuuTL'), async () => {
   if (cheDoTL !== 'dau') window.toast('Đã lưu');
 });
 
-$('btnViTri').onclick = () => {
-  if (!navigator.geolocation) return loi('loiTL', 'Máy không hỗ trợ lấy vị trí, bạn nhập tay vĩ độ, kinh độ nhé.');
-  $('btnViTri').textContent = 'Đang lấy vị trí…';
-  navigator.geolocation.getCurrentPosition(p => {
-    $('tlLat').value = p.coords.latitude.toFixed(5); $('tlLon').value = p.coords.longitude.toFixed(5);
-    $('btnViTri').textContent = 'Đã lấy vị trí ✓';
-    if (!diaChiTay) dungDiaChi('', '', p.coords.latitude, p.coords.longitude);  // tự chọn xã theo vị trí
-  }, () => {
-    $('btnViTri').textContent = 'Lấy vị trí hiện tại';
-    loi('loiTL', 'Không lấy được vị trí. Hãy bật định vị và cho phép trình duyệt truy cập vị trí.');
-  }, { enableHighAccuracy: true, timeout: 15000 });
-};
+// Kiểm tra thiết bị: mã có trong kho thiết bị và đúng mã kích hoạt. Loại nhà, vị trí lấy theo thiết bị.
+let tbXacMinh = null;  // { ma, soTang, lat, lon }
+function ketQuaXacMinh(t, laLoi) { $('tlXacMinh').textContent = t; $('tlXacMinh').className = 'xac-minh' + (laLoi ? ' sai' : ''); }
+async function xacMinh() {
+  const ma = $('tlMa').value.trim().toLowerCase(), pin = $('tlPin').value.replace(/\D/g, '');
+  loi('loiTL', '');
+  if (!/^[a-z0-9-]{4,40}$/.test(ma)) { ketQuaXacMinh('Nhập mã thiết bị in trên tem dán ở hộp (VD: nln-doanhung-001).', true); return false; }
+  if (hoSo.thietBi.some(t => t.ma === ma)) { ketQuaXacMinh('Thiết bị này đã có trong danh sách của bạn.', true); return false; }
+  if (laKhach) { ketQuaXacMinh('Đăng ký tài khoản để thêm thiết bị của nhà bạn.', true); return false; }
+  if (pin.length < 6) { ketQuaXacMinh('Nhập mã kích hoạt in cạnh mã thiết bị trên tem.', true); return false; }
+  try {
+    const d = await TK.xacMinhThietBi(nguoiDung, ma, pin);
+    tbXacMinh = Object.assign({ ma }, d);
+    ketQuaXacMinh(`✓ Thiết bị hợp lệ · Nhà ${d.soTang} tầng`);
+    if (d.lat && d.lon) {
+      $('tlLat').value = d.lat; $('tlLon').value = d.lon;
+      if (!diaChiTay) dungDiaChi('', '', d.lat, d.lon);  // tự chọn xã theo vị trí thiết bị
+    }
+    return true;
+  } catch (e) { tbXacMinh = null; ketQuaXacMinh(loiTV(e), true); return false; }
+}
+$('btnXacMinh').onclick = () => cho($('btnXacMinh'), xacMinh);
+['tlMa', 'tlPin'].forEach(id => $(id).addEventListener('input', () => { tbXacMinh = null; ketQuaXacMinh(''); }));
+// Sửa tay vị trí: tự chọn lại xã theo vị trí mới (nếu người dùng chưa tự chọn xã)
+['tlLat', 'tlLon'].forEach(id => $(id).addEventListener('change', () => {
+  const lat = parseFloat($('tlLat').value), lon = parseFloat($('tlLon').value);
+  if (!diaChiTay && lat > 8 && lat < 24 && lon > 102 && lon < 110) dungDiaChi('', '', lat, lon);
+}));
+// Mã QR trên tem: đường dẫn .../app/?tb=<mã thiết bị>&kh=<mã kích hoạt>
+function docMaQR(raw) {
+  try { const u = new URL(raw); const tb = u.searchParams.get('tb'); if (tb) return { ma: tb.toLowerCase(), pin: u.searchParams.get('kh') || '' }; } catch {}
+  return { ma: String(raw).trim().split('/').pop().toLowerCase(), pin: '' };
+}
+const tbTuLinkBanDau = (() => { const p = new URLSearchParams(location.search); return p.get('tb') ? docMaQR(location.href) : null; })();
+if (tbTuLinkBanDau) { try { sessionStorage.setItem('nln_tbMoi', JSON.stringify(tbTuLinkBanDau)); } catch {} history.replaceState(null, '', location.pathname); }
+function layTbTuLink() {
+  try { const v = JSON.parse(sessionStorage.getItem('nln_tbMoi') || 'null'); sessionStorage.removeItem('nln_tbMoi'); return v; } catch { return null; }
+}
+const coTbTuLink = () => { try { return !!sessionStorage.getItem('nln_tbMoi'); } catch { return false; } };
 
 // Quét QR trên tem thiết bị (máy hỗ trợ BarcodeDetector, ví dụ Chrome trên Android)
 if ('BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -1987,7 +2035,13 @@ if ('BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevi
         if (!$('quetQR').classList.contains('hien')) return;
         try {
           const kq = await bd.detect($('qrVideo'));
-          if (kq.length) { $('tlMa').value = kq[0].rawValue.trim().split('/').pop().toLowerCase(); dong(); window.toast('Đã đọc mã thiết bị'); return; }
+          if (kq.length) {
+            const m = docMaQR(kq[0].rawValue);
+            $('tlMa').value = m.ma; if (m.pin) $('tlPin').value = m.pin;
+            tbXacMinh = null; ketQuaXacMinh(''); dong(); window.toast('Đã đọc mã trên tem');
+            if (m.pin) cho($('btnXacMinh'), xacMinh);
+            return;
+          }
         } catch {}
         requestAnimationFrame(quet);
       };
@@ -2017,7 +2071,7 @@ function veTaiKhoan() {
         <div class="tt">
           <div class="tb-dong"><b>${esc(t.ten)}</b>${t.ma === hoSo.thietBiChon ? '<span class="pill on">Đang xem</span>' : ''}</div>
           <small class="tb-dc">${esc([t.thon, t.tenXa, t.tinh].filter(Boolean).join(', ') || 'Chưa có địa chỉ: bấm "Sửa thông tin" để thêm')}</small>
-          <div class="tb-the"><span>${esc(t.ma)}</span><button data-loai="${esc(t.ma)}">${t.motTang ? 'Nhà 1 tầng' : 'Nhà 2 tầng'}</button></div>
+          <div class="tb-the"><span>${esc(t.ma)}</span><span>Nhà ${t.soTang || (t.motTang ? 1 : 2)} tầng</span>${t.xacMinh || laKhach ? '' : `<button class="chua" data-xacminh="${esc(t.ma)}">Chưa xác minh · nhập mã kích hoạt</button>`}</div>
         </div>
         ${t.ma === hoSo.thietBiChon ? '' : `<button class="act" data-chon="${esc(t.ma)}">Xem</button>`}
         <button class="xoa" data-xoa="${esc(t.ma)}" aria-label="Xoá thiết bị">×</button></div>`).join('')}
@@ -2060,7 +2114,7 @@ document.addEventListener('click', async e => {
   else if (t.dataset.xoa) {
     if (!confirm('Xoá thiết bị "' + t.dataset.xoa + '" khỏi tài khoản?')) return;
     hoSo.thietBi = hoSo.thietBi.filter(x => x.ma !== t.dataset.xoa);
-    if (!laKhach && TK.boChiaSe) TK.boChiaSe(t.dataset.xoa);
+    if (!laKhach && TK.boChiaSe) { TK.boChiaSe(t.dataset.xoa); TK.boThietBi(nguoiDung, t.dataset.xoa); }
     if (hoSo.thietBiChon === t.dataset.xoa) hoSo.thietBiChon = hoSo.thietBi.length ? hoSo.thietBi[0].ma : '';
     await luuHoSo(); vaoApp();
   }
@@ -2068,16 +2122,18 @@ document.addEventListener('click', async e => {
     hoSo.nguoiThan.splice(+t.dataset.xoant, 1);
     await luuHoSo(); dongBoThietBi(); veTaiKhoan();
   }
-  else if (t.dataset.loai) {
-    if (laKhach) { window.toast('Đăng ký tài khoản để đổi loại nhà'); return; }
-    const tb = hoSo.thietBi.find(x => x.ma === t.dataset.loai);
-    const moi = !tb.motTang;
-    if (!confirm(moi ? 'Đổi thành NHÀ 1 TẦNG?\nRelay 1 ngắt mạch ổ cắm trước, relay 2 ngắt mạch đèn khi nước tới tủ điện tổng.'
-                     : 'Đổi thành NHÀ 2 TẦNG?\nRelay 1 ngắt điện tầng 1 trước, relay 2 ngắt tầng 2 khi nước tới tủ điện tổng.')) return;
-    tb.motTang = moi;
-    await luuHoSo(); dongBoThietBi();
-    if (tb.ma === hoSo.thietBiChon) window.datLoaiNha(moi);
-    veTaiKhoan(); window.toast('Đã đổi, thiết bị sẽ nhận cài đặt mới');
+  else if (t.dataset.xacminh) {  // thiết bị thêm từ bản cũ (chưa có mã kích hoạt): xác minh để chia sẻ với xã
+    const tb = hoSo.thietBi.find(x => x.ma === t.dataset.xacminh);
+    const pin = (prompt('Nhập mã kích hoạt in trên tem của thiết bị ' + tb.ma + ':') || '').replace(/\D/g, '');
+    if (!pin) return;
+    try {
+      const d = await TK.xacMinhThietBi(nguoiDung, tb.ma, pin);
+      Object.assign(tb, { soTang: d.soTang, motTang: d.soTang === 1, xacMinh: true });
+      if (d.lat && d.lon) { tb.lat = d.lat; tb.lon = d.lon; }
+      await luuHoSo(); dongBoThietBi(); veTaiKhoan();
+      if (tb.ma === hoSo.thietBiChon) window.datLoaiNha(tb.motTang, tb.soTang);
+      window.toast('Đã xác minh thiết bị');
+    } catch (er) { alert(loiTV(er)); }
   }
   else if (t.id === 'tkThemTB') moThietLap('them');
   else if (t.id === 'tkSuaHo') moThietLap('ho');
@@ -2095,7 +2151,7 @@ document.addEventListener('click', async e => {
   else if (t.id === 'tkXoa') {
     if (!confirm('Xoá vĩnh viễn tài khoản và toàn bộ dữ liệu? Không thể hoàn tác.')) return;
     try {
-      if (TK.boChiaSe) await Promise.all(hoSo.thietBi.map(x => TK.boChiaSe(x.ma)));
+      if (TK.boChiaSe) await Promise.all(hoSo.thietBi.map(x => TK.boChiaSe(x.ma).then(() => TK.boThietBi(nguoiDung, x.ma))));
       await TK.xoaTaiKhoan(nguoiDung); window.toast('Đã xoá tài khoản'); thoat();
     }
     catch (er) { alert(loiTV(er)); }

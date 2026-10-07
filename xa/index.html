@@ -443,6 +443,20 @@
   <div class="md-nut"><button class="btn btn-ghost" data-dong="mdCaiDat">Huỷ</button><button class="btn btn-primary" id="btnLuuCD">Lưu cài đặt</button></div>
 </div></div>
 
+<!-- Thêm thiết bị vào kho (nhóm phát triển) -->
+<div class="md" id="mdThemTB"><div class="md-hop">
+  <h3>Thêm thiết bị</h3><div class="sub" style="margin-bottom:16px">In tem có mã QR dán lên hộp thiết bị sau khi thêm.</div>
+  <div class="loi" id="loiTB"></div>
+  <label class="o"><span>Mã thiết bị (trùng mã nạp trong code ESP32)</span><input id="tbMa" autocapitalize="off" placeholder="VD: nln-doanhung-002"></label>
+  <label class="o"><span>Mã kích hoạt</span><div class="mk"><input id="tbPin" inputmode="numeric" autocomplete="off"><button type="button" class="hien-mk" id="btnTaoPin">Tạo ngẫu nhiên</button></div></label>
+  <label class="o"><span>Loại nhà</span><select id="tbSoTang"><option value="1">Nhà 1 tầng</option><option value="2" selected>Nhà 2 tầng</option><option value="3">Nhà 3 tầng</option><option value="4">Nhà 4 tầng</option><option value="5">Nhà 5 tầng</option></select></label>
+  <div class="hai-cot">
+    <label class="o"><span>Vĩ độ nơi lắp (nếu có)</span><input id="tbLat" type="number" step="0.00001"></label>
+    <label class="o"><span>Kinh độ nơi lắp (nếu có)</span><input id="tbLon" type="number" step="0.00001"></label>
+  </div>
+  <div class="md-nut"><button class="btn btn-ghost" data-dong="mdThemTB">Huỷ</button><button class="btn btn-primary" id="btnThemTB">Thêm vào kho</button></div>
+</div></div>
+
 <!-- Thêm cán bộ -->
 <div class="md" id="mdThemCB"><div class="md-hop">
   <h3>Thêm cán bộ</h3><div class="sub" style="margin-bottom:16px">Gửi email và mật khẩu tạm cho cán bộ, nhắc đổi mật khẩu sau lần đăng nhập đầu.</div>
@@ -470,6 +484,7 @@
     <a href="#thong-ke"><svg class="i"><use href="#i-chart"/></svg><span class="dai">Thống kê</span><span class="ngan">Thống kê</span></a>
     <a href="#can-bo" id="navCanBo" style="display:none"><svg class="i"><use href="#i-user"/></svg><span class="dai">Cán bộ</span><span class="ngan">Cán bộ</span></a>
     <a href="#duyet-xa" id="navDuyet" style="display:none"><svg class="i"><use href="#i-check"/></svg><span class="dai">Duyệt xã đăng ký</span><span class="ngan">Duyệt xã</span></a>
+    <a href="#kho-tb" id="navKho" style="display:none"><svg class="i"><use href="#i-layers"/></svg><span class="dai">Kho thiết bị</span><span class="ngan">Thiết bị</span></a>
     <a href="#nhat-ky" id="navNhatKy" style="display:none"><svg class="i"><use href="#i-clock"/></svg><span class="dai">Nhật ký</span><span class="ngan">Nhật ký</span></a>
   </nav>
   <div class="side-foot"><b>Số liệu thật</b>Chỉ hiện các hộ có lắp thiết bị và đồng ý chia sẻ với xã. Bảng chỉ để theo dõi, không điều khiển điện nhà dân.</div>
@@ -614,6 +629,21 @@
       <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span>Gọi vào số điện thoại người đăng ký, hoặc số UBND xã trên cổng thông tin của tỉnh, để xác minh đúng là cán bộ xã rồi mới bấm Duyệt. Từ chối thì xã đó được đăng ký lại.</span></div>
     </section>
 
+    <!-- KHO THIẾT BỊ (chỉ nhóm phát triển) -->
+    <section class="card full" id="kho-tb" style="display:none">
+      <div class="card-h">
+        <div class="card-t"><span class="ic"><svg class="i"><use href="#i-layers"/></svg></span><div>Kho thiết bị<small id="demKho">—</small></div></div>
+        <button class="btn btn-primary" id="btnMoThemTB">Thêm thiết bị</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Mã thiết bị</th><th>Mã kích hoạt</th><th>Loại nhà</th><th>Vị trí lắp</th><th>Người dùng</th><th>Thêm lúc</th><th></th></tr></thead>
+          <tbody id="bangKho"></tbody>
+        </table>
+      </div>
+      <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span>Người dân phải nhập đúng mã kích hoạt (hoặc quét QR trên tem) mới thêm được thiết bị vào app. Loại nhà và vị trí lắp tự áp dụng theo thiết bị.</span></div>
+    </section>
+
     <!-- NHẬT KÝ THAO TÁC (chỉ quản trị) -->
     <section class="card full" id="nhat-ky" style="display:none">
       <div class="card-h">
@@ -629,6 +659,7 @@
 <script src="../app/lib/leaflet.min.js"></script>
 <script src="../app/lib/mqtt.min.js"></script>
 <script src="../app/lib/ben_vung.js?v=11"></script>
+<script src="../app/lib/qrcode.min.js"></script>
 <script>
 // ===================== CẤU HÌNH =====================
 // Trung tâm xã và danh sách thôn do quản trị viên khai báo trong "Cài đặt xã" (lưu trên máy chủ)
@@ -1121,7 +1152,7 @@ $('btnChepBC').onclick = async () => {
 const quanSat = new IntersectionObserver(es => es.forEach(e => {
   if (e.isIntersecting) document.querySelectorAll('aside nav a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
 }), { rootMargin: '-40% 0px -55% 0px' });
-['tong-quan', 'ban-do', 'uu-tien', 'bao-cao', 'thong-ke', 'can-bo', 'duyet-xa', 'nhat-ky'].forEach(id => quanSat.observe($(id)));
+['tong-quan', 'ban-do', 'uu-tien', 'bao-cao', 'thong-ke', 'can-bo', 'duyet-xa', 'kho-tb', 'nhat-ky'].forEach(id => quanSat.observe($(id)));
 
 // ===================== VÒNG LẶP =====================
 // Gọi từ phần tài khoản
@@ -1239,6 +1270,7 @@ const Demo = {
   },
   async layXa(ma) { const c = docJ('nln_xa_caiDat', null); return c && (c.xa || MA_XA_CU) === ma ? c : null; },
   async dsChoDuyet() { return []; },
+  async dsThietBi() { return []; },
   async taoCanBo({ hoTen, email, mk, vaiTro, thon, xa }) {
     const ds = this.canBo();
     if (ds[email]) throw { code: 'trung' };
@@ -1338,6 +1370,13 @@ const Firebase = {
     const q = this.fs.query(this.fs.collection(this.db, 'canBo'), this.fs.where('trangThai', '==', 'choDuyet'));
     return (await this.fs.getDocs(q)).docs.map(d => Object.assign({ id: d.id }, d.data()));
   },
+  async dsThietBi() { return (await this.fs.getDocs(this.fs.collection(this.db, 'thietBi'))).docs.map(d => Object.assign({ ma: d.id }, d.data())); },
+  async themThietBi({ ma, pin, soTang, lat, lon }) {
+    const ref = this.fs.doc(this.db, 'thietBi', ma);
+    if ((await this.fs.getDoc(ref)).exists()) throw { code: 'tb-da-co' };
+    await this.fs.setDoc(ref, { pin, soTang, lat: lat || null, lon: lon || null, nguoiDung: [], taoLuc: new Date().toISOString() });
+  },
+  async xoaThietBi(ma) { await this.fs.deleteDoc(this.fs.doc(this.db, 'thietBi', ma)); },
   async duyetXa(u, dongY) {
     const b = this.fs.writeBatch(this.db), luc = new Date().toISOString();
     const refXa = this.fs.doc(this.db, 'dsXa', u.xa), xa = await this.fs.getDoc(refXa);
@@ -1445,6 +1484,7 @@ const LOI = {
   'auth/network-request-failed': 'Không có mạng, vui lòng thử lại.', 'auth/too-many-requests': 'Thử sai quá nhiều lần, vui lòng đợi ít phút.',
   'permission-denied': 'Bạn không có quyền thực hiện thao tác này.', 'da-thiet-lap': 'Hệ thống đã được thiết lập trước đó.',
   'xa-da-co': 'Xã, phường này đã có người đăng ký (đang hoạt động hoặc chờ duyệt). Liên hệ quản trị viên của xã để được cấp tài khoản cán bộ.',
+  'tb-da-co': 'Mã thiết bị này đã có trong kho.',
   'cho-duyet': 'Đăng ký của xã đang chờ nhóm phát triển xác minh. Bạn đăng nhập được ngay sau khi được duyệt.',
   'demo-quen': 'Bản demo lưu tài khoản trên máy này nên không gửi email được. Nhờ quản trị viên tạo lại tài khoản.',
   'demo-mxh': 'Đăng nhập bằng Google cần bật máy chủ Firebase (xem app/HUONG_DAN_FIREBASE.txt). Trong lúc chờ, hãy dùng email cán bộ.',
@@ -1530,8 +1570,8 @@ async function vaoHeThong(ghiLog) {
   $('umCaiDat').style.display = laQT ? '' : 'none';
   const chiXem = nd.vaiTro === 'khach' || nd.vaiTro === 'sieuQuanTri';
   $('umDoiXa').style.display = chiXem ? '' : 'none';
-  ['navDuyet', 'duyet-xa'].forEach(id => { $(id).style.display = nd.sieu ? '' : 'none'; });
-  if (nd.sieu) veDuyet();
+  ['navDuyet', 'duyet-xa', 'navKho', 'kho-tb'].forEach(id => { $(id).style.display = nd.sieu ? '' : 'none'; });
+  if (nd.sieu) { veDuyet(); veKho(); }
   window.datAnDanh(chiXem);
   window.datPhamVi(nd.vaiTro === 'thon' ? nd.thon : '');
   theoDoiHoDan();
@@ -1634,7 +1674,7 @@ $('umDangXuat').onclick = async () => {
   if (!confirm('Đăng xuất khỏi hệ thống?')) return;
   ghiNK('Đăng xuất');
   if (nd && nd.vaiTro !== 'khach') { try { await TK.dangXuat(); } catch {} }
-  ['navDuyet', 'duyet-xa'].forEach(id => { $(id).style.display = 'none'; });
+  ['navDuyet', 'duyet-xa', 'navKho', 'kho-tb'].forEach(id => { $(id).style.display = 'none'; });
   ghiJ('nln_xa_khach', null, sessionStorage);
   nd = null;
   theoDoiHoDan();  // xoá thông tin hộ dân khỏi màn hình
@@ -1794,6 +1834,65 @@ $('bangDuyet').onclick = async e => {
   const ten = (await napDVHC().catch(() => null))?.xa.get(u.xa)?.ten || u.xa;
   if (!confirm(dongY ? `Duyệt ${ten}? ${u.hoTen} sẽ thành quản trị viên của xã.` : `Từ chối đăng ký ${ten} của ${u.hoTen}?`)) return;
   try { await TK.duyetXa(u, dongY); veDuyet(); } catch (er) { alert(loiTV(er)); }
+};
+
+// ---------------- Kho thiết bị (nhóm phát triển) ----------------
+const taoPin = () => { const so = new Uint32Array(1); crypto.getRandomValues(so); return String(so[0] % 1e8).padStart(8, '0'); };
+const hienPin = p => String(p).replace(/(\d{4})(?=\d)/g, '$1 ');
+async function veKho() {
+  let ds;
+  try { ds = await TK.dsThietBi(); } catch (e) { $('bangKho').innerHTML = `<tr><td colspan="7" class="empty">${esc(loiTV(e))}</td></tr>`; return; }
+  ds.sort((a, b) => String(b.taoLuc).localeCompare(String(a.taoLuc)));
+  $('demKho').textContent = `${ds.length} thiết bị · ${ds.filter(t => (t.nguoiDung || []).length).length} đã có người dùng`;
+  $('bangKho').innerHTML = ds.length ? ds.map(t => `<tr>
+      <td><b>${esc(t.ma)}</b></td><td style="font-variant-numeric:tabular-nums">${esc(hienPin(t.pin))}</td>
+      <td>Nhà ${esc(t.soTang)} tầng</td>
+      <td style="color:var(--text-3)">${t.lat && t.lon ? esc((+t.lat).toFixed(5) + ', ' + (+t.lon).toFixed(5)) : '—'}</td>
+      <td>${(t.nguoiDung || []).length}</td><td style="color:var(--text-3)">${esc(ngayGio(t.taoLuc))}</td>
+      <td style="white-space:nowrap"><button class="act" data-tem="${esc(t.ma)}">In tem</button> <button class="act" data-xoatb="${esc(t.ma)}">Xoá</button></td></tr>`).join('')
+    : '<tr><td colspan="7" class="empty">Chưa có thiết bị nào. Bấm "Thêm thiết bị".</td></tr>';
+  veKho.ds = ds;
+}
+$('btnTaoPin').onclick = () => { $('tbPin').value = taoPin(); };
+$('btnMoThemTB').onclick = () => {
+  $('tbMa').value = 'nln-'; $('tbPin').value = taoPin(); $('tbSoTang').value = '2'; $('tbLat').value = ''; $('tbLon').value = '';
+  moMD('mdThemTB');
+};
+$('btnThemTB').onclick = () => cho($('btnThemTB'), async () => {
+  const ma = $('tbMa').value.trim().toLowerCase(), pin = $('tbPin').value.replace(/\D/g, ''), soTang = +$('tbSoTang').value;
+  const lat = parseFloat($('tbLat').value) || null, lon = parseFloat($('tbLon').value) || null;
+  if (!/^[a-z0-9-]{4,40}$/.test(ma)) return loi('loiTB', 'Mã thiết bị chỉ gồm chữ thường, số và dấu gạch ngang.');
+  if (!/^\d{8,12}$/.test(pin)) return loi('loiTB', 'Mã kích hoạt cần 8 đến 12 chữ số.');
+  if ((lat || lon) && !(lat > 8 && lat < 24 && lon > 102 && lon < 110)) return loi('loiTB', 'Vị trí nơi lắp chưa hợp lệ.');
+  try { await TK.themThietBi({ ma, pin, soTang, lat, lon }); } catch (e) { return loi('loiTB', loiTV(e)); }
+  dongMD('mdThemTB'); veKho();
+});
+// Tem dán hộp thiết bị: mã QR mở app và điền sẵn mã thiết bị, mã kích hoạt
+function inTem(t) {
+  const link = new URL('../app/?tb=' + encodeURIComponent(t.ma) + '&kh=' + t.pin, location.href).href;
+  let svg = '';
+  try { const qr = qrcode(0, 'M'); qr.addData(link); qr.make(); svg = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); } catch {}
+  const w = window.open('', '_blank', 'width=480,height=640');
+  if (!w) return alert('Trình duyệt đã chặn cửa sổ in tem. Cho phép cửa sổ bật lên rồi thử lại.');
+  w.document.write(`<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Tem ${esc(t.ma)}</title><style>
+    body{font-family:system-ui,sans-serif;margin:24px;color:#0f1b2d} .tem{width:62mm;border:1.5px solid #0f1b2d;border-radius:4mm;padding:4mm;text-align:center}
+    .ten{font-size:9pt;font-weight:700;line-height:1.25} .qr{width:40mm;height:40mm;margin:3mm auto} .qr svg{width:100%;height:100%}
+    .dong{font-size:9pt;margin-top:1.5mm} .dong b{font-size:11pt;letter-spacing:.04em} .nho{font-size:7pt;color:#555;margin-top:2mm}
+    @media print{body{margin:0} button{display:none}}</style></head><body>
+    <div class="tem"><div class="ten">THIẾT BỊ TỰ NGẮT ĐIỆN<br>KHI NHÀ BỊ NGẬP NƯỚC</div><div class="qr">${svg}</div>
+    <div class="dong">Mã thiết bị: <b>${esc(t.ma)}</b></div><div class="dong">Mã kích hoạt: <b>${esc(hienPin(t.pin))}</b></div>
+    <div class="nho">Quét mã bằng camera điện thoại để kết nối app. Nhà ${esc(t.soTang)} tầng.</div></div>
+    <p><button onclick="print()">In tem</button></p></body></html>`);
+  w.document.close();
+}
+$('bangKho').onclick = async e => {
+  const b = e.target.closest('[data-tem],[data-xoatb]');
+  if (!b) return;
+  const t = (veKho.ds || []).find(x => x.ma === (b.dataset.tem || b.dataset.xoatb));
+  if (!t) return;
+  if (b.dataset.tem) return inTem(t);
+  if (!confirm(`Xoá thiết bị ${t.ma} khỏi kho?` + ((t.nguoiDung || []).length ? ` Đã có ${t.nguoiDung.length} người dùng thiết bị này.` : ''))) return;
+  try { await TK.xoaThietBi(t.ma); veKho(); } catch (er) { alert(loiTV(er)); }
 };
 
 // ---------------- Nhật ký thao tác (quản trị) ----------------
