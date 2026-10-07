@@ -360,32 +360,6 @@
   .conn { flex:none; }
   @media (min-width:1000px) { nav.tabbar { padding-top:120px; } }  /* chừa chỗ cho tên 3 dòng ở đầu menu */
 
-  /* ===== Hình ngôi nhà: mực nước + đèn từng tầng ===== */
-  .nha { width:124px; flex:none; text-align:center; }
-  .nha svg { width:124px; height:124px; display:block; overflow:visible; }
-  .nha .than { fill:var(--surface-2); stroke:var(--line); stroke-width:2; }
-  .nha .mai { fill:none; stroke:var(--text-3); stroke-width:3.5; stroke-linejoin:round; stroke-linecap:round; }
-  .nha .san { fill:var(--line); }
-  .nha .dat { stroke:var(--text-3); stroke-width:2.5; stroke-linecap:round; }
-  .nha .nuoc { fill:#3b82f6; fill-opacity:.5; transition:transform .9s cubic-bezier(.3,.7,.3,1); }
-  .nha .song { animation:song 2.4s linear infinite; }
-  @keyframes song { from { transform:translateX(0); } to { transform:translateX(-24px); } }
-  .nha .den .quang { fill:#ffd54a; opacity:.38; transition:opacity .4s; }
-  .nha .den .bong { fill:#ffc107; stroke:#e0a100; stroke-width:1; transition:fill .4s, stroke .4s; }
-  .nha .den.tat .quang { opacity:0; }
-  .nha .den.tat .bong { fill:var(--surface); stroke:var(--text-3); }
-  .nha .vach { stroke-width:3; stroke-linecap:round; }
-  .nha .o-cam rect { fill:var(--surface); stroke:#0e9f6e; stroke-width:1.6; transition:stroke .3s; }
-  .nha .o-cam circle { fill:#0e9f6e; transition:fill .3s; }
-  .nha .o-cam.tat rect { stroke:var(--text-3); }
-  .nha .o-cam.tat circle { fill:var(--text-3); }
-  .nha-so { margin-top:4px; white-space:nowrap; }
-  .nha-so b { font-size:26px; font-weight:800; letter-spacing:-.02em; }
-  .nha-so span { font-size:12px; color:var(--text-3); margin-left:3px; }
-  .hero.bad .nha .than { fill:var(--bad-soft); }
-  @media (prefers-reduced-motion: reduce) { .nha .song { animation:none; } .nha .nuoc { transition:none; } }
-  @media (min-width:1000px) { .nha, .nha svg { width:140px; } .nha svg { height:140px; } .nha-so b { font-size:30px; } }
-
   /* Chấm "Trực tuyến" nhấp nháy nhẹ */
   .conn.online .dot { animation:nhip 2s ease-out infinite; }
   @keyframes nhip { 0% { box-shadow:0 0 0 0 rgba(14,159,110,.55); } 100% { box-shadow:0 0 0 7px rgba(14,159,110,0); } }
@@ -398,6 +372,122 @@
     background:#fff; color:var(--primary); }
   @media (min-width:1000px) { .ban-moi { left:auto; right:28px; bottom:28px; width:380px; } }
   .moi-ds { margin:4px 0 0; padding-left:20px; line-height:1.7; }
+
+  /* ======================= GIAO DIỆN V3: màn hình chính ======================= */
+  :root { --nha-vien:#cfd6e1; --nha-mai:#7d899b; --nha-cua:#c3cbd7; --nha-toi:#e3e8ef; --shadow-2:0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.06); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --nha-vien:#34425a; --nha-mai:#4b5a72; --nha-cua:#34425a; --nha-toi:#1d2638; --shadow-2:0 1px 2px rgba(0,0,0,.3); } }
+  :root[data-theme="dark"] { --nha-vien:#34425a; --nha-mai:#4b5a72; --nha-cua:#34425a; --nha-toi:#1d2638; --shadow-2:0 1px 2px rgba(0,0,0,.3); }
+
+  /* Thanh trên: tên ngôi nhà to, tên sản phẩm nhỏ */
+  .logo .ten-sp { min-width:0; }
+  .logo .ten-sp b { display:block; font-size:16.5px; font-weight:800; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .logo .ten-sp small { display:block; margin-top:1px; font-size:11.5px; font-weight:500; line-height:1.3; color:var(--text-3); }
+  .logo .mark img { width:38px; height:38px; border-radius:11px; }
+
+  /* Khối trạng thái */
+  .hero, .hero.warn, .hero.bad { border-radius:26px; padding:16px 16px 14px; color:var(--text); background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow-2); }
+  .hero::after, .hero.warn::after, .hero.bad::after { display:none; }
+  .hero.ok { background:linear-gradient(180deg, var(--ok-soft) 0%, var(--surface) 58%); }
+  .hero.warn { background:linear-gradient(180deg, var(--warn-soft) 0%, var(--surface) 58%); border-color:rgba(224,138,0,.28); }
+  .hero.bad { background:linear-gradient(180deg, var(--bad-soft) 0%, var(--surface) 58%); border-color:rgba(224,45,60,.32); }
+  .hero.crit { background:linear-gradient(180deg, var(--bad-soft) 0%, var(--surface) 70%); border-color:rgba(155,28,28,.5); }
+  .hero-dau { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .tt-nhan { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
+    padding:6px 12px 6px 10px; border-radius:999px; color:#fff; background:var(--text-3); }
+  .tt-nhan::before { content:""; width:7px; height:7px; border-radius:50%; background:#fff; }
+  .hero.ok .tt-nhan { background:var(--ok); } .hero.warn .tt-nhan { background:var(--warn); }
+  .hero.bad .tt-nhan { background:var(--bad); } .hero.crit .tt-nhan { background:var(--crit); }
+  .hero-gio { font-size:12px; color:var(--text-3); font-variant-numeric:tabular-nums; }
+  .hero-than { display:flex; align-items:center; gap:14px; }
+  .hero-so { flex:none; white-space:nowrap; }
+  .hero-so b { font-size:42px; font-weight:800; letter-spacing:-.04em; line-height:1; font-variant-numeric:tabular-nums; }
+  .hero-so span { font-size:12.5px; color:var(--text-3); font-weight:600; margin-left:3px; }
+  .hero-chu { min-width:0; border-left:1px solid var(--line); padding-left:14px; }
+  .hero-title, .hero.warn .hero-title, .hero.bad .hero-title { font-size:18.5px; font-weight:800; line-height:1.25; letter-spacing:-.01em; margin:0 0 3px; color:var(--text); }
+  .hero.ok .hero-title { color:var(--ok); } .hero.warn .hero-title { color:var(--warn); }
+  .hero.bad .hero-title { color:var(--bad); } .hero.crit .hero-title { color:var(--crit); }
+  .hero-desc { font-size:13px; line-height:1.45; color:var(--text-2); }
+  .hero-tang { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; margin-top:14px; }
+  .tang { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:16px; background:var(--surface); border:1px solid var(--line); min-width:0; }
+  .tang > div { min-width:0; }
+  .tang .bong-nho { width:34px; height:34px; border-radius:11px; display:grid; place-items:center; flex:none; background:var(--surface-2); color:var(--text-3); transition:.3s; }
+  .tang .bong-nho svg { width:18px; height:18px; }
+  .tang small { display:block; font-size:12px; font-weight:600; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tang b { display:block; font-size:14.5px; color:var(--text-2); }
+  .tang.sang .bong-nho { background:#fff3c4; color:#d99a00; box-shadow:0 0 0 4px rgba(255,196,0,.16); }
+  .tang.sang b { color:var(--ok); }
+  .tang.tat .bong-nho { background:var(--bad-soft); color:var(--bad); }
+  .tang.tat b { color:var(--bad); }
+
+  /* Hình ngôi nhà */
+  .nha { width:100%; max-width:380px; margin:8px auto 6px; }
+  .nha svg { width:100%; height:auto; display:block; overflow:visible; }
+  .nha .tuong { fill:var(--surface); stroke:var(--nha-vien); stroke-width:2; }
+  .nha .mai { fill:var(--nha-mai); stroke:var(--nha-mai); stroke-width:3; stroke-linejoin:round; }
+  .nha .san { fill:var(--nha-vien); }
+  .nha .cua-chinh { fill:var(--nha-cua); }
+  .nha .cua rect { fill:#ffd666; stroke:#f0b429; stroke-width:1; filter:drop-shadow(0 0 6px rgba(255,190,0,.7)); transition:fill .4s, stroke .4s; }
+  .nha .cua.tat rect { fill:var(--nha-toi); stroke:var(--nha-vien); filter:none; }
+  .nha .o-cam rect { fill:var(--surface); stroke:#0e9f6e; stroke-width:1.6; }
+  .nha .o-cam circle { fill:#0e9f6e; }
+  .nha .o-cam.tat rect { stroke:var(--text-3); } .nha .o-cam.tat circle { fill:var(--text-3); }
+  .nha .nuoc { transition:transform .9s cubic-bezier(.3,.7,.3,1); }
+  .nha .song { fill:#3b82f6; fill-opacity:.42; animation:song3 3s linear infinite; }
+  @keyframes song3 { from { transform:translateX(0); } to { transform:translateX(48px); } }
+  .nha .dat { stroke:var(--nha-vien); stroke-width:2.5; stroke-linecap:round; }
+  .nha .thuoc { stroke:var(--nha-vien); stroke-width:1.5; }
+  .nha .don-vi { font-size:9px; font-weight:700; fill:var(--text-3); }
+  .nha .vach line { stroke-width:3; stroke-linecap:round; }
+  .nha .vach text { font-size:10px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .nha .vach.cb line { stroke:var(--warn); } .nha .vach.cb text { fill:var(--warn); }
+  .nha .vach.ngat line { stroke:var(--bad); } .nha .vach.ngat text { fill:var(--bad); }
+  .nha .vach.het line { stroke:var(--crit); } .nha .vach.het text { fill:var(--crit); }
+  @media (prefers-reduced-motion: reduce) { .nha .song { animation:none; } .nha .nuoc { transition:none; } }
+
+  /* Hàng chỉ số */
+  .chi-so { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); margin-top:12px; background:var(--surface); border:1px solid var(--line);
+    border-radius:20px; box-shadow:var(--shadow-2); }
+  .chi-so > div { padding:12px 8px; text-align:center; min-width:0; }
+  .chi-so > div + div { border-left:1px solid var(--line); }
+  .chi-so small { display:block; font-size:11.5px; font-weight:600; color:var(--text-3); margin-bottom:3px; white-space:nowrap; }
+  .chi-so b { font-size:16.5px; font-weight:800; letter-spacing:-.01em; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .chi-so b em { font-style:normal; font-size:11.5px; font-weight:600; color:var(--text-3); margin-left:3px; }
+
+  /* Thẻ AI, điều khiển */
+  .card { border-radius:22px; box-shadow:var(--shadow-2); }
+  .card-t .ic.ai { background:var(--ai-soft) !important; color:var(--ai) !important; }
+  .eta { margin:2px 0 12px; padding:14px; border-radius:16px; }
+  .eta b { font-size:16.5px; line-height:1.3; }
+  .meter i { height:8px; }
+  .nut-doi { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+  .btn-vien { background:var(--surface); color:var(--bad); border:1.5px solid rgba(224,45,60,.35); font-size:14px; padding:12px 8px; border-radius:14px; }
+  .btn-vien.dam { background:var(--bad); color:#fff; border-color:var(--bad); }
+  .btn-vien svg { width:18px; height:18px; }
+  .cam-bien { margin-top:12px; padding-top:10px; border-top:1px solid var(--line); }
+  @media (min-width:1000px) {
+    #tab-tongquan > .chi-so { grid-area:stats; }
+    .logo .ten-sp small { white-space:normal; }
+    .hero-so b { font-size:48px; }
+    .hero-title { font-size:21px; }
+  }
+
+  /* Màn hình tài khoản: dải đầu màu thương hiệu, chữ trắng */
+  .man { position:relative; }
+  .auth-dau { margin:calc(-28px - env(safe-area-inset-top)) -22px 22px; padding:calc(40px + env(safe-area-inset-top)) 22px 26px;
+    color:#fff; background:radial-gradient(500px 220px at 85% -20%, rgba(255,255,255,.22), transparent), linear-gradient(155deg, #0a3d91, #0b5cd5 55%, #1fb6ff);
+    border-radius:0 0 30px 30px; }
+  .auth-dau h1 { color:#fff; margin-top:12px; }
+  .auth-dau .sub { color:rgba(255,255,255,.85); }
+  .auth-dau .auth-icon { box-shadow:0 10px 28px rgba(0,0,0,.25); border:3px solid rgba(255,255,255,.35); }
+  .man > .lui { position:absolute; top:-6px; left:0; z-index:1; color:#fff; font-weight:700; }
+  .man > .lui + .auth-dau { padding-top:calc(58px + env(safe-area-inset-top)); }
+  .o input, .o select { background:var(--surface); }
+  @media (min-width:900px) {
+    .auth-dau { margin:-36px -36px 24px; padding:34px 36px 26px; border-radius:24px 24px 30px 30px; }
+    .man > .lui { top:-22px; }
+    .man > .lui + .auth-dau { padding-top:46px; }
+  }
+  .net-dut { width:14px !important; height:0 !important; border-radius:0 !important; border-top:2.5px dashed currentColor; vertical-align:3px !important; background:none !important; }
 
   /* Nút đăng nhập bằng mạng xã hội */
   .mxh { display:grid; gap:10px; }
@@ -419,6 +509,7 @@
   <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></symbol>
   <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></symbol>
   <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
   <symbol id="i-set" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
   <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2.7l5.7 5.6a8 8 0 1 1-11.3 0z"/></symbol>
@@ -533,7 +624,7 @@
 <div class="topbar">
   <div class="logo">
     <div class="mark"><img src="icons/icon-192.png" alt=""></div>
-    <div class="ten-sp">Thiết bị tự ngắt điện khi nhà bị ngập nước<small id="tenNha">Nhà của tôi</small></div>
+    <div class="ten-sp"><b id="tenNha">Nhà của tôi</b><small>Thiết bị tự ngắt điện khi nhà bị ngập nước</small></div>
   </div>
   <div class="tb-trang" id="tieuDeTrang">Tổng quan</div>
   <div class="conn" id="ketNoi"><span class="dot"></span><span id="ketNoiTxt">Đang kết nối</span></div>
@@ -549,95 +640,80 @@
       <button class="x" id="btnBoQuaCai" aria-label="Đóng">×</button>
     </div>
     <div class="hero cho" id="theTT">
-      <div class="hero-row">
-        <div class="nha">
-          <svg id="nhaHai" viewBox="0 0 120 120" role="img" aria-label="Ngôi nhà 2 tầng: mực nước và điện từng tầng">
-            <defs><clipPath id="trongNha"><rect x="19" y="51" width="82" height="57"/></clipPath></defs>
-            <rect class="than" x="18" y="50" width="84" height="58" rx="2"/>
-            <g clip-path="url(#trongNha)">
-              <g id="nuocNha" class="nuoc" style="transform:translateY(108px)">
-                <path class="song" d="M-6 0 q6 -3.5 12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 V70 H-6 Z"/>
-              </g>
-            </g>
-            <rect class="san" x="18" y="78" width="84" height="3"/>
-            <line id="vachCB" class="vach" x1="96" x2="102" stroke="#e08a00"/>
-            <line id="vachNgat" class="vach" x1="96" x2="102" stroke="#e02d3c"/>
-            <line id="vachHet" class="vach" x1="96" x2="102" stroke="#9b1c1c"/>
-            <g id="den2" class="den tat"><circle class="quang" cx="60" cy="60" r="10"/><circle class="bong" cx="60" cy="60" r="4.5"/></g>
-            <g id="den1" class="den tat"><circle class="quang" cx="60" cy="90" r="10"/><circle class="bong" cx="60" cy="90" r="4.5"/></g>
-            <path class="mai" d="M10 54 L60 16 L110 54"/>
-            <line class="dat" x1="4" y1="108.5" x2="116" y2="108.5"/>
-          </svg>
-          <svg id="nhaMot" viewBox="0 0 120 120" role="img" aria-label="Nhà 1 tầng: mực nước, mạch ổ cắm và mạch đèn" style="display:none">
-            <defs><clipPath id="trongNhaM"><rect x="19" y="63" width="82" height="45"/></clipPath></defs>
-            <rect class="than" x="18" y="62" width="84" height="46" rx="2"/>
-            <g clip-path="url(#trongNhaM)">
-              <g id="nuocNhaM" class="nuoc" style="transform:translateY(108px)"><path class="song" d="M-6 0 q6 -3.5 12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 V70 H-6 Z"/></g>
-            </g>
-            <line id="vachCBM" class="vach" x1="96" x2="102" stroke="#e08a00"/>
-            <line id="vachNgatM" class="vach" x1="96" x2="102" stroke="#e02d3c"/>
-            <line id="vachHetM" class="vach" x1="96" x2="102" stroke="#9b1c1c"/>
-            <g id="denM" class="den tat"><circle class="quang" cx="60" cy="72" r="10"/><circle class="bong" cx="60" cy="72" r="4.5"/></g>
-            <g id="oCamM" class="o-cam tat"><rect x="30" y="95" width="13" height="9" rx="2"/><circle cx="34.5" cy="99.5" r="1.1"/><circle cx="38.5" cy="99.5" r="1.1"/></g>
-            <path class="mai" d="M10 66 L60 30 L110 66"/>
-            <line class="dat" x1="4" y1="108.5" x2="116" y2="108.5"/>
-          </svg>
-          <div class="nha-so"><b id="mucNuoc">--</b><span>cm nước</span></div>
-        </div>
-        <div>
-          <div class="hero-label">Trạng thái ngôi nhà</div>
-          <div class="hero-title" id="ttTen" aria-live="polite">Đang chờ thiết bị</div>
-          <div class="hero-desc" id="ttMoTa">Đang kết nối tới thiết bị…</div>
-        </div>
+      <div class="hero-dau"><span class="tt-nhan" id="ttNhan">Đang chờ</span><span class="hero-gio" id="gioCapNhat"></span></div>
+      <div class="nha">
+        <!-- Nhà 2 tầng: cửa sổ sáng = tầng đó có điện -->
+        <svg id="nhaHai" viewBox="0 0 320 160" role="img" aria-label="Ngôi nhà 2 tầng: mực nước và điện từng tầng">
+          <defs><clipPath id="khungNuocnuocNha"><rect x="0" y="0" width="320" height="140"/></clipPath></defs>
+          <path class="mai" d="M68 54 L160 14 L252 54 Z"/>
+          <rect class="tuong" x="82" y="52" width="156" height="88"/>
+          <rect class="san" x="82" y="93" width="156" height="4"/>
+          <g id="cuaT2" class="cua tat"><rect x="100" y="64" width="34" height="20" rx="3"/><rect x="186" y="64" width="34" height="20" rx="3"/></g>
+          <g id="cuaT1" class="cua tat"><rect x="100" y="106" width="34" height="20" rx="3"/><rect x="196" y="106" width="26" height="20" rx="3"/></g>
+          <rect class="cua-chinh" x="150" y="108" width="28" height="32" rx="3"/>
+            <g clip-path="url(#khungNuocnuocNha)"><g id="nuocNha" class="nuoc" style="transform:translateY(140px)"><path class="song" d="M-48 0 q12 -5 24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 V170 H-48 Z"/></g></g>
+          <line class="dat" x1="4" y1="140.5" x2="316" y2="140.5"/>
+            <line class="thuoc" x1="274" y1="140" x2="274" y2="44"/><text class="don-vi" x="268" y="38">cm</text>
+            <g id="vachCB" class="vach cb"><line x1="268" x2="280"/><text x="285"></text></g>
+            <g id="vachNgat" class="vach ngat"><line x1="268" x2="280"/><text x="285"></text></g>
+            <g id="vachHet" class="vach het"><line x1="268" x2="280"/><text x="285"></text></g>
+        </svg>
+        <!-- Nhà 1 tầng: cửa sổ sáng = mạch đèn có điện, ổ cắm xanh = mạch ổ cắm có điện -->
+        <svg id="nhaMot" viewBox="0 0 320 160" role="img" aria-label="Nhà 1 tầng: mực nước, mạch ổ cắm và mạch đèn" style="display:none">
+          <defs><clipPath id="khungNuocnuocNhaM"><rect x="0" y="0" width="320" height="140"/></clipPath></defs>
+          <path class="mai" d="M68 82 L160 40 L252 82 Z"/>
+          <rect class="tuong" x="82" y="80" width="156" height="60"/>
+          <g id="cuaM" class="cua tat"><rect x="100" y="92" width="34" height="22" rx="3"/><rect x="190" y="92" width="34" height="22" rx="3"/></g>
+          <rect class="cua-chinh" x="150" y="106" width="28" height="34" rx="3"/>
+          <g id="oCamM" class="o-cam tat"><rect x="104" y="124" width="15" height="10" rx="2.5"/><circle cx="109" cy="129" r="1.3"/><circle cx="114" cy="129" r="1.3"/></g>
+            <g clip-path="url(#khungNuocnuocNhaM)"><g id="nuocNhaM" class="nuoc" style="transform:translateY(140px)"><path class="song" d="M-48 0 q12 -5 24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 V170 H-48 Z"/></g></g>
+          <line class="dat" x1="4" y1="140.5" x2="316" y2="140.5"/>
+            <line class="thuoc" x1="274" y1="140" x2="274" y2="44"/><text class="don-vi" x="268" y="38">cm</text>
+            <g id="vachCBM" class="vach cb"><line x1="268" x2="280"/><text x="285"></text></g>
+            <g id="vachNgatM" class="vach ngat"><line x1="268" x2="280"/><text x="285"></text></g>
+            <g id="vachHetM" class="vach het"><line x1="268" x2="280"/><text x="285"></text></g>
+        </svg>
       </div>
-      <div class="hero-foot">
-        <span class="hero-chip"><svg class="i"><use href="#i-zap"/></svg><span id="chipDien">Chưa có số liệu</span></span>
-        <span class="hero-chip"><svg class="i"><use href="#i-shield"/></svg>Ngắt ở <span id="chipNguong">10 / 14</span> cm</span>
+      <div class="hero-than">
+        <div class="hero-so"><b id="mucNuoc">--</b><span>cm nước</span></div>
+        <div class="hero-chu"><div class="hero-title" id="ttTen" aria-live="polite">Đang chờ thiết bị</div>
+          <div class="hero-desc" id="ttMoTa">Đang kết nối tới thiết bị…</div></div>
+      </div>
+      <div class="hero-tang">
+        <div class="tang cho" id="o1"><span class="bong-nho"><svg class="i"><use href="#i-bulb"/></svg></span><div><small id="tenMach1">Tầng 1</small><b id="dien1">Chưa rõ</b></div></div>
+        <div class="tang cho" id="o2"><span class="bong-nho"><svg class="i"><use href="#i-bulb"/></svg></span><div><small id="tenMach2">Tầng 2</small><b id="dien2">Chưa rõ</b></div></div>
       </div>
     </div>
 
-    <div class="stats">
-      <div class="stat">
-        <div class="ic" style="background:var(--primary-soft);color:var(--primary)"><svg class="i"><use href="#i-drop"/></svg></div>
-        <div class="lbl">Mực nước</div>
-        <div class="v"><span id="mucNuoc2">--</span><small>cm</small></div>
-      </div>
-      <div class="stat">
-        <div class="ic" style="background:var(--warn-soft);color:var(--warn)"><svg class="i"><use href="#i-trend"/></svg></div>
-        <div class="lbl">Tốc độ dâng</div>
-        <div class="v"><span id="tocDo">--</span><small>cm/phút</small></div>
-      </div>
+    <div class="chi-so">
+      <div><small>Tốc độ dâng</small><b><span id="tocDo">--</span><em>cm/ph</em></b></div>
+      <div><small>Ngưỡng ngắt</small><b><span id="chipNguong">10 / 14</span><em>cm</em></b></div>
+      <div><small>Cảm biến</small><b id="camBienNgan">--</b></div>
     </div>
 
     <div class="card the-ai">
       <div class="card-h">
-        <div class="card-t"><span class="ic" style="background:var(--ai-soft);color:var(--ai)"><svg class="i"><use href="#i-spark"/></svg></span>AI dự báo</div>
+        <div class="card-t"><span class="ic ai"><svg class="i"><use href="#i-spark"/></svg></span>AI dự báo</div>
         <span class="risk-badge" id="nguyCo">—</span>
       </div>
-      <div class="meter" id="meter"><i></i><i></i><i></i><i></i></div>
-      <div class="meter-lbl"><span>Thấp</span><span>Trung bình</span><span>Cao</span><span>Rất cao</span></div>
       <div class="eta">
         <div class="ic"><svg class="i"><use href="#i-clock"/></svg></div>
         <div><b id="duBao">Chưa có số liệu</b><span class="sub" id="duBaoPhu">Dựa trên tốc độ nước 2 phút gần nhất</span></div>
       </div>
+      <div class="meter" id="meter"><i></i><i></i><i></i><i></i></div>
+      <div class="meter-lbl"><span>Thấp</span><span>Trung bình</span><span>Cao</span><span>Rất cao</span></div>
       <ul class="reasons" id="lyDo"></ul>
       <div class="rain"><svg class="i"><use href="#i-rain"/></svg><span id="muaTxt">Đang lấy dự báo mưa…</span></div>
     </div>
 
     <div class="card the-dien">
-      <div class="card-h"><div class="card-t"><span class="ic"><svg class="i"><use href="#i-power"/></svg></span>Điện trong nhà</div></div>
-      <div class="power-row">
-        <div class="name"><span class="ic"><svg class="i"><use href="#i-house2"/></svg></span><span id="tenMach1">Tầng 1</span></div>
-        <span class="pill cho" id="dien1">Chưa rõ</span>
+      <div class="card-h"><div class="card-t"><span class="ic"><svg class="i"><use href="#i-power"/></svg></span>Ngắt điện từ xa</div></div>
+      <div class="nut-doi">
+        <button class="btn btn-vien" id="btnNgat"><svg class="i"><use href="#i-power"/></svg><span id="chuNut1">Ngắt tầng 1</span></button>
+        <button class="btn btn-vien dam" id="btnNgatHet"><svg class="i"><use href="#i-power"/></svg>Ngắt toàn bộ</button>
       </div>
-      <div class="power-row">
-        <div class="name"><span class="ic"><svg class="i"><use href="#i-layers"/></svg></span><span id="tenMach2">Tầng 2</span></div>
-        <span class="pill cho" id="dien2">Chưa rõ</span>
-      </div>
+      <div class="note"><svg class="i"><use href="#i-info"/></svg><span>Dùng khi cả nhà đã sơ tán. Thiết bị vẫn tự ngắt khi nước dâng. Vì an toàn, chỉ đóng điện lại được bằng nút RESET tại thiết bị khi nước đã rút hết.</span></div>
       <div class="cam-bien" id="camBien">Cảm biến: chưa có số liệu</div>
-      <button class="btn btn-danger" id="btnNgat"><svg class="i"><use href="#i-power"/></svg><span id="chuNut1">Ngắt điện tầng 1 từ xa</span></button>
-      <button class="btn btn-danger" id="btnNgatHet" style="margin-top:8px"><svg class="i"><use href="#i-power"/></svg>Ngắt toàn bộ (cả nhà đã sơ tán)</button>
-      <div class="note"><svg class="i"><use href="#i-info"/></svg><span>Thiết bị tự ngắt tầng 1 khi nước gần chạm ổ cắm, tự ngắt toàn bộ khi nước gần chạm tủ điện tổng. Vì an toàn, app không thể đóng điện lại từ xa: phải giữ nút RESET tại thiết bị khi nước đã rút hết.</span></div>
     </div>
 
     <div class="card the-nk">
@@ -650,14 +726,17 @@
   <section id="tab-bieudo" class="tab">
     <div class="page-title">Diễn biến mực nước</div>
     <div class="sub">Số liệu gần đây và AI dự báo những phút tới</div>
+    <div class="chi-so" style="margin-top:14px">
+      <div><small>Hiện tại</small><b><span id="bdHienTai">--</span><em>cm</em></b></div>
+      <div><small>Cao nhất 10 phút</small><b><span id="bdCaoNhat">--</span><em>cm</em></b></div>
+      <div><small>Xu hướng</small><b id="bdXuHuong">--</b></div>
+    </div>
     <div class="card">
       <div class="chart-wrap"><canvas id="bieuDo"></canvas></div>
       <div class="legend">
         <span><i style="background:#0b5cd5"></i>Mực nước</span>
-        <span><i style="background:#6d3fd6"></i>AI dự báo</span>
-        <span><i style="background:#e08a00"></i>Mức cảnh báo</span>
-        <span><i style="background:#e02d3c"></i><span class="nhan-muc1">Ngắt tầng 1</span></span>
-        <span><i style="background:#9b1c1c"></i>Ngắt toàn bộ</span>
+        <span><i class="net-dut" style="color:#6d3fd6"></i>AI dự báo</span>
+        <span><i class="net-dut" style="color:#8a94a6"></i>Các mức ngắt</span>
       </div>
       <div class="note"><svg class="i"><use href="#i-info"/></svg><span>Số liệu thật từ thiết bị (gửi 5 giây một lần): 10 phút gần nhất và AI dự báo 5 phút tới, bằng hồi quy tuyến tính trên số liệu 2 phút gần nhất.</span></div>
     </div>
@@ -724,16 +803,18 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.4.0';
+const PHIEN_BAN_APP = '1.5.1';
 const CO_GI_MOI = [
-  'Hỗ trợ nhà 1 tầng: ngắt mạch ổ cắm trước, giữ đèn sáng để sơ tán; nước tới tủ điện tổng thì ngắt toàn bộ.',
-  'Chọn loại nhà khi thêm thiết bị, hoặc bấm dòng "Nhà 2 tầng" / "Nhà 1 tầng" trong mục Tài khoản để đổi. Thiết bị tự nhận cài đặt mới.',
-  'Hình ngôi nhà, chữ trong app, tin nhắn và giọng nói của thiết bị đổi theo loại nhà.',
+  'Giao diện mới: hình ngôi nhà to, cửa sổ sáng là tầng đó có điện, tối là đã ngắt.',
+  'Nhãn trạng thái màu, số mực nước lớn, ô điện từng tầng và hàng chỉ số gọn gàng.',
+  'Nút ngắt điện từ xa gọn hơn: Ngắt tầng 1 (hoặc ổ cắm) và Ngắt toàn bộ.',
+  'Màn hình đăng nhập mới, biểu đồ có hàng tóm tắt và ghi tên các mức ngắt ngay trên đường.',
 ];
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong lib/ben_vung.js (khớp với code ESP32)
 const MUC_CANH_BAO = 3, MUC_NGAT_MAC_DINH = 10, MUC_NGAT_HET_MAC_DINH = 14, MUC_BAO_TRUOC_HET = 12;  // cm, khớp code ESP32
 const TEN_TT = ['An toàn', 'Cảnh báo ngập', 'Đã ngắt điện tầng 1', 'Đã ngắt toàn bộ điện'];
-const LOP_TT = ['', 'warn', 'bad', 'bad'];
+const LOP_TT = ['ok', 'warn', 'bad', 'crit'];
+const NHAN_TT = ['An toàn', 'Cảnh báo', 'Đã ngắt điện', 'Ngắt toàn bộ'];
 const MO_TA_TT = [
   'Chưa có nước trong nhà. Thiết bị đang theo dõi liên tục.',
   'Nước đã vào nhà. Kê đồ lên cao, chuẩn bị lên tầng 2.',
@@ -745,7 +826,7 @@ const MO_TA_TT = [
 const CHU_NHA = {
   hai: {
     mach1: 'Tầng 1', mach2: 'Tầng 2', ngat1: 'Đã ngắt điện tầng 1', ngat1Ngan: 'Đã ngắt tầng 1', duDien: 'Có điện cả 2 tầng',
-    nut1: 'Ngắt điện tầng 1 từ xa', lenh1: 'ngắt điện tầng 1', muc1: 'Ngắt tầng 1', ca2: 'cả tầng 2',
+    nut1: 'Ngắt tầng 1', lenh1: 'ngắt điện tầng 1', muc1: 'Ngắt tầng 1', ca2: 'cả tầng 2',
     moTa: ['Chưa có nước trong nhà. Thiết bị đang theo dõi liên tục.', 'Nước đã vào nhà. Kê đồ lên cao, chuẩn bị lên tầng 2.',
       'Tầng 2 vẫn có điện. Không chạm vào ổ cắm, thiết bị điện ở tầng 1.', 'Nước đã tới mức tủ điện tổng nên ngắt cả tầng 2. Dùng đèn pin, không lội qua nước.'],
     noi2: 'Đã ngắt điện tầng một. Không chạm vào ổ cắm và thiết bị điện.',
@@ -757,7 +838,7 @@ const CHU_NHA = {
   },
   mot: {
     mach1: 'Mạch ổ cắm', mach2: 'Mạch đèn', ngat1: 'Đã ngắt mạch ổ cắm', ngat1Ngan: 'Đã ngắt ổ cắm', duDien: 'Có điện đầy đủ',
-    nut1: 'Ngắt mạch ổ cắm từ xa', lenh1: 'ngắt mạch ổ cắm', muc1: 'Ngắt ổ cắm', ca2: 'cả đèn',
+    nut1: 'Ngắt ổ cắm', lenh1: 'ngắt mạch ổ cắm', muc1: 'Ngắt ổ cắm', ca2: 'cả đèn',
     moTa: ['Chưa có nước trong nhà. Thiết bị đang theo dõi liên tục.', 'Nước đã vào nhà. Kê đồ lên cao, chuẩn bị đến chỗ cao ráo.',
       'Đèn vẫn sáng để đi lại. Không chạm vào ổ cắm và thiết bị điện.', 'Nước đã tới mức tủ điện tổng nên ngắt toàn bộ, kể cả đèn. Dùng đèn pin, không lội qua nước.'],
     noi2: 'Đã ngắt mạch ổ cắm, đèn vẫn sáng. Không chạm vào ổ cắm và thiết bị điện.',
@@ -911,36 +992,47 @@ async function layDuBaoMua() {
 // ===================== CẬP NHẬT GIAO DIỆN =====================
 // Ngôi nhà: tầng 1 cao 27 đơn vị (y 81..108). Mức ngắt toàn bộ (tủ điện tổng) vẽ ở 80% chiều cao tầng 1.
 function veNha() {
-  const mn2 = duLieu.mucngat2 || MUC_NGAT_HET_MAC_DINH, k = 21.6 / mn2;
-  const y = cm => (108 - cm * k).toFixed(1);
-  const h = Math.max(0, duLieu.muc * k);
-  $('nuocNha').style.transform = `translateY(${108 - Math.min(58, h)}px)`;   // nhà 2 tầng cao 58
-  $('nuocNhaM').style.transform = `translateY(${108 - Math.min(45, h)}px)`;  // nhà 1 tầng cao 45
-  for (const sfx of ['', 'M'])
-    [['vachCB', duLieu.muccb || MUC_CANH_BAO], ['vachNgat', duLieu.mucngat || MUC_NGAT_MAC_DINH], ['vachHet', mn2]]
-      .forEach(([id, cm]) => { $(id + sfx).setAttribute('y1', y(cm)); $(id + sfx).setAttribute('y2', y(cm)); });
+  // Mức ngắt toàn bộ (tủ điện tổng) vẽ ở 80% chiều cao tầng 1 (44 đơn vị)
+  const mn = duLieu.mucngat || MUC_NGAT_MAC_DINH, mn2 = duLieu.mucngat2 || MUC_NGAT_HET_MAC_DINH, k = 35 / mn2;
+  const h = Math.max(0, Math.min(112, duLieu.muc * k));
+  $('nuocNha').style.transform = `translateY(${140 - h}px)`;
+  $('nuocNhaM').style.transform = `translateY(${140 - h}px)`;
+  for (const sfx of ['', 'M']) {
+    let yChuTruoc = 999;  // chữ số trên thước cách nhau ít nhất 11 đơn vị, không đè lên nhau
+    [['vachCB', duLieu.muccb || MUC_CANH_BAO], ['vachNgat', mn], ['vachHet', mn2]].forEach(([id, cm]) => {
+      const g = $(id + sfx), y = 140 - cm * k, yChu = Math.min(y + 3.5, yChuTruoc - 11);
+      g.querySelector('line').setAttribute('y1', y.toFixed(1)); g.querySelector('line').setAttribute('y2', y.toFixed(1));
+      g.querySelector('text').setAttribute('y', yChu.toFixed(1)); g.querySelector('text').textContent = cm;
+      yChuTruoc = yChu;
+    });
+  }
   // relay 1: tầng 1 / mạch ổ cắm; relay 2: tầng 2 / mạch đèn
-  $('den1').classList.toggle('tat', duLieu.trangthai >= 2);
-  $('den2').classList.toggle('tat', duLieu.trangthai === 3);
-  $('oCamM').classList.toggle('tat', duLieu.trangthai >= 2);
-  $('denM').classList.toggle('tat', duLieu.trangthai === 3);
+  const tt = duLieu.trangthai;
+  $('cuaT1').classList.toggle('tat', tt >= 2);
+  $('cuaT2').classList.toggle('tat', tt === 3);
+  $('oCamM').classList.toggle('tat', tt >= 2);
+  $('cuaM').classList.toggle('tat', tt === 3);
 }
 veNha();  // đặt sẵn vạch mức và mặt nước
 function capNhatGiaoDien() {
   const tt = duLieu.trangthai;
   const mn = duLieu.mucngat || MUC_NGAT_MAC_DINH;
   $('theTT').className = 'hero ' + LOP_TT[tt];
+  $('ttNhan').textContent = NHAN_TT[tt];
+  $('gioCapNhat').textContent = 'Cập nhật ' + new Date(lanNhanCuoi || Date.now()).toLocaleTimeString('vi-VN');
   $('ttTen').textContent = TEN_TT[tt];
   $('ttMoTa').textContent = MO_TA_TT[tt];
-  $('mucNuoc').textContent = $('mucNuoc2').textContent = duLieu.muc.toFixed(1);
+  $('mucNuoc').textContent = duLieu.muc.toFixed(1);
   veNha();
   $('chipNguong').textContent = mn + ' / ' + (duLieu.mucngat2 || MUC_NGAT_HET_MAC_DINH);  // ngắt tầng 1 / ngắt toàn bộ
-  $('chipDien').textContent = tt === 3 ? 'Đã ngắt toàn bộ' : tt === 2 ? chu().ngat1Ngan : chu().duDien;
-  $('tocDo').textContent = duBaoAI.doDoc.toFixed(2);
+  const td = duBaoAI.doDoc;
+  $('tocDo').textContent = (td > 0.005 ? '+' : '') + td.toFixed(1);
   $('dien1').textContent = tt >= 2 ? 'Đã ngắt' : 'Có điện';
-  $('dien1').className = 'pill ' + (tt >= 2 ? 'off' : 'on');
+  $('o1').className = 'tang ' + (tt >= 2 ? 'tat' : 'sang');
   $('dien2').textContent = tt === 3 ? 'Đã ngắt' : 'Có điện';
-  $('dien2').className = 'pill ' + (tt === 3 ? 'off' : 'on');
+  $('o2').className = 'tang ' + (tt === 3 ? 'tat' : 'sang');
+  $('camBienNgan').textContent = +duLieu.sieuamloi === 1 ? 'Siêu âm lỗi' : 'Tốt';
+  $('camBienNgan').style.color = +duLieu.sieuamloi === 1 ? 'var(--bad)' : 'var(--ok)';
   $('camBien').textContent = 'Cảm biến: siêu âm ' + (+duLieu.sieuamloi === 1 ? 'LỖI' : 'hoạt động') +
     ' · phao 1 ' + (+duLieu.phao1 === 1 ? 'nổi' : 'khô') + ' · phao 2 ' + (+duLieu.phao2 === 1 ? 'nổi' : 'khô') +
     ' · cập nhật ' + new Date(lanNhanCuoi || Date.now()).toLocaleTimeString('vi-VN');
@@ -974,11 +1066,14 @@ window.datLoaiNha = v => { motTang = !!v; ghiLuu('motTang', motTang); apDungLoai
 
 function hienCho(tieuDe, moTa) {
   $('theTT').className = 'hero cho';
+  $('ttNhan').textContent = lanNhanCuoi ? 'Mất kết nối' : 'Đang chờ';
+  $('gioCapNhat').textContent = lanNhanCuoi ? 'Lần cuối ' + new Date(lanNhanCuoi).toLocaleTimeString('vi-VN') : '';
   $('ttTen').textContent = tieuDe;
   $('ttMoTa').textContent = moTa;
-  $('chipDien').textContent = 'Chưa rõ tình trạng điện';
-  for (const id of ['dien1', 'dien2']) { $(id).textContent = 'Chưa rõ'; $(id).className = 'pill cho'; }
-  ['den1', 'den2', 'denM', 'oCamM'].forEach(id => $(id).classList.add('tat'));
+  for (const id of ['dien1', 'dien2']) $(id).textContent = 'Chưa rõ';
+  $('o1').className = $('o2').className = 'tang cho';
+  $('camBienNgan').textContent = '--'; $('camBienNgan').style.color = '';
+  ['cuaT1', 'cuaT2', 'cuaM', 'oCamM'].forEach(id => $(id).classList.add('tat'));
   // Không có số liệu mới thì không đưa ra dự báo
   $('nguyCo').textContent = '—'; $('nguyCo').style.background = ''; $('nguyCo').style.color = 'var(--text-3)';
   [...$('meter').children].forEach(el => { el.style.background = ''; });
@@ -1058,10 +1153,21 @@ const bieuDo = new Chart($('bieuDo'), {
     { label: 'Mực nước', data: [], borderColor: MAU.primary, borderWidth: 2.5, pointRadius: 0, tension: .35, fill: true,
       backgroundColor: ctx => { const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 300); g.addColorStop(0, 'rgba(11,92,213,.28)'); g.addColorStop(1, 'rgba(11,92,213,0)'); return g; } },
     { label: 'AI dự báo', data: [], borderColor: MAU.ai, borderDash: [6, 5], borderWidth: 2, pointRadius: 0 },
-    { label: 'Mức ngắt điện', data: [], borderColor: MAU.bad, borderWidth: 1.5, pointRadius: 0 },
-    { label: 'Mức cảnh báo', data: [], borderColor: MAU.warn, borderWidth: 1.5, pointRadius: 0 },
-    { label: 'Mức ngắt toàn bộ', data: [], borderColor: MAU.crit, borderWidth: 1.5, pointRadius: 0 },
+    { label: 'Mức ngắt điện', data: [], borderColor: MAU.bad, borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0 },
+    { label: 'Mức cảnh báo', data: [], borderColor: MAU.warn, borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0 },
+    { label: 'Mức ngắt toàn bộ', data: [], borderColor: MAU.crit, borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0 },
   ] },
+  // Ghi tên mức ngay trên đường nét đứt (thay cho chú thích dài bên dưới)
+  plugins: [{ id: 'tenMuc', afterDatasetsDraw(c) {
+    const { ctx, chartArea: a, scales: { y } } = c;
+    ctx.save(); ctx.font = '700 11px "Be Vietnam Pro", system-ui, sans-serif'; ctx.textAlign = 'right';
+    [[3, 'Cảnh báo'], [2, chu().muc1], [4, 'Ngắt toàn bộ']].forEach(([i, ten]) => {
+      const ds = c.data.datasets[i]; if (!ds.data.length) return;
+      const v = ds.data[0].y; ctx.fillStyle = ds.borderColor;
+      ctx.fillText(ten + ' · ' + v + ' cm', a.right - 4, y.getPixelForValue(v) - 5);
+    });
+    ctx.restore();
+  } }],
   options: {
     animation: false, maintainAspectRatio: false, parsing: false,
     scales: {
@@ -1094,6 +1200,12 @@ function capNhatBieuDo() {
   const mcb = duLieu.muccb || MUC_CANH_BAO;
   bieuDo.data.datasets[3].data = [{ x: -qua, y: mcb }, { x: toi, y: mcb }];
   bieuDo.data.datasets[4].data = [{ x: -qua, y: mn2 }, { x: toi, y: mn2 }];
+  // Hàng tóm tắt
+  const gan = bieuDo.data.datasets[0].data;
+  $('bdHienTai').textContent = lanNhanCuoi ? duLieu.muc.toFixed(1) : '--';
+  $('bdCaoNhat').textContent = gan.length ? Math.max(...gan.map(p => p.y)).toFixed(1) : '--';
+  $('bdXuHuong').textContent = !lanNhanCuoi ? '--' : doDoc > 0.05 ? 'Đang dâng' : doDoc < -0.05 ? 'Đang rút' : 'Ổn định';
+  $('bdXuHuong').style.color = !lanNhanCuoi ? '' : doDoc > 0.05 ? 'var(--bad)' : doDoc < -0.05 ? 'var(--ok)' : 'var(--text)';
   if ($('tab-bieudo').classList.contains('active')) bieuDo.update();
 }
 
