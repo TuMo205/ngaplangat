@@ -483,7 +483,8 @@
       <div class="legend">
         <span><i style="background:var(--ok)"></i>An toàn</span>
         <span><i style="background:var(--warn)"></i>Cảnh báo</span>
-        <span><i style="background:var(--bad)"></i>Đã ngắt điện</span>
+        <span><i style="background:var(--bad)"></i>Ngắt tầng 1</span>
+        <span><i style="background:var(--crit)"></i>Ngắt toàn bộ</span>
         <span><i style="background:var(--off)"></i>Mất kết nối</span>
       </div>
     </section>
@@ -568,10 +569,10 @@
 <script>
 // ===================== CẤU HÌNH =====================
 const TAM_XA = [21.62, 105.18];
-const MUC_CANH_BAO = 3, MUC_NGAT = 10;
+const MUC_CANH_BAO = 3, MUC_NGAT = 10, MUC_NGAT_HET = 14;  // khớp code ESP32
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong ../app/lib/ben_vung.js
-const TEN_TT = ['An toàn', 'Cảnh báo', 'Đã ngắt điện'];
-const MAU_TT = ['#0e9f6e', '#e08a00', '#e02d3c'];
+const TEN_TT = ['An toàn', 'Cảnh báo', 'Ngắt tầng 1', 'Ngắt toàn bộ'];
+const MAU_TT = ['#0e9f6e', '#e08a00', '#e02d3c', '#9b1c1c'];
 const MAU_OFF = '#64748b';
 const MAT_KET_NOI_MS = 30000;
 const $ = id => document.getElementById(id);
@@ -662,9 +663,9 @@ function capNhatHo(h, mucMoi, now, trangThaiThietBi) {
   if (trangThaiThietBi !== undefined) {
     h.trangThai = trangThaiThietBi;
   } else {
-    if (mucMoi >= MUC_NGAT) h.daNgat = true;
-    if (h.daNgat && mucMoi < 0.5 && dinhLu(giay) === 0) h.daNgat = false;  // người dân đã RESET khi nước rút hết
-    h.trangThai = h.daNgat ? 2 : mucMoi >= MUC_CANH_BAO ? 1 : 0;
+    h.capNgat = Math.max(h.capNgat || 0, mucMoi >= MUC_NGAT_HET ? 3 : mucMoi >= MUC_NGAT ? 2 : 0);
+    if (h.capNgat && mucMoi < 0.5 && dinhLu(giay) === 0) h.capNgat = 0;  // người dân đã RESET khi nước rút hết
+    h.trangThai = h.capNgat || (mucMoi >= MUC_CANH_BAO ? 1 : 0);
   }
   h.lanCuoi = now;
   // Hộ đã an toàn trở lại: tự bỏ đánh dấu cử đội
@@ -688,7 +689,7 @@ const canHoTro = h => h.trangThai > 0 || (matKetNoi(h) && h.muc > 0);
 const badge = (text, mau, nen) => `<span class="badge" style="color:${mau};background:${nen}">${text}</span>`;
 function badgeTrangThai(h) {
   if (matKetNoi(h)) return badge('Mất kết nối', 'var(--off)', 'var(--off-soft)');
-  return badge(TEN_TT[h.trangThai], ['var(--ok)', 'var(--warn)', 'var(--bad)'][h.trangThai], ['var(--ok-soft)', 'var(--warn-soft)', 'var(--bad-soft)'][h.trangThai]);
+  return badge(TEN_TT[h.trangThai], ['var(--ok)', 'var(--warn)', 'var(--bad)', 'var(--crit)'][h.trangThai], ['var(--ok-soft)', 'var(--warn-soft)', 'var(--bad-soft)', 'var(--crit-soft)'][h.trangThai]);
 }
 
 // ===================== BẢN ĐỒ =====================
@@ -793,9 +794,13 @@ $('btnCSV').onclick = () => {
 
 // ===================== KPI + BIỂU ĐỒ =====================
 function demTrangThai(ds) {
-  let ok = 0, warn = 0, cut = 0, off = 0;
-  for (const h of ds) { if (matKetNoi(h)) off++; else if (h.trangThai === 2) cut++; else if (h.trangThai === 1) warn++; else ok++; }
-  return { ok, warn, cut, off };
+  let ok = 0, warn = 0, cut = 0, off = 0, het = 0;
+  for (const h of ds) {
+    if (matKetNoi(h)) off++;
+    else if (h.trangThai >= 2) { cut++; if (h.trangThai === 3) het++; }
+    else if (h.trangThai === 1) warn++; else ok++;
+  }
+  return { ok, warn, cut, off, het };
 }
 function veKPI() {
   const ds = hoHienThi(), c = demTrangThai(ds), n = ds.length;
@@ -803,7 +808,7 @@ function veKPI() {
   $('kTong').textContent = n; $('sTong').textContent = phamViThon || (THON.length + ' thôn');
   $('kOk').textContent = c.ok; $('sOk').textContent = pt(c.ok);
   $('kWarn').textContent = c.warn; $('sWarn').textContent = pt(c.warn);
-  $('kCut').textContent = c.cut; $('sCut').textContent = pt(c.cut);
+  $('kCut').textContent = c.cut; $('sCut').textContent = c.het ? `${c.het} hộ ngắt toàn bộ` : pt(c.cut);
   $('kOff').textContent = c.off;
   $('kNguoi').textContent = ds.filter(canHoTro).reduce((s, h) => s + soNguoiDeTonThuong(h), 0);
   $('kNguoi').closest('.kpi').classList.toggle('khong', $('kNguoi').textContent === '0');  // bằng 0 thì không tô đỏ
@@ -914,7 +919,7 @@ function ketNoiMQTT() {
       if (h.thon === 'Chưa xác định') h.thon = 'Hộ đăng ký qua app';
       return;
     }
-    capNhatHo(h, so(d.muc, 0, 300), Date.now(), Math.round(so(d.trangthai, 0, 2)));
+    capNhatHo(h, so(d.muc, 0, 300), Date.now(), Math.round(so(d.trangthai, 0, 3)));
     datKetNoi('online', `Trực tuyến · ${cacHo.length} thiết bị`);
     },
   });
@@ -924,7 +929,7 @@ function ketNoiMQTT() {
 // ===================== BÁO CÁO NHANH =====================
 // Soạn theo mẫu cố định ngay trên máy: không cần mạng, không tốn phí, chỉ dùng số liệu có thật trên bảng.
 function lyDoUuTien(h) {
-  const ly = [matKetNoi(h) ? 'mất kết nối khi đang ngập' : h.trangThai === 2 ? 'đã ngắt điện' : 'đang cảnh báo',
+  const ly = [matKetNoi(h) ? 'mất kết nối khi đang ngập' : h.trangThai === 3 ? 'đã ngắt toàn bộ điện' : h.trangThai === 2 ? 'đã ngắt điện tầng 1' : 'đang cảnh báo',
     'nước ' + h.muc.toFixed(0) + ' cm' + (h.tocDo > 0.05 ? ', đang dâng' : '')];
   if (h.oMotMinh) ly.push('người già ở một mình');
   else if (h.nguoiGia) ly.push(h.nguoiGia + ' người già');
@@ -936,11 +941,12 @@ function taoBaoCao() {
   const ds = hoHienThi(), c = demTrangThai(ds);
   const gio = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
   const d = ['BÁO CÁO NHANH TÌNH HÌNH NGẬP', $('tenXa').textContent + (phamViThon ? ' · ' + phamViThon : '') + ' · ' + gio, ''];
-  d.push(`1. TÌNH HÌNH: ${ds.length} hộ lắp thiết bị: ${c.ok} an toàn, ${c.warn} cảnh báo, ${c.cut} đã ngắt điện, ${c.off} mất kết nối.`);
+  d.push(`1. TÌNH HÌNH: ${ds.length} hộ lắp thiết bị: ${c.ok} an toàn, ${c.warn} cảnh báo, ${c.cut} đã ngắt điện${c.het ? ` (${c.het} hộ ngắt toàn bộ)` : ''}, ${c.off} mất kết nối.`);
   const thon = THON.filter(th => !phamViThon || th.ten === phamViThon)
     .map(th => ({ ten: th.ten, ...demTrangThai(cacHo.filter(h => h.thon === th.ten)) }))
-    .filter(t => t.cut + t.warn > 0).sort((a, b) => (b.cut * 2 + b.warn) - (a.cut * 2 + a.warn));
-  if (thon.length) d.push('   Nặng nhất: ' + thon.slice(0, 3).map(t => `${t.ten} (${t.cut} ngắt điện, ${t.warn} cảnh báo)`).join('; ') + '.');
+    .filter(t => t.cut + t.warn > 0).sort((a, b) => (b.het * 3 + b.cut * 2 + b.warn) - (a.het * 3 + a.cut * 2 + a.warn));
+  if (thon.length) d.push('   Nặng nhất: ' + thon.slice(0, 3).map(t =>
+    `${t.ten} (${t.cut} ngắt điện${t.het ? `, trong đó ${t.het} ngắt toàn bộ` : ''}, ${t.warn} cảnh báo)`).join('; ') + '.');
   if (muaDuBao.tong6h !== null) d.push(`   Mưa dự báo: ${muaDuBao.tong6h.toFixed(0)} mm trong 6 giờ, ${muaDuBao.tong24h.toFixed(0)} mm trong 24 giờ tới.`);
   const uu = ds.filter(h => canHoTro(h) && !daCu(h.id)).map(h => ({ h, diem: diemUuTien(h) })).sort((a, b) => b.diem - a.diem);
   const soCu = ds.filter(h => daCu(h.id)).length;
@@ -954,6 +960,7 @@ function taoBaoCao() {
   if (uu.length) d.push('   - Cử đội tới các hộ trên theo thứ tự, mang thuyền, áo phao, đèn pin.');
   if (c.off) d.push(`   - ${c.off} hộ mất kết nối: gọi điện hoặc kiểm tra trực tiếp.`);
   if (!uu.length && !c.off) d.push('   - Tiếp tục theo dõi' + (muaDuBao.tong24h >= 50 ? '; mưa to sắp tới, chuẩn bị sẵn thuyền, áo phao cho các thôn ven sông.' : '.'));
+  if (c.het) d.push(`   - ${c.het} hộ đã ngắt toàn bộ điện (nước tới tủ điện tổng): mang thêm đèn pin, sạc dự phòng.`);
   d.push('   - Không đóng điện lại khi nhà còn ngập; phối hợp điện lực kiểm tra trước khi cấp điện lại.');
   return d.join('\n');
 }

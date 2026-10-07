@@ -220,6 +220,7 @@
   .timeline .d.k0 { background:var(--ok); box-shadow:0 0 0 2px var(--ok); }
   .timeline .d.k1 { background:var(--warn); box-shadow:0 0 0 2px var(--warn); }
   .timeline .d.k2 { background:var(--bad); box-shadow:0 0 0 2px var(--bad); }
+  .timeline .d.k3 { background:var(--crit); box-shadow:0 0 0 2px var(--crit); }
   .timeline .t { font-size:11.5px; color:var(--text-3); }
   .timeline .m { font-size:13.5px; line-height:1.4; }
   .empty { font-size:13px; color:var(--text-3); text-align:center; padding:10px 0; }
@@ -415,7 +416,7 @@
       <div class="slide hien"><div class="slide-ic" style="--c:linear-gradient(135deg,#0b5cd5,#1fb6ff)"><svg class="i"><use href="#i-drop"/></svg></div>
         <h2>Biết ngay khi nước vào nhà</h2><p>Cảm biến đo mực nước liên tục. AI dự báo còn bao lâu nữa nước chạm mức nguy hiểm.</p></div>
       <div class="slide"><div class="slide-ic" style="--c:linear-gradient(135deg,#b3121f,#ef4444)"><svg class="i"><use href="#i-power"/></svg></div>
-        <h2>Tự ngắt điện tầng 1</h2><p>Ngắt điện trước khi nước chạm ổ cắm, tầng 2 vẫn có điện. Chống điện giật mùa lũ.</p></div>
+        <h2>Tự ngắt điện theo 3 cấp</h2><p>Ngắt tầng 1 trước khi nước chạm ổ cắm, tầng 2 vẫn có điện. Nước lên tới tủ điện tổng thì ngắt toàn bộ.</p></div>
       <div class="slide"><div class="slide-ic" style="--c:linear-gradient(135deg,#6d3fd6,#a77bff)"><svg class="i"><use href="#i-bell"/></svg></div>
         <h2>Báo người thân, báo xã</h2><p>Nhắn tin, gọi điện cho người nhà kể cả khi mất điện. Xã biết ngay nhà nào cần cứu hộ trước.</p></div>
     </div>
@@ -570,7 +571,8 @@
         <span class="pill on" id="dien2">Có điện</span>
       </div>
       <button class="btn btn-danger" id="btnNgat"><svg class="i"><use href="#i-power"/></svg>Ngắt điện tầng 1 từ xa</button>
-      <div class="note"><svg class="i"><use href="#i-info"/></svg><span>Dùng khi cả nhà đã đi sơ tán. Vì an toàn, app không thể đóng điện lại từ xa: phải giữ nút RESET tại thiết bị khi nước đã rút hết.</span></div>
+      <button class="btn btn-danger" id="btnNgatHet" style="margin-top:8px"><svg class="i"><use href="#i-power"/></svg>Ngắt toàn bộ (cả nhà đã sơ tán)</button>
+      <div class="note"><svg class="i"><use href="#i-info"/></svg><span>Thiết bị tự ngắt tầng 1 khi nước gần chạm ổ cắm, tự ngắt toàn bộ khi nước gần chạm tủ điện tổng. Vì an toàn, app không thể đóng điện lại từ xa: phải giữ nút RESET tại thiết bị khi nước đã rút hết.</span></div>
     </div>
 
     <div class="card the-nk">
@@ -589,7 +591,8 @@
         <span><i style="background:#0b5cd5"></i>Mực nước</span>
         <span><i style="background:#6d3fd6"></i>AI dự báo</span>
         <span><i style="background:#e08a00"></i>Mức cảnh báo</span>
-        <span><i style="background:#e02d3c"></i>Mức ngắt điện</span>
+        <span><i style="background:#e02d3c"></i>Ngắt tầng 1</span>
+        <span><i style="background:#9b1c1c"></i>Ngắt toàn bộ</span>
       </div>
       <div class="note"><svg class="i"><use href="#i-info"/></svg><span>AI dự báo bằng hồi quy tuyến tính trên số liệu 2 phút gần nhất. Ở chế độ mô phỏng, nước dâng nhanh hơn thực tế nên biểu đồ chỉ hiện 3 phút.</span></div>
     </div>
@@ -604,7 +607,8 @@
       <div class="legend" style="padding:0 6px 4px">
         <span><i style="background:var(--ok)"></i>Bình thường</span>
         <span><i style="background:var(--warn)"></i>Cảnh báo</span>
-        <span><i style="background:var(--bad)"></i>Đã ngắt điện</span>
+        <span><i style="background:var(--bad)"></i>Ngắt tầng 1</span>
+        <span><i style="background:var(--crit)"></i>Ngắt toàn bộ</span>
       </div>
     </div>
   </section>
@@ -652,13 +656,14 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong lib/ben_vung.js (khớp với code ESP32)
-const MUC_CANH_BAO = 3, MUC_NGAT_MAC_DINH = 10;             // cm, khớp code ESP32
-const TEN_TT = ['An toàn', 'Cảnh báo ngập', 'Đã ngắt điện tầng 1'];
-const LOP_TT = ['', 'warn', 'bad'];
+const MUC_CANH_BAO = 3, MUC_NGAT_MAC_DINH = 10, MUC_NGAT_HET_MAC_DINH = 14, MUC_BAO_TRUOC_HET = 12;  // cm, khớp code ESP32
+const TEN_TT = ['An toàn', 'Cảnh báo ngập', 'Đã ngắt điện tầng 1', 'Đã ngắt toàn bộ điện'];
+const LOP_TT = ['', 'warn', 'bad', 'bad'];
 const MO_TA_TT = [
   'Chưa có nước trong nhà. Thiết bị đang theo dõi liên tục.',
   'Nước đã vào nhà. Kê đồ lên cao, chuẩn bị lên tầng 2.',
   'Tầng 2 vẫn có điện. Không chạm vào ổ cắm, thiết bị điện ở tầng 1.',
+  'Nước đã tới mức tủ điện tổng nên ngắt cả tầng 2. Dùng đèn pin, không lội qua nước.',
 ];
 const MAU = { ok: '#0e9f6e', warn: '#e08a00', bad: '#e02d3c', crit: '#9b1c1c', primary: '#0b5cd5', ai: '#6d3fd6' };
 
@@ -677,13 +682,14 @@ window.cauHinh = cauHinh;
 ['apiKey', 'modelAI'].forEach(k => { try { localStorage.removeItem('nln_' + k); } catch {} });  // xoá khoá AI của bản cũ
 
 // ===================== TRẠNG THÁI =====================
-let duLieu = { muc: 0, tocdo: 0, trangthai: 0, mucngat: MUC_NGAT_MAC_DINH, lat: cauHinh.viDo, lon: cauHinh.kinhDo };
+let duLieu = { muc: 0, tocdo: 0, trangthai: 0, mucngat: MUC_NGAT_MAC_DINH, mucngat2: MUC_NGAT_HET_MAC_DINH, lat: cauHinh.viDo, lon: cauHinh.kinhDo };
+let daBaoTruocHet = false;    // đã báo "sắp ngắt toàn bộ" chưa
 let nguon = 'mophong';         // 'mophong' hoặc 'thietbi'
 let ttTruoc = 0;
 const lichSu = [];             // {t: ms, muc: cm}
 const cacNha = new Map();      // id -> dữ liệu (cho bản đồ)
 let muaSauGio = null;          // mm mưa dự báo 6 giờ tới
-let duBaoAI = { phutDenNgat: null, doDoc: 0, nguyCo: 'THẤP', lyDo: [] };
+let duBaoAI = { phutDenNgat: null, phutDenNgatHet: null, doDoc: 0, nguyCo: 'THẤP', lyDo: [] };
 const $ = id => document.getElementById(id);
 
 function datKetNoi(lop, text) {
@@ -750,12 +756,16 @@ function hoiQuy() {
 function tinhDuBao() {
   const { doDoc, chan } = hoiQuy();
   const mucNgat = duLieu.mucngat || MUC_NGAT_MAC_DINH;
-  let phutDenNgat = null;
+  const mucNgatHet = duLieu.mucngat2 || MUC_NGAT_HET_MAC_DINH;
+  let phutDenNgat = null, phutDenNgatHet = null;
   if (duLieu.trangthai < 2 && doDoc > 0.02) phutDenNgat = Math.max(0, (mucNgat - chan) / doDoc);
+  if (duLieu.trangthai === 2 && doDoc > 0.02) phutDenNgatHet = Math.max(0, (mucNgatHet - chan) / doDoc);
 
   let diem = 0;
   const lyDo = [];
-  if (duLieu.trangthai === 2) { diem = 99; lyDo.push('Thiết bị đã ngắt điện tầng 1.'); }
+  if (duLieu.trangthai === 3) { diem = 99; lyDo.push('Thiết bị đã ngắt toàn bộ điện, kể cả tầng 2.'); }
+  else if (duLieu.trangthai === 2) { diem = 99; lyDo.push('Thiết bị đã ngắt điện tầng 1, tầng 2 vẫn có điện.'); }
+  if (phutDenNgatHet !== null && phutDenNgatHet < 30) lyDo.push(`Dự kiến chạm mức tủ điện tổng (ngắt toàn bộ) sau khoảng ${Math.ceil(phutDenNgatHet)} phút.`);
   if (duLieu.muc >= MUC_CANH_BAO) { diem += 2; lyDo.push(`Nước trong nhà đã ${duLieu.muc.toFixed(1)} cm.`); }
   if (doDoc > 0.05) { diem += 1; lyDo.push(`Nước đang dâng ${doDoc.toFixed(2)} cm/phút.`); }
   else if (doDoc < -0.05) lyDo.push(`Nước đang rút ${(-doDoc).toFixed(2)} cm/phút.`);
@@ -766,7 +776,7 @@ function tinhDuBao() {
 
   const nguyCo = diem >= 99 ? 'RẤT CAO' : diem >= 4 ? 'CAO' : diem >= 2 ? 'TRUNG BÌNH' : 'THẤP';
   if (!lyDo.length) lyDo.push('Không có nước trong nhà, mực nước ổn định.');
-  duBaoAI = { phutDenNgat, doDoc, nguyCo, lyDo };
+  duBaoAI = { phutDenNgat, phutDenNgatHet, doDoc, nguyCo, lyDo };
 }
 
 // Dự báo mưa 6 giờ tới từ Open-Meteo (miễn phí, không cần khoá)
@@ -796,10 +806,12 @@ function capNhatGiaoDien() {
   $('mucNuoc').textContent = $('mucNuoc2').textContent = duLieu.muc.toFixed(1);
   $('gaugeVal').style.strokeDashoffset = CHU_VI * (1 - Math.min(duLieu.muc / mn, 1));
   $('chipNguong').textContent = mn;
-  $('chipDien').textContent = tt === 2 ? 'Đã ngắt tầng 1' : 'Có điện cả 2 tầng';
+  $('chipDien').textContent = tt === 3 ? 'Đã ngắt toàn bộ' : tt === 2 ? 'Đã ngắt tầng 1' : 'Có điện cả 2 tầng';
   $('tocDo').textContent = duBaoAI.doDoc.toFixed(2);
-  $('dien1').textContent = tt === 2 ? 'Đã ngắt' : 'Có điện';
-  $('dien1').className = 'pill ' + (tt === 2 ? 'off' : 'on');
+  $('dien1').textContent = tt >= 2 ? 'Đã ngắt' : 'Có điện';
+  $('dien1').className = 'pill ' + (tt >= 2 ? 'off' : 'on');
+  $('dien2').textContent = tt === 3 ? 'Đã ngắt' : 'Có điện';
+  $('dien2').className = 'pill ' + (tt === 3 ? 'off' : 'on');
 
   const muc = ['THẤP', 'TRUNG BÌNH', 'CAO', 'RẤT CAO'].indexOf(duBaoAI.nguyCo);
   const mauMuc = [MAU.ok, MAU.warn, MAU.bad, MAU.crit][muc];
@@ -808,7 +820,8 @@ function capNhatGiaoDien() {
   $('nguyCo').style.color = mauMuc;
   [...$('meter').children].forEach((el, i) => el.style.background = i <= muc ? mauMuc : '');
 
-  $('duBao').textContent = tt === 2 ? 'Đã ngắt điện tầng 1'
+  $('duBao').textContent = tt === 3 ? 'Đã ngắt toàn bộ điện'
+    : tt === 2 ? (duBaoAI.phutDenNgatHet !== null ? `Khoảng ${Math.ceil(duBaoAI.phutDenNgatHet)} phút nữa sẽ ngắt cả tầng 2` : 'Đã ngắt điện tầng 1')
     : duBaoAI.phutDenNgat !== null ? `Khoảng ${Math.ceil(duBaoAI.phutDenNgat)} phút nữa sẽ ngắt điện`
     : duBaoAI.doDoc < -0.05 ? 'Nước đang rút' : 'Nước chưa dâng';
   $('lyDo').innerHTML = '';
@@ -830,12 +843,20 @@ function nhanDuLieu(d) {
       'Nước đã rút. Nhà đã trở lại bình thường.',
       `Cảnh báo! Nước đã vào nhà, mực nước ${duLieu.muc.toFixed(1)} xăng ti mét.`,
       'Đã ngắt điện tầng một. Không chạm vào ổ cắm và thiết bị điện.',
+      'Đã ngắt toàn bộ điện trong nhà, kể cả tầng hai. Dùng đèn pin, không lội qua nước.',
     ][duLieu.trangthai];
     ghiNhatKy(loiBao, duLieu.trangthai);
     thongBao(TEN_TT[duLieu.trangthai], loiBao);  // tên app đã hiện sẵn ở đầu thông báo
     docTo(loiBao);
     ttTruoc = duLieu.trangthai;
   }
+  // Báo trước 1 lần khi nước sắp chạm tủ điện tổng (thiết bị gửi cờ baotruoc2)
+  if (duLieu.trangthai === 2 && +duLieu.baotruoc2 === 1 && !daBaoTruocHet) {
+    daBaoTruocHet = true;
+    const t = 'Nước sắp chạm tủ điện tổng. Hãy sạc điện thoại, chuẩn bị đèn pin: sắp ngắt cả tầng hai.';
+    ghiNhatKy(t, 2); thongBao('Sắp ngắt toàn bộ điện', t); docTo(t);
+  }
+  if (duLieu.trangthai < 2) daBaoTruocHet = false;
 }
 
 // ===================== BIỂU ĐỒ =====================
@@ -850,6 +871,7 @@ const bieuDo = new Chart($('bieuDo'), {
     { label: 'AI dự báo', data: [], borderColor: MAU.ai, borderDash: [6, 5], borderWidth: 2, pointRadius: 0 },
     { label: 'Mức ngắt điện', data: [], borderColor: MAU.bad, borderWidth: 1.5, pointRadius: 0 },
     { label: 'Mức cảnh báo', data: [], borderColor: MAU.warn, borderWidth: 1.5, pointRadius: 0 },
+    { label: 'Mức ngắt toàn bộ', data: [], borderColor: MAU.crit, borderWidth: 1.5, pointRadius: 0 },
   ] },
   options: {
     animation: false, maintainAspectRatio: false, parsing: false,
@@ -865,15 +887,15 @@ function capNhatBieuDo() {
   const now = Date.now();
   // Thiết bị thật: xem 15 phút qua, dự báo 10 phút tới. Mô phỏng chạy nhanh nên thu nhỏ còn 3 phút / 2 phút.
   const qua = nguon === 'thietbi' ? 15 : 3, toi = nguon === 'thietbi' ? 10 : 2;
-  const mn = duLieu.mucngat || MUC_NGAT_MAC_DINH;
-  const yMax = mn + 4;
+  const mn = duLieu.mucngat || MUC_NGAT_MAC_DINH, mn2 = duLieu.mucngat2 || MUC_NGAT_HET_MAC_DINH;
+  const yMax = mn2 + 4;
   bieuDo.options.scales.x.min = -qua;
   bieuDo.options.scales.x.max = toi;
   bieuDo.options.scales.y.max = yMax;
   bieuDo.data.datasets[0].data = lichSu.filter(p => now - p.t <= qua * 60000).map(p => ({ x: (p.t - now) / 60000, y: p.muc }));
   const { doDoc, chan } = hoiQuy();
   let duBao = [];
-  if (duLieu.trangthai < 2 && Math.abs(doDoc) > 0.02) {
+  if (duLieu.trangthai < 3 && Math.abs(doDoc) > 0.02) {
     // Kéo dài đường dự báo đến khi chạm mép biểu đồ (0 hoặc yMax)
     const dich = doDoc > 0 ? yMax : 0;
     const xCuoi = Math.min(toi, (dich - chan) / doDoc);
@@ -882,6 +904,7 @@ function capNhatBieuDo() {
   bieuDo.data.datasets[1].data = duBao;
   bieuDo.data.datasets[2].data = [{ x: -qua, y: mn }, { x: toi, y: mn }];
   bieuDo.data.datasets[3].data = [{ x: -qua, y: MUC_CANH_BAO }, { x: toi, y: MUC_CANH_BAO }];
+  bieuDo.data.datasets[4].data = [{ x: -qua, y: mn2 }, { x: toi, y: mn2 }];
   if ($('tab-bieudo').classList.contains('active')) bieuDo.update();
 }
 
@@ -898,7 +921,7 @@ function taoBanDo() {
 }
 function capNhatBanDo() {
   if (!banDoDaVe) return;
-  const mau = [MAU.ok, MAU.warn, MAU.bad];
+  const mau = [MAU.ok, MAU.warn, MAU.bad, MAU.crit];
   for (const [id, d] of cacNha) {
     let m = dauCham.get(id);
     if (!m) { m = L.circleMarker([d.lat, d.lon], { radius: d.laNhaToi ? 13 : 9, weight: d.laNhaToi ? 4 : 2, fillOpacity: .9 }).addTo(banDo); dauCham.set(id, m); }
@@ -915,8 +938,9 @@ const MA_HOP_LE = /^[a-z0-9-]{4,40}$/;
 const soTrong = (v, nho, lon) => { const x = +v; return Number.isFinite(x) ? Math.min(lon, Math.max(nho, x)) : null; };
 function locDuLieu(d) {
   const lat = soTrong(d.lat, 8, 24), lon = soTrong(d.lon, 102, 110);
-  return { muc: soTrong(d.muc, 0, 300) || 0, trangthai: Math.round(soTrong(d.trangthai, 0, 2) || 0),
-    mucngat: soTrong(d.mucngat, 1, 100) || MUC_NGAT_MAC_DINH, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
+  return { muc: soTrong(d.muc, 0, 300) || 0, trangthai: Math.round(soTrong(d.trangthai, 0, 3) || 0),
+    mucngat: soTrong(d.mucngat, 1, 100) || MUC_NGAT_MAC_DINH, mucngat2: soTrong(d.mucngat2, 1, 300) || MUC_NGAT_HET_MAC_DINH,
+    baotruoc2: +d.baotruoc2 === 1 ? 1 : 0, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
 }
 let ketNoi = null;
 function ketNoiMQTT() {
@@ -947,24 +971,29 @@ function ketNoiMQTT() {
 }
 
 // ===================== CHẾ ĐỘ MÔ PHỎNG (khi chưa có thiết bị) =====================
-let henGioMoPhong = null, giayMoPhong = 0, daNgatMoPhong = false;
+let henGioMoPhong = null, giayMoPhong = 0, capNgatMoPhong = 0, baoTruocMoPhong = false;  // capNgat: 0, 2 (tầng 1), 3 (toàn bộ)
 function batMoPhong() {
   // 3 nhà hàng xóm giả lập quanh nhà
   const lech = [[0.0021, -0.0018, 'nha-hang-xom-1'], [-0.0016, 0.0024, 'nha-hang-xom-2'], [0.0009, 0.0031, 'nha-hang-xom-3']];
   henGioMoPhong = setInterval(() => {
-    giayMoPhong = (giayMoPhong + 1) % 150;
+    giayMoPhong = (giayMoPhong + 1) % 170;
     const g = giayMoPhong;
-    // Kịch bản 150 giây: khô -> nước dâng -> ngắt -> rút -> reset
-    let muc = g < 20 ? 0 : g < 70 ? (g - 20) * 0.23 : g < 85 ? 11.5 : g < 125 ? 11.5 - (g - 85) * 0.29 : 0;
+    // Kịch bản 170 giây: khô -> cảnh báo -> ngắt tầng 1 -> báo trước -> ngắt toàn bộ -> rút -> RESET
+    let muc = g < 20 ? 0 : g < 85 ? (g - 20) * 0.235 : g < 100 ? 15.3 : g < 140 ? 15.3 - (g - 100) * 0.3825 : 0;
     muc = Math.max(0, muc + (muc > 0 ? (Math.random() - .5) * .3 : 0));
-    if (muc >= MUC_NGAT_MAC_DINH) daNgatMoPhong = true;
-    if (daNgatMoPhong && muc < 1 && g >= 130) { daNgatMoPhong = false; ghiNhatKy('Người dùng giữ nút RESET 3 giây tại thiết bị.'); }
-    const tt = daNgatMoPhong ? 2 : muc >= MUC_CANH_BAO ? 1 : 0;
-    nhanDuLieu({ muc, trangthai: tt, mucngat: MUC_NGAT_MAC_DINH, lat: cauHinh.viDo, lon: cauHinh.kinhDo });
+    capNgatMoPhong = Math.max(capNgatMoPhong, muc >= MUC_NGAT_HET_MAC_DINH ? 3 : muc >= MUC_NGAT_MAC_DINH ? 2 : 0);
+    if (capNgatMoPhong === 2 && muc >= MUC_BAO_TRUOC_HET) baoTruocMoPhong = true;
+    if (capNgatMoPhong && muc < 1 && g === 150) {  // giả lập người dân giữ nút RESET, mỗi vòng 1 lần
+      capNgatMoPhong = 0; baoTruocMoPhong = false;
+      ghiNhatKy('Người dùng giữ nút RESET 3 giây tại thiết bị.');
+    }
+    const tt = capNgatMoPhong || (muc >= MUC_CANH_BAO ? 1 : 0);
+    nhanDuLieu({ muc, trangthai: tt, mucngat: MUC_NGAT_MAC_DINH, mucngat2: MUC_NGAT_HET_MAC_DINH, baotruoc2: baoTruocMoPhong ? 1 : 0,
+      lat: cauHinh.viDo, lon: cauHinh.kinhDo });
     lech.forEach(([dlat, dlon, id], i) => {
       const m = Math.max(0, muc * [1.3, 0.6, 0.2][i]);
       cacNha.set(id, { id, lat: cauHinh.viDo + dlat, lon: cauHinh.kinhDo + dlon, muc: m,
-        trangthai: m >= MUC_NGAT_MAC_DINH ? 2 : m >= MUC_CANH_BAO ? 1 : 0 });
+        trangthai: m >= MUC_NGAT_HET_MAC_DINH ? 3 : m >= MUC_NGAT_MAC_DINH ? 2 : m >= MUC_CANH_BAO ? 1 : 0 });
     });
     capNhatBanDo();
   }, 1000);
@@ -972,20 +1001,27 @@ function batMoPhong() {
 function dungMoPhong() { clearInterval(henGioMoPhong); lichSu.length = 0; }
 
 // ===================== NGẮT ĐIỆN TỪ XA =====================
-$('btnNgat').onclick = () => {
-  if (duLieu.trangthai === 2) { toast('Điện tầng 1 đã được ngắt rồi'); return; }
+// cap = 2: ngắt tầng 1 (lệnh NGAT); cap = 3: ngắt toàn bộ cả tầng 2 (lệnh NGAT_HET)
+function ngatTuXa(cap) {
+  if (duLieu.trangthai >= cap) { toast(cap === 3 ? 'Đã ngắt toàn bộ điện rồi' : 'Điện tầng 1 đã được ngắt rồi'); return; }
   // Khách dùng thử chỉ được xem thiết bị thật, muốn điều khiển phải đăng nhập (tránh người lạ ngắt điện nhà người khác)
   if (nguon === 'thietbi' && window.laCheDoKhach && window.laCheDoKhach()) { toast('Đăng nhập tài khoản để điều khiển thiết bị thật'); return; }
-  if (!confirm('Ngắt điện tầng 1 ngay bây giờ?\nChỉ đóng lại được bằng nút RESET tại thiết bị.')) return;
-  if (nguon === 'thietbi' && ketNoi && ketNoi.coKetNoi()) {
-    ketNoi.gui(`ngaplangat/${cauHinh.ma}/cmd`, 'NGAT');
-    ghiNhatKy('Đã gửi lệnh ngắt điện từ xa.', 2);
+  const hoi = cap === 3
+    ? 'Ngắt TOÀN BỘ điện trong nhà, kể cả tầng 2?\nChỉ dùng khi cả nhà đã sơ tán. Chỉ đóng lại được bằng nút RESET tại thiết bị.'
+    : 'Ngắt điện tầng 1 ngay bây giờ?\nTầng 2 vẫn có điện. Chỉ đóng lại được bằng nút RESET tại thiết bị.';
+  if (!confirm(hoi)) return;
+  const ten = cap === 3 ? 'ngắt toàn bộ điện' : 'ngắt điện tầng 1';
+  if (nguon === 'thietbi') {
+    if (ketNoi) ketNoi.gui(`ngaplangat/${cauHinh.ma}/cmd`, cap === 3 ? 'NGAT_HET' : 'NGAT');  // mất mạng thì tự gửi lại khi có mạng (trong 2 phút)
+    ghiNhatKy(`Đã gửi lệnh ${ten} từ xa.`, cap);
   } else {
-    daNgatMoPhong = true;
-    ghiNhatKy('Đã gửi lệnh ngắt điện từ xa (mô phỏng).', 2);
+    capNgatMoPhong = Math.max(capNgatMoPhong, cap);
+    ghiNhatKy(`Đã gửi lệnh ${ten} từ xa (mô phỏng).`, cap);
   }
-  toast('Đã gửi lệnh ngắt điện');
-};
+  toast('Đã gửi lệnh ' + ten);
+}
+$('btnNgat').onclick = () => ngatTuXa(2);
+$('btnNgatHet').onclick = () => ngatTuXa(3);
 
 // ===================== DÙNG CHUNG VỚI PHẦN TÀI KHOẢN =====================
 // Gửi lệnh (cmd) hoặc thông tin hộ (info, giữ lại trên máy chủ) tới thiết bị qua cả 2 máy chủ; chưa có mạng thì tự xếp hàng chờ.
