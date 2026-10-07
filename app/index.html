@@ -80,9 +80,9 @@
   .btn-lien.phai { display:block; margin:-4px 0 16px auto; font-size:13.5px; }
   .btn-lien.do { color:var(--bad); }
   .lui { background:none; border:none; color:var(--text-2); font:inherit; font-weight:600; cursor:pointer; padding:6px 0; }
-  .loi, .ok { display:none; border-radius:12px; padding:11px 13px; font-size:13.5px; font-weight:500; margin-bottom:14px; line-height:1.45; }
+  .loi, .ok:not(.hero) { display:none; border-radius:12px; padding:11px 13px; font-size:13.5px; font-weight:500; margin-bottom:14px; line-height:1.45; }
   .loi { background:var(--bad-soft); color:var(--bad); }
-  .ok { background:var(--ok-soft); color:var(--ok); }
+  .ok:not(.hero) { background:var(--ok-soft); color:var(--ok); }
   .hoac { display:flex; align-items:center; gap:12px; color:var(--text-3); font-size:12.5px; margin:16px 0; }
   .hoac::before, .hoac::after { content:""; flex:1; height:1px; background:var(--line); }
   .cuoi { text-align:center; color:var(--text-2); margin-top:20px; }
@@ -803,12 +803,13 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.5.1';
+const PHIEN_BAN_APP = '1.5.2';
 const CO_GI_MOI = [
   'Giao diện mới: hình ngôi nhà to, cửa sổ sáng là tầng đó có điện, tối là đã ngắt.',
   'Nhãn trạng thái màu, số mực nước lớn, ô điện từng tầng và hàng chỉ số gọn gàng.',
   'Nút ngắt điện từ xa gọn hơn: Ngắt tầng 1 (hoặc ổ cắm) và Ngắt toàn bộ.',
   'Màn hình đăng nhập mới, biểu đồ có hàng tóm tắt và ghi tên các mức ngắt ngay trên đường.',
+  'Sửa lỗi: thẻ trạng thái chính không hiện khi nhà đang an toàn.',
 ];
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong lib/ben_vung.js (khớp với code ESP32)
 const MUC_CANH_BAO = 3, MUC_NGAT_MAC_DINH = 10, MUC_NGAT_HET_MAC_DINH = 14, MUC_BAO_TRUOC_HET = 12;  // cm, khớp code ESP32
