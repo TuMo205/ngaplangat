@@ -600,6 +600,8 @@
       <button type="button" class="btn btn-ghost" id="btnViTri">Lấy vị trí hiện tại</button>
     </div>
     <div id="tlHo">
+      <div class="nhom-t">Địa chỉ</div>
+      <label class="o"><span>Thôn, khu nơi đặt nhà</span><select id="tlThonChon"></select><input id="tlThonNhap" placeholder="VD: Khu 3" style="display:none"></label>
       <div class="nhom-t">Thành viên trong nhà</div>
       <div class="sub" style="margin-bottom:6px">Giúp xã ưu tiên cứu hộ đúng nhà khi lũ lớn.</div>
       <div class="dem"><span>Người già (trên 70 tuổi)</span><input id="tlGia" type="number" min="0" max="20" inputmode="numeric"></div>
@@ -803,12 +805,11 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.5.2';
+const PHIEN_BAN_APP = '1.6.0';
 const CO_GI_MOI = [
-  'Giao diện mới: hình ngôi nhà to, cửa sổ sáng là tầng đó có điện, tối là đã ngắt.',
-  'Nhãn trạng thái màu, số mực nước lớn, ô điện từng tầng và hàng chỉ số gọn gàng.',
-  'Nút ngắt điện từ xa gọn hơn: Ngắt tầng 1 (hoặc ổ cắm) và Ngắt toàn bộ.',
-  'Màn hình đăng nhập mới, biểu đồ có hàng tóm tắt và ghi tên các mức ngắt ngay trên đường.',
+  'Chọn thôn, khu nơi đặt nhà (mục Tài khoản > Sửa thông tin) để xã cứu hộ đúng chỗ.',
+  'Thông tin hộ chia sẻ với UBND xã giờ lưu trên máy chủ bảo mật, chỉ cán bộ xã xem được.',
+  'Tắt "Đồng ý chia sẻ" hoặc xoá thiết bị thì thông tin tự xoá khỏi bảng của xã.',
   'Sửa lỗi: thẻ trạng thái chính không hiện khi nhà đang an toàn.',
 ];
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong lib/ben_vung.js (khớp với code ESP32)
@@ -1470,6 +1471,7 @@ const Demo = {
   async layHoSo(u) { const x = this.ds()[u.id]; return x ? x.hoSo : null; },
   async luuHoSo(u, hoSo) { const ds = this.ds(); if (ds[u.id]) { ds[u.id].hoSo = hoSo; ghiJ('nln_taiKhoan', ds); } },
   async xoaTaiKhoan(u) { const ds = this.ds(); delete ds[u.id]; ghiJ('nln_taiKhoan', ds); ghiJ('nln_phien', null); },
+  async layCaiDatXa() { return null; },
 };
 
 // ---------------- Chế độ Firebase (tài khoản thật) ----------------
@@ -1503,6 +1505,21 @@ const Firebase = {
   async layHoSo(u) { const s = await this.fs.getDoc(this.fs.doc(this.db, 'nguoiDung', u.id)); return s.exists() ? s.data() : null; },
   async luuHoSo(u, hoSo) { await this.fs.setDoc(this.fs.doc(this.db, 'nguoiDung', u.id), hoSo); },
   async xoaTaiKhoan(u) { await this.fs.deleteDoc(this.fs.doc(this.db, 'nguoiDung', u.id)); await this.au.deleteUser(this.auth.currentUser); },
+  // Tên xã, danh sách thôn do UBND xã khai báo (ai cũng đọc được)
+  async layCaiDatXa() { const s = await this.fs.getDoc(this.fs.doc(this.db, 'xa', 'caiDat')); return s.exists() ? s.data() : null; },
+  // Chia sẻ thông tin hộ với UBND xã: lưu trên máy chủ bảo mật, chỉ cán bộ xã có tài khoản mới đọc được
+  async chiaSeXa(u, hs) {
+    const nt = hs.nguoiThan[0];
+    await Promise.all(hs.thietBi.map(tb => {
+      const ref = this.fs.doc(this.db, 'hoDan', tb.ma);
+      if (!hs.chiaSeXa) return this.fs.deleteDoc(ref).catch(() => {});
+      return this.fs.setDoc(ref, { uid: u.id, chuHo: String(hs.hoTen || '').slice(0, 60), tenNha: String(tb.ten || '').slice(0, 60),
+        sdt: String((nt ? nt.sdt : hs.sdt) || '').slice(0, 20), thon: String(hs.thon || '').slice(0, 60),
+        nguoiGia: hs.nguoiGia, treEm: hs.treEm, khuyetTat: hs.khuyetTat, oMotMinh: !!hs.oMotMinh, motTang: !!tb.motTang,
+        lat: +tb.lat || 0, lon: +tb.lon || 0, capNhat: new Date().toISOString() }).catch(() => {});
+    }));
+  },
+  async boChiaSe(ma) { await this.fs.deleteDoc(this.fs.doc(this.db, 'hoDan', ma)).catch(() => {}); },
 };
 
 const TK = cfg && cfg.apiKey ? Firebase : Demo;
@@ -1531,7 +1548,7 @@ window.dongBoThietBiApp = () => { if (hoSo) dongBoThietBi(); };  // gọi khi th
 
 function hoSoMoi(p) {
   return { hoTen: p.hoTen || '', dangNhap: p.dangNhap || '', sdt: p.sdt || '', thietBi: [], thietBiChon: '',
-    nguoiGia: 0, treEm: 0, khuyetTat: 0, oMotMinh: false, nguoiThan: [], chiaSeXa: true, taoLuc: new Date().toISOString() };
+    thon: '', nguoiGia: 0, treEm: 0, khuyetTat: 0, oMotMinh: false, nguoiThan: [], chiaSeXa: true, taoLuc: new Date().toISOString() };
 }
 function man(ten) {
   document.querySelectorAll('#manAuth .man').forEach(m => m.classList.toggle('hien', m.dataset.man === ten));
@@ -1552,16 +1569,16 @@ async function luuHoSo() {
 const thietBiDangChon = () => hoSo.thietBi.find(t => t.ma === hoSo.thietBiChon) || hoSo.thietBi[0];
 
 // Gửi số người thân xuống thiết bị (để nhắn tin, gọi điện) và thông tin hộ lên bảng điều hành xã (nếu đồng ý).
+// Thông tin hộ chỉ lưu trên máy chủ bảo mật (Firebase), không gửi qua máy chủ MQTT công cộng.
 function dongBoThietBi() {
   if (laKhach) return;  // khách dùng thử không được đổi số điện thoại, thông tin hộ của thiết bị
   const nt = hoSo.nguoiThan[0];
   for (const tb of hoSo.thietBi) {
     if (nt) window.guiLenhThietBi(tb.ma, 'cmd', 'SDT:' + sdtQuocTe(nt.sdt));
     window.guiLenhThietBi(tb.ma, 'cmd', tb.motTang ? 'LOAI:1' : 'LOAI:2');  // loại nhà: thiết bị lưu vào bộ nhớ
-    window.guiLenhThietBi(tb.ma, 'info', hoSo.chiaSeXa ? JSON.stringify({
-      chuHo: hoSo.hoTen, tenNha: tb.ten, sdt: nt ? nt.sdt : hoSo.sdt, nguoiGia: hoSo.nguoiGia, treEm: hoSo.treEm,
-      khuyetTat: hoSo.khuyetTat, oMotMinh: hoSo.oMotMinh, motTang: !!tb.motTang, lat: tb.lat, lon: tb.lon }) : '', true);
+    window.guiLenhThietBi(tb.ma, 'info', '', true);  // xoá thông tin hộ mà bản cũ (trước 1.6.0) đã để lại trên máy chủ MQTT
   }
+  if (nguoiDung && TK.chiaSeXa) TK.chiaSeXa(nguoiDung, hoSo).catch(() => {});
 }
 
 function vaoApp() {
@@ -1576,10 +1593,14 @@ function vaoApp() {
 }
 
 // ---------------- Khởi động ----------------
+let dsThonXa = [];
 async function batDau() {
   $('ghiChuCheDo').textContent = TK.ten === 'firebase' ? 'Tài khoản được bảo mật và đồng bộ trên mọi thiết bị.'
     : 'Bản demo: tài khoản được lưu trên trình duyệt của máy này.';
   try { nguoiDung = await TK.khoiTao(); } catch { nguoiDung = null; }
+  TK.layCaiDatXa().then(c => {  // danh sách thôn của xã, dùng khi hộ dân chọn thôn
+    dsThonXa = c && Array.isArray(c.dsThon) ? c.dsThon.map(t => String(t).trim().slice(0, 60)).filter(Boolean) : [];
+  }).catch(() => {});
   const khach = docJ('nln_khach', null), cache = docJ('nln_hoSoCache', null);
   if (nguoiDung) {
     try { hoSo = await TK.layHoSo(nguoiDung); } catch { hoSo = cache; }
@@ -1704,6 +1725,13 @@ function moThietLap(cheDo) {
     $('tlLat').value = 21.62; $('tlLon').value = 105.18; $('btnViTri').textContent = 'Lấy vị trí hiện tại';
     $('tlLoaiNha').value = '2';
   }
+  // Thôn, khu: chọn theo danh sách xã khai báo; xã chưa khai báo thì gõ tay
+  const coDs = dsThonXa.length > 0, thon = hoSo.thon || '';
+  $('tlThonChon').style.display = coDs ? '' : 'none';
+  $('tlThonNhap').style.display = coDs ? 'none' : '';
+  $('tlThonChon').innerHTML = '<option value="">Chọn thôn, khu</option>'
+    + [...dsThonXa, ...(thon && !dsThonXa.includes(thon) ? [thon] : [])].map(t => `<option>${esc(t)}</option>`).join('');
+  $('tlThonChon').value = thon; $('tlThonNhap').value = thon;
   $('tlGia').value = hoSo.nguoiGia; $('tlTre').value = hoSo.treEm; $('tlKT').value = hoSo.khuyetTat;
   $('tlMotMinh').checked = hoSo.oMotMinh; $('tlChiaSe').checked = hoSo.chiaSeXa;
   $('tlSdt').value = hoSo.nguoiThan[0] ? hoSo.nguoiThan[0].sdt : '';
@@ -1724,6 +1752,9 @@ $('btnLuuTL').onclick = () => cho($('btnLuuTL'), async () => {
     const so = v => Math.max(0, Math.min(20, parseInt(v, 10) || 0));
     const sdtNhap = $('tlSdt').value.trim(), sdt = chuanHoa(sdtNhap).sdt;
     if (sdtNhap && !sdt) return loi('loiTL', 'Số điện thoại người thân chưa đúng (VD: 0912345678).');
+    const thon = (dsThonXa.length ? $('tlThonChon').value : $('tlThonNhap').value).trim().slice(0, 60);
+    if (!thon && $('tlChiaSe').checked && dsThonXa.length) return loi('loiTL', 'Chọn thôn, khu để xã biết nhà bạn ở đâu khi cần cứu hộ.');
+    hoSo.thon = thon;
     hoSo.nguoiGia = so($('tlGia').value); hoSo.treEm = so($('tlTre').value); hoSo.khuyetTat = so($('tlKT').value);
     hoSo.oMotMinh = $('tlMotMinh').checked; hoSo.chiaSeXa = $('tlChiaSe').checked;
     if (sdt) { hoSo.nguoiThan = hoSo.nguoiThan.filter(n => n.sdt !== sdt); hoSo.nguoiThan.unshift({ ten: 'Người thân', sdt }); }
@@ -1795,6 +1826,7 @@ function veTaiKhoan() {
     </div>
     <div class="group-t">Hộ gia đình</div>
     <div class="card" style="margin-top:0">
+      <div class="tk-row"><span>Thôn, khu</span><b>${esc(hoSo.thon || 'Chưa chọn')}</b></div>
       <div class="tk-row"><span>Người già</span><b>${hoSo.nguoiGia}</b></div>
       <div class="tk-row"><span>Trẻ em dưới 6 tuổi</span><b>${hoSo.treEm}</b></div>
       <div class="tk-row"><span>Người khuyết tật, bệnh nặng</span><b>${hoSo.khuyetTat}</b></div>
@@ -1830,6 +1862,7 @@ document.addEventListener('click', async e => {
   else if (t.dataset.xoa) {
     if (!confirm('Xoá thiết bị "' + t.dataset.xoa + '" khỏi tài khoản?')) return;
     hoSo.thietBi = hoSo.thietBi.filter(x => x.ma !== t.dataset.xoa);
+    if (!laKhach && TK.boChiaSe) TK.boChiaSe(t.dataset.xoa);
     if (hoSo.thietBiChon === t.dataset.xoa) hoSo.thietBiChon = hoSo.thietBi.length ? hoSo.thietBi[0].ma : '';
     await luuHoSo(); vaoApp();
   }
@@ -1863,7 +1896,10 @@ document.addEventListener('click', async e => {
   else if (t.id === 'tkDangXuat') { if (confirm(laKhach ? 'Thoát chế độ dùng thử?' : 'Đăng xuất khỏi tài khoản?')) thoat(); }
   else if (t.id === 'tkXoa') {
     if (!confirm('Xoá vĩnh viễn tài khoản và toàn bộ dữ liệu? Không thể hoàn tác.')) return;
-    try { await TK.xoaTaiKhoan(nguoiDung); window.toast('Đã xoá tài khoản'); thoat(); }
+    try {
+      if (TK.boChiaSe) await Promise.all(hoSo.thietBi.map(x => TK.boChiaSe(x.ma)));
+      await TK.xoaTaiKhoan(nguoiDung); window.toast('Đã xoá tài khoản'); thoat();
+    }
     catch (er) { alert(loiTV(er)); }
   }
 });
@@ -1879,7 +1915,7 @@ const VAN_BAN = {
   baomat: ['Chính sách bảo mật', `
     <p><b>Thông tin thu thập:</b> họ tên, email hoặc số điện thoại đăng nhập, vị trí ngôi nhà, số người già, trẻ em, người khuyết tật trong nhà, số điện thoại người thân, dữ liệu mực nước từ thiết bị.</p>
     <p><b>Mục đích:</b> gửi cảnh báo cho gia đình, dự báo nguy cơ ngập, và (chỉ khi bạn đồng ý) giúp UBND xã ưu tiên cứu hộ.</p>
-    <p><b>Chia sẻ:</b> thông tin hộ gia đình chỉ được chia sẻ với UBND xã khi bạn bật "Đồng ý chia sẻ". Hàng xóm chỉ thấy vị trí ẩn danh trên bản đồ. Chúng tôi không bán dữ liệu.</p>
+    <p><b>Chia sẻ:</b> thông tin hộ gia đình chỉ được chia sẻ với UBND xã khi bạn bật "Đồng ý chia sẻ", lưu trên máy chủ bảo mật và chỉ cán bộ xã có tài khoản mới xem được (trưởng thôn chỉ xem hộ trong thôn mình). Tắt "Đồng ý chia sẻ" hoặc xoá thiết bị thì thông tin bị xoá khỏi bảng của xã. Chúng tôi không bán dữ liệu.</p>
     <p><b>Mật khẩu:</b> được mã hoá, nhóm phát triển không xem được mật khẩu của bạn.</p>
     <p><b>Quyền của bạn:</b> xem, sửa thông tin bất kỳ lúc nào trong mục Tài khoản; xoá tài khoản cùng toàn bộ dữ liệu bằng nút "Xoá tài khoản".</p>
     <p class="sub">Bản thử nghiệm phục vụ cuộc thi "Học sinh, sinh viên với ý tưởng khởi nghiệp" tỉnh Phú Thọ năm học 2026–2027.</p>`],

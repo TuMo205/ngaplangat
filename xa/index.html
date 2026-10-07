@@ -182,6 +182,10 @@
     background:var(--surface); color:var(--text); outline:none; }
   .o input:focus, .o select:focus { border-color:var(--primary); box-shadow:0 0 0 4px var(--primary-soft); }
   .o select:disabled { opacity:.5; }
+  .o textarea { width:100%; font:inherit; font-size:15px; padding:12px 14px; border-radius:12px; border:1.5px solid var(--line);
+    background:var(--surface); color:var(--text); outline:none; resize:vertical; min-height:120px; line-height:1.5; }
+  .o textarea:focus { border-color:var(--primary); box-shadow:0 0 0 4px var(--primary-soft); }
+  .o small { display:block; font-size:12px; color:var(--text-3); margin-top:6px; line-height:1.45; }
   .mk { position:relative; }
   .mk input { padding-right:120px; }
   .hien-mk { position:absolute; right:6px; top:50%; transform:translateY(-50%); border:none; background:var(--surface-2); color:var(--primary);
@@ -398,6 +402,21 @@
   <div class="md-nut"><button class="btn btn-ghost" data-dong="mdDoiMk">Huỷ</button><button class="btn btn-primary" id="btnDMK">Lưu mật khẩu</button></div>
 </div></div>
 
+<!-- Cài đặt xã (quản trị) -->
+<div class="md" id="mdCaiDat"><div class="md-hop">
+  <h3>Cài đặt xã</h3><div class="sub" style="margin-bottom:16px">Tên xã, danh sách thôn, khu và vị trí trung tâm xã. Hộ dân chọn thôn trong app theo danh sách này.</div>
+  <div class="loi" id="loiCD"></div>
+  <label class="o"><span>Tên xã</span><input id="cdTenXa" placeholder="VD: Xã Đoan Hùng"></label>
+  <label class="o"><span>Danh sách thôn, khu (mỗi dòng một thôn)</span><textarea id="cdThon" placeholder="VD:&#10;Thôn Tây Cốc&#10;Khu 1&#10;Khu 2"></textarea>
+    <small>Trưởng thôn chỉ xem được các hộ trong thôn mình phụ trách.</small></label>
+  <div class="hai-cot">
+    <label class="o"><span>Vĩ độ trung tâm xã</span><input id="cdLat" type="number" step="0.0001"></label>
+    <label class="o"><span>Kinh độ trung tâm xã</span><input id="cdLon" type="number" step="0.0001"></label>
+  </div>
+  <button type="button" class="btn btn-ghost" id="btnCdViTri" style="margin:-4px 0 14px">Lấy vị trí hiện tại</button>
+  <div class="md-nut"><button class="btn btn-ghost" data-dong="mdCaiDat">Huỷ</button><button class="btn btn-primary" id="btnLuuCD">Lưu cài đặt</button></div>
+</div></div>
+
 <!-- Thêm cán bộ -->
 <div class="md" id="mdThemCB"><div class="md-hop">
   <h3>Thêm cán bộ</h3><div class="sub" style="margin-bottom:16px">Gửi email và mật khẩu tạm cho cán bộ, nhắc đổi mật khẩu sau lần đăng nhập đầu.</div>
@@ -426,7 +445,7 @@
     <a href="#can-bo" id="navCanBo" style="display:none"><svg class="i"><use href="#i-user"/></svg><span class="dai">Cán bộ</span><span class="ngan">Cán bộ</span></a>
     <a href="#nhat-ky" id="navNhatKy" style="display:none"><svg class="i"><use href="#i-clock"/></svg><span class="dai">Nhật ký</span><span class="ngan">Nhật ký</span></a>
   </nav>
-  <div class="side-foot"><b>Bản mẫu dự thi</b>Thông tin các hộ là dữ liệu mô phỏng. Bảng chỉ để theo dõi, không điều khiển điện nhà dân.</div>
+  <div class="side-foot"><b>Số liệu thật</b>Chỉ hiện các hộ có lắp thiết bị và đồng ý chia sẻ với xã. Bảng chỉ để theo dõi, không điều khiển điện nhà dân.</div>
 </aside>
 
 <main>
@@ -442,6 +461,7 @@
         <button class="um-nut" id="umNut"><span class="um-av" id="umAv">?</span><span><b id="umTen">—</b><small id="umVaiTro">—</small></span></button>
         <div class="um-drop" id="umDrop">
           <div class="dau"><b id="umTen2">—</b><span id="umEmail">—</span></div>
+          <button id="umCaiDat" style="display:none"><svg class="i"><use href="#i-home"/></svg>Cài đặt xã</button>
           <button id="umDoiMk"><svg class="i"><use href="#i-key"/></svg>Đổi mật khẩu</button>
           <button class="do" id="umDangXuat"><svg class="i"><use href="#i-logout"/></svg>Đăng xuất</button>
         </div>
@@ -451,7 +471,7 @@
 
   <div class="kpis">
     <div class="kpi"><div class="ic" style="background:var(--primary-soft);color:var(--primary)"><svg class="i"><use href="#i-home"/></svg></div>
-      <div class="v" id="kTong">0</div><div class="l">Hộ lắp thiết bị</div><div class="s" id="sTong">6 thôn</div></div>
+      <div class="v" id="kTong">0</div><div class="l">Hộ lắp thiết bị</div><div class="s" id="sTong">Toàn xã</div></div>
     <div class="kpi"><div class="ic" style="background:var(--ok-soft);color:var(--ok)"><svg class="i"><use href="#i-check"/></svg></div>
       <div class="v" id="kOk">0</div><div class="l">An toàn</div><div class="s" id="sOk">—</div></div>
     <div class="kpi"><div class="ic" style="background:var(--warn-soft);color:var(--warn)"><svg class="i"><use href="#i-alert"/></svg></div>
@@ -528,7 +548,7 @@
 
     <!-- THỐNG KÊ -->
     <section class="card" id="thong-ke">
-      <div class="card-h"><div class="card-t"><span class="ic"><svg class="i"><use href="#i-chart"/></svg></span><div>Diễn biến số hộ theo trạng thái<small>3 phút gần nhất</small></div></div></div>
+      <div class="card-h"><div class="card-t"><span class="ic"><svg class="i"><use href="#i-chart"/></svg></span><div>Diễn biến số hộ theo trạng thái<small>Ghi mỗi 20 giây khi trang đang mở</small></div></div></div>
       <div class="chart-wrap"><canvas id="bdDienBien"></canvas></div>
     </section>
     <section class="card">
@@ -568,7 +588,9 @@
 <script src="../app/lib/ben_vung.js?v=11"></script>
 <script>
 // ===================== CẤU HÌNH =====================
-const TAM_XA = [21.62, 105.18];
+// Trung tâm xã và danh sách thôn do quản trị viên khai báo trong "Cài đặt xã" (lưu trên máy chủ)
+let TAM_XA = [21.62, 105.18];
+const BAN_KINH_XA_KM = 15;  // thiết bị chưa đăng ký chỉ hiện khi nằm trong khoảng này quanh trung tâm xã
 const MUC_CANH_BAO = 3, MUC_NGAT = 10, MUC_NGAT_HET = 14;  // khớp code ESP32
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong ../app/lib/ben_vung.js
 const TEN_TT = ['An toàn', 'Cảnh báo', 'Ngắt một phần', 'Ngắt toàn bộ'];  // một phần: tầng 1 (nhà 2 tầng) hoặc mạch ổ cắm (nhà 1 tầng)
@@ -578,103 +600,137 @@ const MAT_KET_NOI_MS = 30000;
 const $ = id => document.getElementById(id);
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-// ===================== DỮ LIỆU HỘ (MÔ PHỎNG) =====================
-// Mỗi thôn có độ cao khác nhau: thôn ven sông thấp, ngập trước và sâu hơn.
-const THON = [
-  { ten: 'Thôn 1 (ven sông)', dLat: -0.004, dLon: 0.0022, doCao: 0 },
-  { ten: 'Thôn 2 (ven sông)', dLat: 0.002, dLon: 0.0018, doCao: 1.5 },
-  { ten: 'Thôn 3', dLat: -0.002, dLon: -0.002, doCao: 4 },
-  { ten: 'Thôn 4', dLat: 0.005, dLon: -0.003, doCao: 7 },
-  { ten: 'Thôn 5', dLat: -0.006, dLon: -0.005, doCao: 9 },
-  { ten: 'Thôn 6 (trên đồi)', dLat: 0.003, dLon: -0.009, doCao: 14 },
-];
-let hatGiong = 7;
-function ngauNhien() { hatGiong = (hatGiong * 16807) % 2147483647; return (hatGiong - 1) / 2147483646; }
-const HO = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Vũ', 'Đỗ', 'Bùi', 'Đinh', 'Hà'];
-const DEM = ['Văn', 'Thị', 'Đức', 'Minh', 'Thị', 'Văn'];
-const TEN = ['An', 'Bình', 'Cường', 'Dung', 'Hà', 'Hùng', 'Lan', 'Mai', 'Nam', 'Sơn', 'Thảo', 'Tuấn', 'Yến', 'Hòa', 'Phúc'];
+// ===================== DỮ LIỆU HỘ (SỐ LIỆU THẬT) =====================
+// Không có dữ liệu mô phỏng. Mỗi hộ gồm 2 phần:
+//  - Thông tin hộ: người dân bật "Đồng ý chia sẻ với UBND xã" trong app, lưu trên máy chủ Firebase, chỉ cán bộ xã đọc được.
+//  - Mực nước, trạng thái điện: thiết bị gửi trực tiếp qua MQTT mỗi 5 giây.
+// Thiết bị đang chạy trong địa bàn xã mà hộ chưa chia sẻ thông tin: chỉ hiện chấm ẩn danh.
+let THON = [];
+const CHUA_RO_THON = 'Chưa rõ thôn';
 const MAU_AV = ['#0b5cd5', '#6d3fd6', '#0e9f6e', '#e08a00', '#d6336c', '#0891b2'];
-
 const cacHo = [];
-let soHo = 0;
-THON.forEach(th => {
-  const n = 6 + Math.floor(ngauNhien() * 3);
-  for (let i = 0; i < n; i++) {
-    soHo++;
-    const nguoiGia = ngauNhien() < 0.35 ? 1 + Math.floor(ngauNhien() * 2) : 0;
-    const treEm = ngauNhien() < 0.4 ? 1 + Math.floor(ngauNhien() * 2) : 0;
-    const khuyetTat = ngauNhien() < 0.1 ? 1 : 0;
-    const ho = HO[Math.floor(ngauNhien() * HO.length)], dem = DEM[Math.floor(ngauNhien() * DEM.length)], ten = TEN[Math.floor(ngauNhien() * TEN.length)];
-    cacHo.push({
-      id: `nln-mp-${String(soHo).padStart(3, '0')}`,
-      ten: `${ho} ${dem} ${ten}`, vietTat: (ho[0] + ten[0]).toUpperCase(), mauAv: MAU_AV[soHo % MAU_AV.length],
-      thon: th.ten,
-      sdt: `09${Math.floor(ngauNhien() * 10)}x xxx ${String(100 + Math.floor(ngauNhien() * 899))}`,
-      lat: TAM_XA[0] + th.dLat + (ngauNhien() - .5) * 0.003,
-      lon: TAM_XA[1] + th.dLon + (ngauNhien() - .5) * 0.0025,
-      doCao: th.doCao + ngauNhien() * 2.5,
-      nguoiGia, treEm, khuyetTat,
-      oMotMinh: nguoiGia > 0 && ngauNhien() < 0.4,
-      motTang: soHo % 3 === 0,
-      muc: 0, tocDo: 0, trangThai: 0, daNgat: false, lanCuoi: Date.now(), mocMucTruoc: null, moPhong: true,
-    });
-  }
-});
+const escH = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const soGH = (v, nho, lon) => { const x = +v; return Number.isFinite(x) ? Math.min(lon, Math.max(nho, x)) : 0; };
+const chuSach = (v, dai) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, dai);
+const trongVN = (lat, lon) => lat > 8 && lat < 24 && lon > 102 && lon < 110;
+function cachTamXaKm(lat, lon) {
+  const dy = (lat - TAM_XA[0]) * 110.6, dx = (lon - TAM_XA[1]) * 111.3 * Math.cos(TAM_XA[0] * Math.PI / 180);
+  return Math.hypot(dx, dy);
+}
+function taoHo(id) {
+  const h = { id, lat: 0, lon: 0, motTang: false, muc: 0, tocDo: 0, trangThai: 0, lanCuoi: 0, mocMucTruoc: null };
+  boThongTinHo(h);
+  cacHo.push(h);
+  return h;
+}
+// Hộ chưa (hoặc thôi) chia sẻ: không giữ thông tin cá nhân trên trang
+function boThongTinHo(h) {
+  Object.assign(h, { dangKy: false, ten: '', vietTat: 'TB', mauAv: MAU_OFF, sdt: '—', thonGoc: '', thon: CHUA_RO_THON,
+    nguoiGia: 0, treEm: 0, khuyetTat: 0, oMotMinh: false });
+}
+function boHo(h) {
+  cacHo.splice(cacHo.indexOf(h), 1);
+  const m = dauCham.get(h.id);
+  if (m) { banDo.removeLayer(m); dauCham.delete(h.id); }
+}
+// Ghép thôn người dân chọn trong app với danh sách thôn của xã (không phân biệt hoa thường)
+function xepThon(h) {
+  if (!h.dangKy) { h.thon = CHUA_RO_THON; return; }
+  const g = h.thonGoc.toLowerCase();
+  h.thon = !THON.length ? (h.thonGoc || CHUA_RO_THON) : (THON.find(t => t.toLowerCase() === g) || CHUA_RO_THON);
+}
+// Các thôn hiện ở bộ lọc, biểu đồ, báo cáo
+function dsThon() {
+  const co = new Set(cacHo.map(h => h.thon));
+  const ds = THON.length ? [...THON] : [...co].filter(t => t !== CHUA_RO_THON).sort((a, b) => a.localeCompare(b, 'vi'));
+  if (co.has(CHUA_RO_THON)) ds.push(CHUA_RO_THON);
+  return ds;
+}
+window.DS_THON = () => [...THON];
+
 // Hộ đã cử đội: { maHo: { boi: tên cán bộ, luc: thời điểm } }.
 // Phần tài khoản (cuối trang) đồng bộ giữa các cán bộ và gọi window.nhanCuDoi khi có thay đổi.
 let cuDoi = {};
 const daCu = id => !!cuDoi[id];
-const escH = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-window.DS_THON = THON.map(t => t.ten);
 // Phạm vi xem: trưởng thôn chỉ thấy các hộ trong thôn mình phụ trách
 let phamViThon = '';
 const hoHienThi = () => phamViThon ? cacHo.filter(h => h.thon === phamViThon) : cacHo;
-// Khách xem thử chỉ thấy tên, số điện thoại của hộ mô phỏng; hộ thật hiện ẩn danh để giữ thông tin cá nhân
+// Khách xem thử: không thấy tên, số điện thoại (máy chủ cũng không cho khách đọc thông tin hộ)
 let anDanh = false;
-const anHo = h => anDanh && !h.moPhong;
-const tenHo = h => anHo(h) ? 'dân (ẩn danh)' : h.ten;
-const sdtHo = h => anHo(h) ? 'ẩn' : h.sdt;
+const anHo = h => anDanh || !h.dangKy;
+const tenHo = h => !h.dangKy ? `Thiết bị ${h.id}${anDanh ? '' : ' (hộ chưa chia sẻ thông tin)'}` : anDanh ? 'Hộ dân (ẩn danh)' : 'Hộ ' + h.ten;
+const sdtHo = h => anHo(h) ? '—' : h.sdt;
 window.datAnDanh = v => { anDanh = !!v; };
 
-// ===================== MÔ PHỎNG LŨ =====================
-// Chu kỳ 6 phút: khô -> nước sông dâng -> đỉnh lũ -> rút. Tua nhanh để demo.
-let giay = 40;
-function dinhLu(g) {
-  return g < 40 ? 0 : g < 160 ? (g - 40) / 120 * 17 : g < 220 ? 17 : g < 320 ? 17 - (g - 220) / 100 * 17 : 0;
+// Danh sách hộ đã chia sẻ, gọi từ phần tài khoản mỗi khi máy chủ có thay đổi
+let daCanBanDo = false;
+window.datHoDan = ds => {
+  const con = new Set();
+  for (const x of ds || []) {
+    const id = String(x.id || '');
+    if (!/^[a-z0-9-]{4,40}$/.test(id)) continue;
+    con.add(id);
+    const h = cacHo.find(y => y.id === id) || taoHo(id);
+    const chuHo = chuSach(x.chuHo, 50) || 'Chưa ghi tên', tenNha = chuSach(x.tenNha, 50);
+    const lat = soGH(x.lat, 0, 90), lon = soGH(x.lon, 0, 180);
+    Object.assign(h, {
+      dangKy: true, ten: tenNha && tenNha !== 'Nhà của tôi' ? `${chuHo} · ${tenNha}` : chuHo,
+      vietTat: chuHo.split(/\s+/).slice(-2).map(w => w[0] || '').join('').toUpperCase() || 'HD',
+      mauAv: MAU_AV[[...id].reduce((t, c) => t + c.charCodeAt(0), 0) % MAU_AV.length],
+      sdt: chuSach(x.sdt, 16).replace(/[^\d+ ]/g, '') || '—', thonGoc: chuSach(x.thon, 60),
+      nguoiGia: soGH(x.nguoiGia, 0, 20), treEm: soGH(x.treEm, 0, 20), khuyetTat: soGH(x.khuyetTat, 0, 20), oMotMinh: x.oMotMinh === true,
+    });
+    if (!h.lanCuoi) h.motTang = x.motTang === true;  // thiết bị đã gửi số liệu thì lấy loại nhà theo thiết bị
+    if (trongVN(lat, lon)) { h.lat = lat; h.lon = lon; }
+    xepThon(h);
+  }
+  // Hộ đã thôi chia sẻ (hoặc cán bộ đăng xuất): xoá thông tin cá nhân khỏi trang
+  for (const h of [...cacHo]) {
+    if (!h.dangKy || con.has(h.id)) continue;
+    if (h.lanCuoi && h.lat && cachTamXaKm(h.lat, h.lon) <= BAN_KINH_XA_KM) boThongTinHo(h); else boHo(h);
+  }
+  if (!daCanBanDo) daCanBanDo = canBanDo();
+  lamMoi();
+};
+// Cài đặt xã: danh sách thôn, trung tâm xã
+window.datCaiDatXa = c => {
+  c = c || {};
+  THON = (Array.isArray(c.dsThon) ? c.dsThon : []).map(t => chuSach(t, 60)).filter(Boolean).slice(0, 80);
+  const lat = soGH(c.lat, 0, 90), lon = soGH(c.lon, 0, 180);
+  if (trongVN(lat, lon) && (lat !== TAM_XA[0] || lon !== TAM_XA[1])) {
+    TAM_XA = [lat, lon];
+    if (!daCanBanDo) banDo.setView(TAM_XA, 15);
+    layMua();
+  }
+  cacHo.forEach(xepThon);
+  lamMoi();
+};
+// Đưa bản đồ về vùng có các hộ (lần đầu có số liệu)
+function canBanDo() {
+  const ds = hoHienThi().filter(h => h.lat);
+  if (!ds.length) return false;
+  banDo.fitBounds(ds.map(h => [h.lat, h.lon]), { padding: [40, 40], maxZoom: 16 });
+  return true;
 }
-function buocMoPhong() {
-  giay = (giay + 2) % 360;
-  const dinh = dinhLu(giay);
-  const now = Date.now();
-  cacHo.forEach((h, i) => {
-    if (!h.moPhong) return;
-    // 2 hộ ven sông mất kết nối khi lũ lên cao (mất điện, hết pin…)
-    if ((i === 2 || i === 9) && giay > 150 && giay < 250) return;
-    const mucMoi = Math.max(0, dinh - h.doCao + (dinh > h.doCao ? (ngauNhien() - .5) * .4 : 0));
-    capNhatHo(h, mucMoi, now);
-  });
-}
-function capNhatHo(h, mucMoi, now, trangThaiThietBi) {
-  if (h.mocMucTruoc) {
+
+// Số liệu thiết bị gửi lên (mực nước, trạng thái điện do chính thiết bị quyết định)
+function capNhatHo(h, mucMoi, now, trangThai, tocDo) {
+  if (tocDo !== undefined) h.tocDo = tocDo;  // thiết bị tự tính tốc độ nước dâng (cm/phút)
+  else if (h.mocMucTruoc) {
     const phut = (now - h.mocMucTruoc.t) / 60000;
     if (phut > 0) h.tocDo = (mucMoi - h.mocMucTruoc.muc) / phut;
   }
   h.mocMucTruoc = { t: now, muc: mucMoi };
   h.muc = mucMoi;
-  if (trangThaiThietBi !== undefined) {
-    h.trangThai = trangThaiThietBi;
-  } else {
-    h.capNgat = Math.max(h.capNgat || 0, mucMoi >= MUC_NGAT_HET ? 3 : mucMoi >= MUC_NGAT ? 2 : 0);
-    if (h.capNgat && mucMoi < 0.5 && dinhLu(giay) === 0) h.capNgat = 0;  // người dân đã RESET khi nước rút hết
-    h.trangThai = h.capNgat || (mucMoi >= MUC_CANH_BAO ? 1 : 0);
-  }
+  h.trangThai = trangThai;
   h.lanCuoi = now;
   // Hộ đã an toàn trở lại: tự bỏ đánh dấu cử đội
   if (h.trangThai === 0 && daCu(h.id) && h.muc === 0 && window.yeuCauCuDoi) window.yeuCauCuDoi(h.id, false, true);
 }
 
 // ===================== ĐIỂM ƯU TIÊN =====================
-const matKetNoi = h => Date.now() - h.lanCuoi > MAT_KET_NOI_MS;
+const matKetNoi = h => !h.lanCuoi || Date.now() - h.lanCuoi > MAT_KET_NOI_MS;
+const tenMatKetNoi = h => h.lanCuoi ? 'Mất kết nối' : 'Chưa có số liệu';
 const soNguoiDeTonThuong = h => h.nguoiGia + h.treEm + h.khuyetTat;
 function diemUuTien(h) {
   let d = h.trangThai * 15 + Math.min(h.muc, 20) * 1.5 + Math.min(Math.max(0, h.tocDo), 10)
@@ -689,7 +745,7 @@ function nhanUuTien(d) {  // [tên, màu chữ, màu nền]
 const canHoTro = h => h.trangThai > 0 || (matKetNoi(h) && h.muc > 0);
 const badge = (text, mau, nen) => `<span class="badge" style="color:${mau};background:${nen}">${text}</span>`;
 function badgeTrangThai(h) {
-  if (matKetNoi(h)) return badge('Mất kết nối', 'var(--off)', 'var(--off-soft)');
+  if (matKetNoi(h)) return badge(tenMatKetNoi(h), 'var(--off)', 'var(--off-soft)');
   return badge(TEN_TT[h.trangThai], ['var(--ok)', 'var(--warn)', 'var(--bad)', 'var(--crit)'][h.trangThai], ['var(--ok-soft)', 'var(--warn-soft)', 'var(--bad-soft)', 'var(--crit-soft)'][h.trangThai]);
 }
 
@@ -698,7 +754,18 @@ const banDo = L.map('map', { zoomControl: false }).setView(TAM_XA, 15);
 L.control.zoom({ position: 'bottomright' }).addTo(banDo);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(banDo);
 const dauCham = new Map();
-THON.forEach(th => { const o = document.createElement('option'); o.value = o.textContent = th.ten; $('locThon').appendChild(o); });
+// Bộ lọc thôn: dựng lại khi danh sách thôn thay đổi
+let khoaLocThon = '';
+function capNhatLocThon() {
+  const ds = dsThon();
+  if (phamViThon && !ds.includes(phamViThon)) ds.unshift(phamViThon);
+  const khoa = ds.join('|');
+  if (khoa === khoaLocThon) return;
+  khoaLocThon = khoa;
+  const s = $('locThon'), v = phamViThon || s.value;
+  s.innerHTML = '<option value="">Tất cả thôn</option>' + ds.map(t => `<option>${escH(t)}</option>`).join('');
+  s.value = ds.includes(v) ? v : '';
+}
 
 function hopLoc(h) {
   if (phamViThon && h.thon !== phamViThon) return false;
@@ -710,6 +777,7 @@ function hopLoc(h) {
 }
 function veBanDo() {
   for (const h of cacHo) {
+    if (!h.lat) continue;  // hộ chưa có vị trí
     let m = dauCham.get(h.id);
     if (!m) { m = L.circleMarker([h.lat, h.lon], { weight: 2, color: '#fff', fillOpacity: .9 }); dauCham.set(h.id, m); }
     const hien = hopLoc(h);
@@ -718,7 +786,7 @@ function veBanDo() {
     m.setStyle({ fillColor: matKetNoi(h) ? MAU_OFF : MAU_TT[h.trangThai] });
     m.setRadius(6 + Math.min(h.muc, 15) * 0.7);
     const nhom = [h.nguoiGia && `${h.nguoiGia} người già`, h.treEm && `${h.treEm} trẻ nhỏ`, h.khuyetTat && 'người khuyết tật'].filter(Boolean).join(', ') || 'không';
-    m.bindPopup(`<b>Hộ ${escH(tenHo(h))}</b><br>${escH(h.thon)} · ${escH(sdtHo(h))}<br>Trạng thái: <b>${matKetNoi(h) ? 'Mất kết nối' : TEN_TT[h.trangThai]}</b><br>Mực nước: ${h.muc.toFixed(1)} cm<br>Nhóm dễ tổn thương: ${nhom}${h.oMotMinh ? '<br><b>Người già ở một mình</b>' : ''}`);
+    m.bindPopup(`<b>${escH(tenHo(h))}</b><br>${escH(h.thon)} · ${escH(sdtHo(h))}<br>Trạng thái: <b>${matKetNoi(h) ? tenMatKetNoi(h) : TEN_TT[h.trangThai]}</b><br>Mực nước: ${h.muc.toFixed(1)} cm<br>Nhóm dễ tổn thương: ${nhom}${h.oMotMinh ? '<br><b>Người già ở một mình</b>' : ''}`);
   }
 }
 $('locThon').onchange = $('locTT').onchange = veBanDo;
@@ -736,6 +804,12 @@ function veBang() {
   $('demUuTien').textContent = soCan ? `${soCan} hộ cần hỗ trợ · ${soCu} hộ đã cử đội` : 'Không có hộ nào cần hỗ trợ';
   const tbody = $('bang');
   tbody.innerHTML = '';
+  if (!hoHienThi().length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="empty">${anDanh
+      ? 'Chế độ xem thử chỉ thấy các thiết bị đang hoạt động trong địa bàn xã (ẩn danh). Hiện chưa có thiết bị nào gửi số liệu.'
+      : 'Chưa có hộ nào. Khi hộ dân cài app, thêm thiết bị và bật "Đồng ý chia sẻ với UBND xã", hộ đó sẽ hiện ở đây cùng số liệu trực tiếp từ thiết bị.'}</td></tr>`;
+    return;
+  }
   if (!ds.length) { tbody.innerHTML = '<tr><td colspan="10" class="empty">Hiện không có hộ nào cần hỗ trợ.</td></tr>'; return; }
   ds.forEach(({ h, d }, i) => {
     const [nhan, mau, nen] = nhanUuTien(d);
@@ -752,7 +826,7 @@ function veBang() {
     const s = Math.round((Date.now() - h.lanCuoi) / 1000);
     const capNhat = !h.lanCuoi ? 'Chưa có số liệu' : s < 5 ? 'Vừa xong' : s < 60 ? s + ' giây trước' : s < 3600 ? Math.floor(s / 60) + ' phút trước' : Math.floor(s / 3600) + ' giờ trước';
     tr.innerHTML = `<td style="color:var(--text-3);font-weight:700">${i + 1}</td>
-      <td><div class="ho" data-id="${escH(h.id)}"><span class="av" style="background:${h.mauAv}1f;color:${h.mauAv}">${escH(anHo(h) ? 'HD' : h.vietTat)}</span><div><b>Hộ ${escH(tenHo(h))}</b><small>${escH(h.thon)}</small></div></div></td>
+      <td><div class="ho" data-id="${escH(h.id)}"><span class="av" style="background:${h.mauAv}1f;color:${h.mauAv}">${escH(!h.dangKy ? 'TB' : anDanh ? 'HD' : h.vietTat)}</span><div><b>${escH(tenHo(h))}</b><small>${escH(h.thon)}</small></div></div></td>
       <td>${badge(nhan, mau, nen)}<span class="score">${d}</span></td>
       <td>${badgeTrangThai(h)}</td>
       <td><div class="water"><span class="bar"><i style="width:${pct}%;background:${mauNuoc}"></i></span><b>${h.muc.toFixed(1)}</b> cm</div></td>
@@ -769,6 +843,7 @@ $('bang').onclick = e => {
     if (window.yeuCauCuDoi) window.yeuCauCuDoi(id, !daCu(id));
   } else if (ho) {
     const h = cacHo.find(x => x.id === ho.dataset.id);
+    if (!h || !h.lat || !dauCham.get(h.id)) return;
     banDo.setView([h.lat, h.lon], 17);
     dauCham.get(h.id).openPopup();
     $('ban-do').scrollIntoView({ behavior: 'smooth' });
@@ -780,7 +855,7 @@ $('chiCanHoTro').onchange = veBang;
 $('btnCSV').onclick = () => {
   const dong = [['STT', 'Mức ưu tiên', 'Điểm', 'Hộ', 'Thôn', 'Điện thoại', 'Trạng thái', 'Mực nước (cm)', 'Người già', 'Trẻ nhỏ', 'Khuyết tật', 'Ở một mình', 'Nhà 1 tầng', 'Đã cử đội', 'Người cử', 'Lúc cử']];
   hoHienThi().filter(canHoTro).map(h => ({ h, d: diemUuTien(h) })).sort((a, b) => b.d - a.d).forEach(({ h, d }, i) => {
-    dong.push([i + 1, nhanUuTien(d)[0], d, 'Hộ ' + tenHo(h), h.thon, sdtHo(h), matKetNoi(h) ? 'Mất kết nối' : TEN_TT[h.trangThai],
+    dong.push([i + 1, nhanUuTien(d)[0], d, tenHo(h), h.thon, sdtHo(h), matKetNoi(h) ? tenMatKetNoi(h) : TEN_TT[h.trangThai],
       h.muc.toFixed(1), h.nguoiGia, h.treEm, h.khuyetTat, h.oMotMinh ? 'Có' : '', h.motTang ? 'Có' : '', daCu(h.id) ? 'Có' : '',
       daCu(h.id) ? cuDoi[h.id].boi : '', daCu(h.id) ? new Date(cuDoi[h.id].luc).toLocaleString('vi-VN') : '']);
   });
@@ -807,7 +882,8 @@ function demTrangThai(ds) {
 function veKPI() {
   const ds = hoHienThi(), c = demTrangThai(ds), n = ds.length;
   const pt = v => n ? Math.round(v / n * 100) + '% số hộ' : '—';
-  $('kTong').textContent = n; $('sTong').textContent = phamViThon || (THON.length + ' thôn');
+  $('kTong').textContent = n; $('sTong').textContent = phamViThon || (THON.length ? THON.length + ' thôn, khu' : 'Toàn xã');
+  if (mqttTrucTuyen) datKetNoi('online', `Trực tuyến · ${ds.filter(h => !matKetNoi(h)).length} thiết bị gửi số liệu`);
   $('kOk').textContent = c.ok; $('sOk').textContent = pt(c.ok);
   $('kWarn').textContent = c.warn; $('sWarn').textContent = pt(c.warn);
   $('kCut').textContent = c.cut; $('sCut').textContent = c.het ? `${c.het} hộ ngắt toàn bộ` : pt(c.cut);
@@ -823,7 +899,7 @@ const LUOI = css('--line') || '#e6eaf0';
 const TRUC = { grid: { color: LUOI }, border: { display: false } };
 const CHU_GIAI = { labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: 'circle', padding: 14 } };
 const NHAN_TT = ['An toàn', 'Cảnh báo', 'Đã ngắt điện', 'Mất kết nối'];
-const MAU_4 = [...MAU_TT, MAU_OFF];
+const MAU_4 = [MAU_TT[0], MAU_TT[1], MAU_TT[2], MAU_OFF];  // khớp NHAN_TT: an toàn, cảnh báo, đã ngắt (một phần + toàn bộ), mất kết nối
 
 const bdDienBien = new Chart($('bdDienBien'), {
   type: 'line',
@@ -834,19 +910,27 @@ const bdDienBien = new Chart($('bdDienBien'), {
 });
 const bdThon = new Chart($('bdThon'), {
   type: 'bar',
-  data: { labels: THON.map(t => t.ten.replace(/ \(.*\)/, '')), datasets: MAU_4.map((m, i) => ({ label: NHAN_TT[i], data: [], backgroundColor: m, borderRadius: 4, borderSkipped: false })) },
+  data: { labels: [], datasets: MAU_4.map((m, i) => ({ label: NHAN_TT[i], data: [], backgroundColor: m, borderRadius: 4, borderSkipped: false })) },
   options: { animation: false, maintainAspectRatio: false,
     scales: { x: { ...TRUC, stacked: true, grid: { display: false } }, y: { ...TRUC, stacked: true, beginAtZero: true } },
     plugins: { legend: CHU_GIAI } },
 });
+let lanGhiDienBien = 0;
 function veBieuDo() {
-  const c = demTrangThai(hoHienThi());
-  bdDienBien.data.labels.push(new Date().toLocaleTimeString('vi-VN'));
-  [c.ok, c.warn, c.cut, c.off].forEach((v, i) => bdDienBien.data.datasets[i].data.push(v));
-  if (bdDienBien.data.labels.length > 90) { bdDienBien.data.labels.shift(); bdDienBien.data.datasets.forEach(d => d.data.shift()); }
-  bdDienBien.update();
-  THON.forEach((th, i) => {
-    const t = demTrangThai(cacHo.filter(h => h.thon === th.ten));
+  const now = Date.now();
+  if (now - lanGhiDienBien >= 20000) {  // ghi một điểm mỗi 20 giây, giữ 90 điểm (30 phút)
+    lanGhiDienBien = now;
+    const c = demTrangThai(hoHienThi());
+    bdDienBien.data.labels.push(new Date(now).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
+    [c.ok, c.warn, c.cut, c.off].forEach((v, i) => bdDienBien.data.datasets[i].data.push(v));
+    if (bdDienBien.data.labels.length > 90) { bdDienBien.data.labels.shift(); bdDienBien.data.datasets.forEach(d => d.data.shift()); }
+    bdDienBien.update();
+  }
+  const ds = dsThon().filter(t => !phamViThon || t === phamViThon);
+  bdThon.data.labels = ds;
+  bdThon.data.datasets.forEach(d => { d.data = []; });
+  ds.forEach((ten, i) => {
+    const t = demTrangThai(cacHo.filter(h => h.thon === ten));
     [t.ok, t.warn, t.cut, t.off].forEach((v, j) => bdThon.data.datasets[j].data[i] = v);
   });
   bdThon.update();
@@ -879,60 +963,41 @@ async function layMua() {
 
 // ===================== THIẾT BỊ THẬT (MQTT) =====================
 function datKetNoi(lop, text) { $('ketNoi').className = 'chip ' + lop; $('ketNoiTxt').textContent = text; }
+let mqttTrucTuyen = false;
 function ketNoiMQTT() {
-  // data: số liệu đo từ thiết bị; info: thông tin hộ gia đình do người dân đồng ý chia sẻ từ app
+  // Chỉ nhận số liệu đo (mực nước, trạng thái điện). Thông tin hộ dân không đi qua máy chủ MQTT công cộng.
   const kn = window.taoKetNoiMQTT && window.taoKetNoiMQTT({
     tienTo: 'xa',
-    chuDe: ['ngaplangat/+/data', 'ngaplangat/+/info'],
-    khiKetNoi: () => datKetNoi('online', `Trực tuyến · ${cacHo.length} thiết bị`),
-    khiMat: () => datKetNoi('offline', 'Mất kết nối máy chủ'),
+    chuDe: ['ngaplangat/+/data'],
+    khiKetNoi: () => { mqttTrucTuyen = true; veKPI(); },
+    khiMat: () => { mqttTrucTuyen = false; datKetNoi('offline', 'Mất kết nối máy chủ thiết bị'); },
     khiNhan: (chuDe, buf) => {
-    const [, id, loai] = chuDe.split('/');
-    if (!/^[a-z0-9-]{4,40}$/.test(id)) return;  // máy chủ công cộng: bỏ tin có mã thiết bị lạ
-    const noiDung = buf.toString();
-    let d = {};
-    if (noiDung) { try { d = JSON.parse(noiDung); } catch { return; } }
-    if (!d || typeof d !== 'object') return;
-    const so = (v, nho, lon) => { const x = +v; return Number.isFinite(x) ? Math.min(lon, Math.max(nho, x)) : 0; };
-    const chu = (v, dai) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, dai);
-    d.lat = so(d.lat, 0, 90); d.lon = so(d.lon, 0, 180);
-    if (!(d.lat > 8 && d.lat < 24 && d.lon > 102 && d.lon < 110)) d.lat = d.lon = 0;  // ngoài Việt Nam: bỏ toạ độ
-    let h = cacHo.find(x => x.id === id);
-    if (!h) {
-      if (!d.lat || !d.lon) return;
-      h = { id, ten: `${id} (chưa đăng ký)`, vietTat: 'TB', mauAv: '#64748b', thon: 'Chưa xác định', sdt: '—', lat: d.lat, lon: d.lon, doCao: 0,
-        nguoiGia: 0, treEm: 0, khuyetTat: 0, oMotMinh: false, motTang: false, muc: 0, tocDo: 0, trangThai: 0,
-        lanCuoi: loai === 'info' ? 0 : Date.now(), mocMucTruoc: null, moPhong: false };
-      cacHo.push(h);
-    }
-    if (loai === 'info') {
-      h.moPhong = false;  // hộ thật đã đăng ký: không chạy mô phỏng cho hộ này nữa
-      if (!noiDung) {     // người dân tắt "Đồng ý chia sẻ": xoá thông tin cá nhân
-        Object.assign(h, { ten: `${id} (không chia sẻ)`, vietTat: 'TB', sdt: '—', nguoiGia: 0, treEm: 0, khuyetTat: 0, oMotMinh: false });
-        return;
+      const [, id, loai] = chuDe.split('/');
+      if (loai !== 'data' || !/^[a-z0-9-]{4,40}$/.test(id)) return;  // máy chủ công cộng: bỏ tin có mã thiết bị lạ
+      let d;
+      try { d = JSON.parse(buf.toString()); } catch { return; }
+      if (!d || typeof d !== 'object') return;
+      const lat = soGH(d.lat, 0, 90), lon = soGH(d.lon, 0, 180);
+      let h = cacHo.find(x => x.id === id);
+      if (!h) {
+        // Thiết bị chưa có hộ nào chia sẻ thông tin: chỉ hiện (ẩn danh) khi nằm trong địa bàn xã
+        if (!trongVN(lat, lon) || cachTamXaKm(lat, lon) > BAN_KINH_XA_KM) return;
+        h = taoHo(id);
       }
-      const ten = chu(d.chuHo, 50) || id, tenNha = chu(d.tenNha, 50);
-      Object.assign(h, {
-        ten: tenNha ? `${ten} · ${tenNha}` : ten,
-        vietTat: ten.split(/\s+/).slice(-2).map(w => w[0] || '').join('').toUpperCase() || 'TB',
-        sdt: chu(d.sdt, 16).replace(/[^\d+ ]/g, '') || '—', lat: d.lat || h.lat, lon: d.lon || h.lon,
-        nguoiGia: so(d.nguoiGia, 0, 20), treEm: so(d.treEm, 0, 20), khuyetTat: so(d.khuyetTat, 0, 20), oMotMinh: d.oMotMinh === true, motTang: d.motTang === true,
-      });
-      if (h.thon === 'Chưa xác định') h.thon = 'Hộ đăng ký qua app';
-      return;
-    }
-    if (d.motang === 1 || d.motang === 0) h.motTang = d.motang === 1;
-    capNhatHo(h, so(d.muc, 0, 300), Date.now(), Math.round(so(d.trangthai, 0, 3)));
-    datKetNoi('online', `Trực tuyến · ${cacHo.length} thiết bị`);
+      if (!h.lat && trongVN(lat, lon)) { h.lat = lat; h.lon = lon; }
+      if (d.motang === 1 || d.motang === 0) h.motTang = d.motang === 1;
+      const td = +d.tocdo;
+      capNhatHo(h, soGH(d.muc, 0, 300), Date.now(), Math.round(soGH(d.trangthai, 0, 3)), Number.isFinite(td) ? Math.max(-100, Math.min(100, td)) : undefined);
+      if (!daCanBanDo) daCanBanDo = canBanDo();
     },
   });
-  if (!kn) datKetNoi('', 'Mô phỏng');
+  if (!kn) datKetNoi('offline', 'Không kết nối được máy chủ thiết bị');
 }
 
 // ===================== BÁO CÁO NHANH =====================
 // Soạn theo mẫu cố định ngay trên máy: không cần mạng, không tốn phí, chỉ dùng số liệu có thật trên bảng.
 function lyDoUuTien(h) {
-  const ly = [matKetNoi(h) ? 'mất kết nối khi đang ngập' : h.trangThai === 3 ? 'đã ngắt toàn bộ điện' : h.trangThai === 2 ? (h.motTang ? 'đã ngắt mạch ổ cắm' : 'đã ngắt điện tầng 1') : 'đang cảnh báo',
+  const ly = [matKetNoi(h) ? (h.lanCuoi ? 'mất kết nối khi đang ngập' : 'thiết bị chưa gửi số liệu') : h.trangThai === 3 ? 'đã ngắt toàn bộ điện' : h.trangThai === 2 ? (h.motTang ? 'đã ngắt mạch ổ cắm' : 'đã ngắt điện tầng 1') : 'đang cảnh báo',
     'nước ' + h.muc.toFixed(0) + ' cm' + (h.tocDo > 0.05 ? ', đang dâng' : '')];
   if (h.motTang) ly.push('nhà 1 tầng');
   if (h.oMotMinh) ly.push('người già ở một mình');
@@ -945,9 +1010,14 @@ function taoBaoCao() {
   const ds = hoHienThi(), c = demTrangThai(ds);
   const gio = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
   const d = ['BÁO CÁO NHANH TÌNH HÌNH NGẬP', $('tenXa').textContent + (phamViThon ? ' · ' + phamViThon : '') + ' · ' + gio, ''];
+  if (!ds.length) {
+    d.push('1. TÌNH HÌNH: Chưa có hộ nào lắp thiết bị và chia sẻ số liệu với xã.');
+    if (muaDuBao.tong6h !== null) d.push(`   Mưa dự báo: ${muaDuBao.tong6h.toFixed(0)} mm trong 6 giờ, ${muaDuBao.tong24h.toFixed(0)} mm trong 24 giờ tới.`);
+    return d.join('\n');
+  }
   d.push(`1. TÌNH HÌNH: ${ds.length} hộ lắp thiết bị: ${c.ok} an toàn, ${c.warn} cảnh báo, ${c.cut} đã ngắt điện${c.het ? ` (${c.het} hộ ngắt toàn bộ)` : ''}, ${c.off} mất kết nối.`);
-  const thon = THON.filter(th => !phamViThon || th.ten === phamViThon)
-    .map(th => ({ ten: th.ten, ...demTrangThai(cacHo.filter(h => h.thon === th.ten)) }))
+  const thon = dsThon().filter(ten => !phamViThon || ten === phamViThon)
+    .map(ten => ({ ten, ...demTrangThai(cacHo.filter(h => h.thon === ten)) }))
     .filter(t => t.cut + t.warn > 0).sort((a, b) => (b.het * 3 + b.cut * 2 + b.warn) - (a.het * 3 + a.cut * 2 + a.warn));
   if (thon.length) d.push('   Nặng nhất: ' + thon.slice(0, 3).map(t =>
     `${t.ten} (${t.cut} ngắt điện${t.het ? `, trong đó ${t.het} ngắt toàn bộ` : ''}, ${t.warn} cảnh báo)`).join('; ') + '.');
@@ -957,7 +1027,7 @@ function taoBaoCao() {
   d.push('');
   if (uu.length) {
     d.push(`2. CẦN HỖ TRỢ NGAY (${uu.length} hộ chưa cử đội${soCu ? ', ' + soCu + ' hộ đã cử đội' : ''}):`);
-    uu.slice(0, 5).forEach(({ h, diem }, i) => d.push(`   ${i + 1}) Hộ ${tenHo(h)}, ${h.thon} [${nhanUuTien(diem)[0]}]: ${lyDoUuTien(h)}. ĐT ${sdtHo(h)}`));
+    uu.slice(0, 5).forEach(({ h, diem }, i) => d.push(`   ${i + 1}) ${tenHo(h)}, ${h.thon} [${nhanUuTien(diem)[0]}]: ${lyDoUuTien(h)}. ĐT ${sdtHo(h)}`));
     if (uu.length > 5) d.push(`   … và ${uu.length - 5} hộ khác (xem bảng "Hộ cần ưu tiên").`);
   } else d.push(soCu ? `2. Các hộ cần hỗ trợ đều đã được cử đội (${soCu} hộ).` : '2. Chưa có hộ nào cần hỗ trợ.');
   d.push('', '3. VIỆC CẦN LÀM:');
@@ -997,11 +1067,10 @@ const quanSat = new IntersectionObserver(es => es.forEach(e => {
 window.nhanCuDoi = ds => { cuDoi = ds || {}; veBang(); veBaoCao(); };
 window.datPhamVi = thon => {
   phamViThon = thon || '';
-  $('locThon').value = phamViThon;
   $('locThon').disabled = !!phamViThon;
-  veKPI(); veBanDo(); veBang(); veBaoCao();
-  const ds = hoHienThi();
-  if (phamViThon && ds.length) banDo.fitBounds(ds.map(h => [h.lat, h.lon]), { padding: [30, 30], maxZoom: 16 });
+  khoaLocThon = '';
+  lamMoi();
+  if (phamViThon) canBanDo();
 };
 
 // Viền dưới thanh tiêu đề khi cuộn; ở đầu trang luôn sáng mục "Tổng quan"
@@ -1013,9 +1082,9 @@ function capNhatDauTrang() {
 window.addEventListener('scroll', capNhatDauTrang, { passive: true });
 setTimeout(capNhatDauTrang, 300);
 
-function lamMoi() { buocMoPhong(); veKPI(); veBanDo(); veBang(); veBieuDo(); veBaoCao(); }
+function lamMoi() { capNhatLocThon(); veKPI(); veBanDo(); veBang(); veBieuDo(); veBaoCao(); }
 ['apiKey', 'modelAI'].forEach(k => { try { localStorage.removeItem('nln_' + k); } catch {} });  // xoá khoá AI của bản cũ
-datKetNoi('', 'Mô phỏng');
+datKetNoi('', 'Đang kết nối…');
 lamMoi();
 setInterval(lamMoi, 2000);
 ketNoiMQTT();
@@ -1114,6 +1183,8 @@ const Demo = {
     cb(docJ('nln_xa_cuDoi', {}));
     window.addEventListener('storage', e => { if (e.key === 'nln_xa_cuDoi') cb(docJ('nln_xa_cuDoi', {})); });  // đồng bộ giữa các tab
   },
+  theoDoiHoDan(nd, cb) { cb([]); return () => {}; },  // bản demo: không có máy chủ lưu hộ dân
+  async luuCaiDat(c) { ghiJ('nln_xa_caiDat', Object.assign(docJ('nln_xa_caiDat', {}), c)); },
   async datCuDoi(maHo, co, nd) {
     const ds = docJ('nln_xa_cuDoi', {});
     if (co) ds[maHo] = { boi: nd.hoTen, luc: new Date().toISOString() }; else delete ds[maHo];
@@ -1201,6 +1272,13 @@ const Firebase = {
   theoDoiCuDoi(cb) {
     this.fs.onSnapshot(this.fs.doc(this.db, 'xa', 'dieuPhoi'), s => cb(s.exists() ? (s.data().cuDoi || {}) : {}), () => {});
   },
+  // Hộ dân đã đồng ý chia sẻ (app ghi vào hoDan/<mã thiết bị>). Trưởng thôn chỉ đọc được hộ trong thôn mình.
+  theoDoiHoDan(nd, cb) {
+    const cot = this.fs.collection(this.db, 'hoDan');
+    const q = nd.vaiTro === 'thon' ? this.fs.query(cot, this.fs.where('thon', '==', nd.thon || '')) : cot;
+    return this.fs.onSnapshot(q, s => cb(s.docs.map(d => Object.assign({}, d.data(), { id: d.id }))), () => cb([]));
+  },
+  async luuCaiDat(c) { await this.fs.setDoc(this.fs.doc(this.db, 'xa', 'caiDat'), c, { merge: true }); },
   async datCuDoi(maHo, co, nd) {
     await this.fs.setDoc(this.fs.doc(this.db, 'xa', 'dieuPhoi'),
       { cuDoi: { [maHo]: co ? { boi: nd.hoTen, luc: new Date().toISOString() } : this.fs.deleteField() } }, { merge: true });
@@ -1227,7 +1305,7 @@ const LOI = {
 const loiTV = e => { const k = e && e.code; return k && k in LOI ? LOI[k] : 'Có lỗi xảy ra, vui lòng thử lại.'; };  // '' = không báo (người dùng tự đóng cửa sổ)
 
 // ---------------- Trạng thái, tiện ích giao diện ----------------
-let nd = null, caiDat = null, cuDoiHienTai = {}, daTheoDoi = false;
+let nd = null, caiDat = null, cuDoiHienTai = {}, daTheoDoi = false, huyHoDan = null;
 const dangXuLyCuDoi = new Set();
 
 function man(ten) {
@@ -1272,6 +1350,7 @@ async function batDau() {
   let loiMang = false;
   try { caiDat = await TK.caiDatXa(); } catch { loiMang = true; }
   hienTenXa();
+  window.datCaiDatXa(caiDat);
   if (nd) return vaoHeThong(false);
   man(caiDat || loiMang ? 'dangnhap' : 'thietlap');
   if (TK.loiChuyenHuong) loi('loiDN', loiTV(TK.loiChuyenHuong));
@@ -1289,11 +1368,20 @@ function vaoHeThong(ghiLog) {
   $('umEmail').textContent = nd.email || 'Chế độ xem thử';
   $('umDoiMk').style.display = nd.vaiTro === 'khach' ? 'none' : '';
   ['navCanBo', 'navNhatKy', 'can-bo', 'nhat-ky'].forEach(id => { $(id).style.display = laQT ? '' : 'none'; });
+  $('umCaiDat').style.display = laQT ? '' : 'none';
   window.datAnDanh(nd.vaiTro === 'khach');
   window.datPhamVi(nd.vaiTro === 'thon' ? nd.thon : '');
+  theoDoiHoDan();
   if (!daTheoDoi && !laKhachMay()) { daTheoDoi = true; TK.theoDoiCuDoi(ds => { cuDoiHienTai = ds; window.nhanCuDoi(ds); }); }
   if (laQT) { veCanBo(); veNhatKy(); }
   if (ghiLog) ghiNK('Đăng nhập hệ thống');
+}
+
+// Danh sách hộ dân đã chia sẻ: chỉ cán bộ đã đăng nhập mới đọc được
+function theoDoiHoDan() {
+  if (huyHoDan) { huyHoDan(); huyHoDan = null; }
+  if (!nd || laKhachMay()) { window.datHoDan([]); return; }
+  huyHoDan = TK.theoDoiHoDan(nd, ds => window.datHoDan(ds));
 }
 
 // ---------------- Đăng nhập, thiết lập, quên mật khẩu, xem thử ----------------
@@ -1364,8 +1452,40 @@ $('umDangXuat').onclick = async () => {
   if (nd && nd.vaiTro !== 'khach') { try { await TK.dangXuat(); } catch {} }
   ghiJ('nln_xa_khach', null, sessionStorage);
   nd = null;
+  theoDoiHoDan();  // xoá thông tin hộ dân khỏi màn hình
   man('dangnhap');
 };
+$('umCaiDat').onclick = () => {
+  $('umDrop').classList.remove('hien');
+  const c = caiDat || {};
+  $('cdTenXa').value = c.tenXa || $('tenXa').textContent;
+  $('cdThon').value = (Array.isArray(c.dsThon) ? c.dsThon : []).join('\n');
+  $('cdLat').value = c.lat || 21.62; $('cdLon').value = c.lon || 105.18;
+  $('btnCdViTri').textContent = 'Lấy vị trí hiện tại';
+  moMD('mdCaiDat');
+};
+$('btnCdViTri').onclick = () => {
+  if (!navigator.geolocation) return loi('loiCD', 'Máy không hỗ trợ lấy vị trí, hãy nhập tay vĩ độ, kinh độ.');
+  $('btnCdViTri').textContent = 'Đang lấy vị trí…';
+  navigator.geolocation.getCurrentPosition(p => {
+    $('cdLat').value = p.coords.latitude.toFixed(5); $('cdLon').value = p.coords.longitude.toFixed(5);
+    $('btnCdViTri').textContent = 'Đã lấy vị trí ✓';
+  }, () => { $('btnCdViTri').textContent = 'Lấy vị trí hiện tại'; loi('loiCD', 'Không lấy được vị trí. Hãy bật định vị rồi thử lại.'); },
+  { enableHighAccuracy: true, timeout: 15000 });
+};
+$('btnLuuCD').onclick = () => cho($('btnLuuCD'), async () => {
+  const tenXa = $('cdTenXa').value.trim().slice(0, 60), lat = +$('cdLat').value, lon = +$('cdLon').value;
+  const dsThon = [...new Set($('cdThon').value.split('\n').map(t => t.trim().slice(0, 60)).filter(Boolean))].slice(0, 80);
+  if (tenXa.length < 3) return loi('loiCD', 'Nhập tên xã.');
+  if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) return loi('loiCD', 'Vị trí trung tâm xã chưa hợp lệ.');
+  const moi = { tenXa, dsThon, lat, lon };
+  try { await TK.luuCaiDat(moi); } catch (e) { return loi('loiCD', loiTV(e)); }
+  caiDat = Object.assign({}, caiDat, moi);
+  hienTenXa();
+  window.datCaiDatXa(caiDat);
+  dongMD('mdCaiDat');
+  ghiNK('Cập nhật cài đặt xã (' + dsThon.length + ' thôn, khu)');
+});
 $('umDoiMk').onclick = () => { $('umDrop').classList.remove('hien'); ['dmkCu', 'dmkMoi', 'dmkMoi2'].forEach(id => { $(id).value = ''; }); moMD('mdDoiMk'); };
 $('btnDMK').onclick = () => cho($('btnDMK'), async () => {
   const cu = $('dmkCu').value, moi = $('dmkMoi').value;
@@ -1387,7 +1507,7 @@ window.yeuCauCuDoi = async (maHo, co, tuDong) => {
     if (ds) { cuDoiHienTai = ds; window.nhanCuDoi(ds); }
     if (!tuDong) {
       const h = cacHo.find(x => x.id === maHo);
-      ghiNK((co ? 'Cử đội tới hộ ' : 'Bỏ đánh dấu cử đội hộ ') + (h ? h.ten + ' (' + h.thon + ')' : maHo));
+      ghiNK((co ? 'Cử đội tới ' : 'Bỏ đánh dấu cử đội ') + (h ? tenHo(h) + ' (' + h.thon + ')' : maHo));
     }
   } catch (e) { if (!tuDong) alert(loiTV(e)); }
   finally { dangXuLyCuDoi.delete(maHo); }
@@ -1438,11 +1558,12 @@ function taoMatKhau() {
   (window.crypto || {}).getRandomValues ? crypto.getRandomValues(so) : so.forEach((_, i) => { so[i] = Math.random() * 1e9; });
   return Array.from(so, x => ky[x % ky.length]).join('');
 }
-$('cbThon').innerHTML = (window.DS_THON || []).map(t => `<option>${esc(t)}</option>`).join('');
 $('cbVaiTro').onchange = () => { $('cbThon').disabled = $('cbVaiTro').value !== 'thon'; };
 $('btnTaoMk').onclick = () => { $('cbMk').value = taoMatKhau(); };
 $('btnMoThemCB').onclick = () => {
   ['cbTen', 'cbEmail'].forEach(id => { $(id).value = ''; });
+  const ds = window.DS_THON();
+  $('cbThon').innerHTML = ds.length ? ds.map(t => `<option>${esc(t)}</option>`).join('') : '<option value="">Chưa khai báo thôn (Cài đặt xã)</option>';
   $('cbMk').value = taoMatKhau(); $('cbVaiTro').value = 'canBo'; $('cbThon').disabled = true;
   moMD('mdThemCB');
 };
@@ -1452,6 +1573,7 @@ $('btnThemCB').onclick = () => cho($('btnThemCB'), async () => {
   if (hoTen.length < 2) return loi('loiCB', 'Nhập họ tên cán bộ.');
   if (!laEmail(email)) return loi('loiCB', 'Email không hợp lệ.');
   if (mk.length < 8) return loi('loiCB', 'Mật khẩu tạm cần ít nhất 8 ký tự.');
+  if (vaiTro === 'thon' && !thon) return loi('loiCB', 'Khai báo danh sách thôn trong "Cài đặt xã" trước khi tạo tài khoản trưởng thôn.');
   try {
     await TK.themCanBo({ hoTen, email, mk, vaiTro, thon });
     dongMD('mdThemCB');
