@@ -447,13 +447,14 @@
 <div class="md" id="mdThemTB"><div class="md-hop">
   <h3>Thêm thiết bị</h3><div class="sub" style="margin-bottom:16px">In tem có mã QR dán lên hộp thiết bị sau khi thêm.</div>
   <div class="loi" id="loiTB"></div>
-  <label class="o"><span>Mã thiết bị (trùng mã nạp trong code ESP32)</span><input id="tbMa" autocapitalize="off" placeholder="VD: nln-doanhung-002"></label>
+  <label class="o"><span>Mã thiết bị (trùng mã nạp trong code ESP32)</span><input id="tbMa" autocapitalize="off" placeholder="VD: nln-000124"></label>
   <label class="o"><span>Mã kích hoạt</span><div class="mk"><input id="tbPin" inputmode="numeric" autocomplete="off"><button type="button" class="hien-mk" id="btnTaoPin">Tạo ngẫu nhiên</button></div></label>
   <label class="o"><span>Loại nhà</span><select id="tbSoTang"><option value="1">Nhà 1 tầng</option><option value="2" selected>Nhà 2 tầng</option><option value="3">Nhà 3 tầng</option><option value="4">Nhà 4 tầng</option><option value="5">Nhà 5 tầng</option></select></label>
   <div class="hai-cot">
     <label class="o"><span>Vĩ độ nơi lắp (nếu có)</span><input id="tbLat" type="number" step="0.00001"></label>
     <label class="o"><span>Kinh độ nơi lắp (nếu có)</span><input id="tbLon" type="number" step="0.00001"></label>
   </div>
+  <button type="button" class="btn btn-ghost" id="btnTbGPS" style="margin:-4px 0 14px">Lấy vị trí GPS (đứng cạnh thiết bị)</button>
   <div class="md-nut"><button class="btn btn-ghost" data-dong="mdThemTB">Huỷ</button><button class="btn btn-primary" id="btnThemTB">Thêm vào kho</button></div>
 </div></div>
 
@@ -660,10 +661,11 @@
 <script src="../app/lib/mqtt.min.js"></script>
 <script src="../app/lib/ben_vung.js?v=11"></script>
 <script src="../app/lib/qrcode.min.js"></script>
+<script src="../app/lib/xuat_excel.js"></script>
 <script>
 // ===================== CẤU HÌNH =====================
 // Trung tâm xã và danh sách thôn do quản trị viên khai báo trong "Cài đặt xã" (lưu trên máy chủ)
-let TAM_XA = [21.62, 105.18];
+let TAM_XA = [16.2, 106.2];  // giữa Việt Nam, tới khi biết xã đang xem
 let HOP_XA = null, MA_XA = '';  // khung toạ độ [tây, nam, đông, bắc] và mã của xã đang xem
 const BAN_KINH_XA_KM = 8;  // xã chưa có khung toạ độ: thiết bị chưa đăng ký hiện khi nằm trong khoảng này quanh trung tâm
 const MUC_CANH_BAO = 3, MUC_NGAT = 10, MUC_NGAT_HET = 14;  // khớp code ESP32
@@ -842,7 +844,7 @@ function badgeTrangThai(h) {
 }
 
 // ===================== BẢN ĐỒ =====================
-const banDo = L.map('map', { zoomControl: false }).setView(TAM_XA, 15);
+const banDo = L.map('map', { zoomControl: false }).setView(TAM_XA, 6);
 L.control.zoom({ position: 'bottomright' }).addTo(banDo);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(banDo);
 const dauCham = new Map();
@@ -943,21 +945,24 @@ $('bang').onclick = e => {
 };
 $('chiCanHoTro').onchange = veBang;
 
-// Xuất CSV (mở được bằng Excel, có dấu tiếng Việt)
+// Xuất Excel (.xlsx thật: chia cột, đầu cột in đậm, kẻ khung, có lọc). Xuất đúng danh sách đang xem trên bảng.
 $('btnCSV').onclick = () => {
-  const dong = [['STT', 'Mức ưu tiên', 'Điểm', 'Hộ', 'Thôn', 'Điện thoại', 'Trạng thái', 'Mực nước (cm)', 'Người già', 'Trẻ nhỏ', 'Khuyết tật', 'Ở một mình', 'Nhà 1 tầng', 'Đã cử đội', 'Người cử', 'Lúc cử']];
-  hoHienThi().filter(canHoTro).map(h => ({ h, d: diemUuTien(h) })).sort((a, b) => b.d - a.d).forEach(({ h, d }, i) => {
-    dong.push([i + 1, nhanUuTien(d)[0], d, tenHo(h), h.thon, sdtHo(h), matKetNoi(h) ? tenMatKetNoi(h) : TEN_TT[h.trangThai],
-      h.muc.toFixed(1), h.nguoiGia, h.treEm, h.khuyetTat, h.oMotMinh ? 'Có' : '', h.motTang ? 'Có' : '', daCu(h.id) ? 'Có' : '',
-      daCu(h.id) ? cuDoi[h.id].boi : '', daCu(h.id) ? new Date(cuDoi[h.id].luc).toLocaleString('vi-VN') : '']);
+  const ds = hoHienThi().filter(h => !$('chiCanHoTro').checked || canHoTro(h)).map(h => ({ h, d: diemUuTien(h) })).sort((a, b) => b.d - a.d);
+  if (!ds.length) return alert('Không có hộ nào để xuất.');
+  const cot = [['STT', 6], ['Mức ưu tiên', 12], ['Điểm', 7], ['Hộ gia đình', 32], ['Thôn, khu', 16], ['Điện thoại', 14], ['Trạng thái', 16],
+    ['Mực nước (cm)', 10], ['Nước dâng (cm/phút)', 11], ['Người già', 8], ['Trẻ nhỏ', 8], ['Khuyết tật', 9], ['Ở một mình', 9], ['Nhà 1 tầng', 9],
+    ['Đã cử đội', 9], ['Người cử', 20], ['Lúc cử', 17], ['Cập nhật', 17]].map(([ten, rong]) => ({ ten, rong }));
+  const ngay = t => t ? new Date(t).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+  const dong = ds.map(({ h, d }, i) => [i + 1, nhanUuTien(d)[0], d, tenHo(h), h.thon, sdtHo(h), matKetNoi(h) ? tenMatKetNoi(h) : TEN_TT[h.trangThai],
+    +h.muc.toFixed(1), +h.tocDo.toFixed(1), h.nguoiGia, h.treEm, h.khuyetTat, h.oMotMinh ? 'Có' : '', h.motTang ? 'Có' : '',
+    daCu(h.id) ? 'Có' : '', daCu(h.id) ? cuDoi[h.id].boi : '', daCu(h.id) ? ngay(cuDoi[h.id].luc) : '', ngay(h.lanCuoi)]);
+  const tenXa = $('tenXa').textContent, khongDau = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+  window.xuatExcel({
+    tenFile: `danh-sach-uu-tien-${khongDau(tenXa).toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${new Date().toLocaleDateString('sv-SE')}`,
+    tenTrang: 'Hộ cần ưu tiên', tieuDe: 'DANH SÁCH HỘ CẦN ƯU TIÊN HỖ TRỢ',
+    phuDe: `${tenXa}${$('tenTinh').textContent ? ', ' + $('tenTinh').textContent.replace(/ · $/, '') : ''}${phamViThon ? ' · ' + phamViThon : ''} · Xuất lúc ${ngay(Date.now())} · ${ds.length} hộ`,
+    cot, dong,
   });
-  const o = c => { const t = String(c); return '"' + (/^[=+\-@\t\r]/.test(t) ? "'" + t : t).replace(/"/g, '""') + '"'; };  // chặn chèn công thức Excel
-  const csv = '\uFEFF' + dong.map(r => r.map(o).join(',')).join('\r\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  a.download = `danh-sach-uu-tien-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
   if (window.ghiNhatKyXa) window.ghiNhatKyXa('Xuất danh sách hộ cần ưu tiên ra Excel');
 };
 
@@ -1037,6 +1042,7 @@ const bdMua = new Chart($('bdMua'), {
     scales: { x: { ...TRUC, grid: { display: false }, ticks: { maxTicksLimit: 8 } }, y: { ...TRUC, beginAtZero: true, ticks: { callback: v => v + ' mm' } } } },
 });
 async function layMua() {
+  if (!MA_XA) return;  // chưa chọn xã
   try {
     const j = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${TAM_XA[0]}&longitude=${TAM_XA[1]}&hourly=precipitation&forecast_days=2&timezone=auto`)).json();
     const d = new Date();
@@ -1180,7 +1186,6 @@ datKetNoi('', 'Đang kết nối…');
 lamMoi();
 setInterval(lamMoi, 2000);
 ketNoiMQTT();
-layMua();
 setInterval(layMua, 30 * 60000);
 </script>
 
@@ -1357,7 +1362,7 @@ const Firebase = {
     try { nd = await this.layCanBo(u.uid); } catch (e) { loi = e; }
     const sieu = await this.laSieu();
     if (nd) return Object.assign(nd, { sieu });
-    if (sieu && loi.code === 'khong-phai-can-bo') return { id: u.uid, hoTen: u.displayName || u.email, email: u.email, vaiTro: 'sieuQuanTri', sieu: true, xa: maXaUrl() || MA_XA_CU };
+    if (sieu && loi.code === 'khong-phai-can-bo') return { id: u.uid, hoTen: u.displayName || u.email, email: u.email, vaiTro: 'sieuQuanTri', sieu: true, xa: maXaUrl() || docJ('nln_xa_cuoi', '') };
     await this.au.signOut(this.auth);
     throw loi;
   },
@@ -1553,8 +1558,9 @@ async function batDau() {
 }
 
 async function vaoHeThong(ghiLog) {
-  const ma = xaCua(nd);
-  try { caiDat = await thongTinXa(ma); } catch { caiDat = { ma, tenXa: 'Xã ' + ma, tinh: '', dsThon: [] }; }
+  const ma = nd.vaiTro === 'sieuQuanTri' ? nd.xa : xaCua(nd);
+  if (!ma) caiDat = { ma: '', tenXa: '', tinh: '', dsThon: [] };  // nhóm phát triển chưa chọn xã để xem
+  else { try { caiDat = await thongTinXa(ma); } catch { caiDat = { ma, tenXa: 'Xã ' + ma, tinh: '', dsThon: [] }; } }
   hienTenXa();
   window.datCaiDatXa(caiDat);
   $('manDN').classList.remove('hien');
@@ -1572,6 +1578,7 @@ async function vaoHeThong(ghiLog) {
   $('umDoiXa').style.display = chiXem ? '' : 'none';
   ['navDuyet', 'duyet-xa', 'navKho', 'kho-tb'].forEach(id => { $(id).style.display = nd.sieu ? '' : 'none'; });
   if (nd.sieu) { veDuyet(); veKho(); }
+  if (!ma) moChonXa();
   window.datAnDanh(chiXem);
   window.datPhamVi(nd.vaiTro === 'thon' ? nd.thon : '');
   theoDoiHoDan();
@@ -1654,12 +1661,13 @@ $('mxhXa').addEventListener('click', e => {
   });
 });
 
-function moChonXa() { dungChonXa('cx', (nd && nd.xa) || maXaUrl() || MA_XA_CU); moMD('mdChonXa'); }
+function moChonXa() { dungChonXa('cx', (nd && nd.xa) || maXaUrl() || docJ('nln_xa_cuoi', '')); moMD('mdChonXa'); }
 $('btnXemThu').onclick = moChonXa;
 $('umDoiXa').onclick = () => { $('umDrop').classList.remove('hien'); moChonXa(); };
 $('btnChonXa').onclick = () => cho($('btnChonXa'), async () => {
   const xa = $('cxXa').value;
   if (!/^\d{5}$/.test(xa)) return loi('loiCX', 'Chọn tỉnh, thành phố và xã, phường.');
+  ghiJ('nln_xa_cuoi', xa);
   if (nd && nd.vaiTro === 'sieuQuanTri') nd = Object.assign({}, nd, { xa });
   else { nd = Object.assign({}, KHACH, { xa }); ghiJ('nln_xa_khach', xa, sessionStorage); }
   dongMD('mdChonXa');
@@ -1853,9 +1861,33 @@ async function veKho() {
     : '<tr><td colspan="7" class="empty">Chưa có thiết bị nào. Bấm "Thêm thiết bị".</td></tr>';
   veKho.ds = ds;
 }
+// Lấy vị trí GPS chính xác nhất trong tối đa 15 giây (cần bật định vị chính xác cao). capNhat(p) báo tiến trình.
+function layGPS(capNhat) {
+  return new Promise((ok, hong) => {
+    if (!navigator.geolocation) return hong({ code: 'khong-ho-tro' });
+    let tot = null, id = null, h = null;
+    const xong = () => { navigator.geolocation.clearWatch(id); clearTimeout(h); tot ? ok(tot) : hong({ code: 'khong-lay-duoc' }); };
+    id = navigator.geolocation.watchPosition(p => {
+      if (!tot || p.coords.accuracy < tot.coords.accuracy) { tot = p; if (capNhat) capNhat(p); }
+      if (p.coords.accuracy <= 8) xong();  // đã đủ chính xác
+    }, e => { if (e.code === 1 || !tot) { tot = null; xong(); } }, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+    h = setTimeout(xong, 15000);
+  });
+}
+$('btnTbGPS').onclick = async () => {
+  const nut = $('btnTbGPS');
+  nut.disabled = true; nut.textContent = 'Đang dò GPS…';
+  try {
+    const p = await layGPS(p => { nut.textContent = `Đang dò GPS… sai số ±${Math.round(p.coords.accuracy)} m`; });
+    $('tbLat').value = p.coords.latitude.toFixed(6); $('tbLon').value = p.coords.longitude.toFixed(6);
+    nut.textContent = `Đã lấy vị trí GPS (±${Math.round(p.coords.accuracy)} m)`;
+  } catch { nut.textContent = 'Lấy vị trí GPS (đứng cạnh thiết bị)'; loi('loiTB', 'Không lấy được GPS. Bật định vị chính xác cao rồi thử lại.'); }
+  finally { nut.disabled = false; }
+};
 $('btnTaoPin').onclick = () => { $('tbPin').value = taoPin(); };
 $('btnMoThemTB').onclick = () => {
   $('tbMa').value = 'nln-'; $('tbPin').value = taoPin(); $('tbSoTang').value = '2'; $('tbLat').value = ''; $('tbLon').value = '';
+  $('btnTbGPS').textContent = 'Lấy vị trí GPS (đứng cạnh thiết bị)';
   moMD('mdThemTB');
 };
 $('btnThemTB').onclick = () => cho($('btnThemTB'), async () => {

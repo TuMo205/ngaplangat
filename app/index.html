@@ -676,13 +676,14 @@
     <div class="loi" id="loiTL"></div>
     <div id="tlThietBi">
       <div class="nhom-t">Thiết bị</div>
-      <label class="o"><span>Mã thiết bị (in trên tem dán ở hộp)</span><div class="mk"><input id="tlMa" placeholder="VD: nln-doanhung-001" autocapitalize="off"><button type="button" class="hien-mk" id="btnQuetQR">Quét QR</button></div></label>
+      <label class="o"><span>Mã thiết bị (in trên tem dán ở hộp)</span><div class="mk"><input id="tlMa" placeholder="VD: nln-000123" autocapitalize="off"><button type="button" class="hien-mk" id="btnQuetQR">Quét QR</button></div></label>
       <label class="o"><span>Mã kích hoạt (in cạnh mã thiết bị)</span><input id="tlPin" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="VD: 4827 1934"></label>
       <button type="button" class="btn btn-ghost" id="btnXacMinh">Kiểm tra thiết bị</button>
       <div class="xac-minh" id="tlXacMinh" role="status"></div>
-      <label class="o" style="margin-top:14px"><span>Đặt tên cho ngôi nhà</span><input id="tlTenNha" placeholder="VD: Nhà ở Đoan Hùng"></label>
+      <label class="o" style="margin-top:14px"><span>Đặt tên cho ngôi nhà</span><input id="tlTenNha" placeholder="VD: Nhà bố mẹ"></label>
       <div class="hang2"><label class="o"><span>Vĩ độ</span><input id="tlLat" type="number" step="0.00001" inputmode="decimal"></label><label class="o"><span>Kinh độ</span><input id="tlLon" type="number" step="0.00001" inputmode="decimal"></label></div>
-      <div class="sub" style="font-size:12.5px;margin:-6px 0 4px">Vị trí lấy theo thiết bị, có thể sửa tay.</div>
+      <button type="button" class="btn btn-ghost" id="btnGPS">Lấy vị trí GPS</button>
+      <div class="sub" id="tlGpsTxt" style="font-size:12.5px;margin:8px 0 4px">Đứng cạnh thiết bị rồi bấm Lấy vị trí GPS, hoặc nhập tay.</div>
     </div>
     <div id="tlDiaChi">
       <div class="nhom-t" id="tlDiaChiT">Địa chỉ ngôi nhà</div>
@@ -915,10 +916,10 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.9.0';
+const PHIEN_BAN_APP = '1.9.1';
 const CO_GI_MOI = [
   'Thêm thiết bị bằng mã thiết bị và mã kích hoạt in trên tem (hoặc quét QR trên tem): app không nhận mã sai.',
-  'Loại nhà (1 đến 5 tầng) và vị trí tự lấy theo thiết bị; vị trí vẫn sửa tay được.',
+  'Loại nhà (1 đến 5 tầng) tự lấy theo thiết bị. Vị trí lấy bằng GPS khi đứng cạnh thiết bị (có hiện sai số), hoặc nhập tay.',
   'Thiết bị thêm từ bản cũ: vào Tài khoản, bấm "Chưa xác minh" và nhập mã kích hoạt để tiếp tục chia sẻ với xã.',
   'Khi nước vào nhà: nút gọi nhanh 112, 114, 115 và Cẩm nang an toàn khi ngập.',
 ];
@@ -1927,6 +1928,7 @@ function moThietLap(cheDo) {
     $('tlMa').value = tuLink ? tuLink.ma : ''; $('tlPin').value = tuLink ? tuLink.pin : '';
     $('tlTenNha').value = hoSo.thietBi.length ? '' : 'Nhà của tôi';
     $('tlLat').value = ''; $('tlLon').value = '';
+    $('tlGpsTxt').textContent = 'Đứng cạnh thiết bị rồi bấm Lấy vị trí GPS, hoặc nhập tay.';
     tbXacMinh = null; ketQuaXacMinh('');
   }
   // Địa chỉ: nhà mới thì chọn (hoặc tự gợi ý theo vị trí); sửa thông tin thì sửa địa chỉ ngôi nhà đang xem
@@ -1958,7 +1960,7 @@ $('btnLuuTL').onclick = () => cho($('btnLuuTL'), async () => {
     if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110) && x && x.hop) {  // chưa lấy được vị trí: dùng trung tâm xã
       lat = +((x.hop[1] + x.hop[3]) / 2).toFixed(5); lon = +((x.hop[0] + x.hop[2]) / 2).toFixed(5);
     }
-    if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) return loi('loiTL', 'Nhập vĩ độ, kinh độ của ngôi nhà, hoặc chọn xã, phường nơi đặt nhà.');
+    if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) return loi('loiTL', 'Bấm "Lấy vị trí GPS" khi đứng cạnh thiết bị, hoặc nhập tay vĩ độ, kinh độ.');
     const n = tbXacMinh.soTang;
     hoSo.thietBi.push(Object.assign({ ma, ten: $('tlTenNha').value.trim() || 'Nhà của tôi', lat, lon, soTang: n, motTang: n === 1, xacMinh: true }, diaChi));
     hoSo.thietBiChon = ma;
@@ -2007,6 +2009,34 @@ $('btnXacMinh').onclick = () => cho($('btnXacMinh'), xacMinh);
   const lat = parseFloat($('tlLat').value), lon = parseFloat($('tlLon').value);
   if (!diaChiTay && lat > 8 && lat < 24 && lon > 102 && lon < 110) dungDiaChi('', '', lat, lon);
 }));
+// Lấy vị trí GPS chính xác nhất trong tối đa 15 giây (cần bật định vị chính xác cao). capNhat(p) báo tiến trình.
+function layGPS(capNhat) {
+  return new Promise((ok, hong) => {
+    if (!navigator.geolocation) return hong({ code: 'khong-ho-tro' });
+    let tot = null, id = null, h = null;
+    const xong = () => { navigator.geolocation.clearWatch(id); clearTimeout(h); tot ? ok(tot) : hong({ code: 'khong-lay-duoc' }); };
+    id = navigator.geolocation.watchPosition(p => {
+      if (!tot || p.coords.accuracy < tot.coords.accuracy) { tot = p; if (capNhat) capNhat(p); }
+      if (p.coords.accuracy <= 8) xong();  // đã đủ chính xác
+    }, e => { if (e.code === 1 || !tot) { tot = null; xong(); } }, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+    h = setTimeout(xong, 15000);
+  });
+}
+$('btnGPS').onclick = async () => {
+  const nut = $('btnGPS');
+  nut.disabled = true; nut.textContent = 'Đang dò GPS…';
+  try {
+    const p = await layGPS(p => { nut.textContent = `Đang dò GPS… sai số ±${Math.round(p.coords.accuracy)} m`; });
+    $('tlLat').value = p.coords.latitude.toFixed(6); $('tlLon').value = p.coords.longitude.toFixed(6);
+    $('tlGpsTxt').textContent = `Đã lấy vị trí GPS, sai số khoảng ±${Math.round(p.coords.accuracy)} m.`
+      + (p.coords.accuracy > 30 ? ' Ra chỗ thoáng (gần cửa, sân) rồi bấm lại để chính xác hơn.' : '');
+    if (!diaChiTay) dungDiaChi('', '', p.coords.latitude, p.coords.longitude);  // tự chọn xã theo vị trí
+  } catch (e) {
+    $('tlGpsTxt').textContent = e.code === 'khong-ho-tro' ? 'Máy không hỗ trợ GPS, hãy nhập tay vĩ độ, kinh độ.'
+      : 'Không lấy được GPS. Bật định vị (chế độ chính xác cao), cho phép app dùng vị trí rồi thử lại.';
+  } finally { nut.disabled = false; nut.textContent = 'Lấy vị trí GPS'; }
+};
+
 // Mã QR trên tem: đường dẫn .../app/?tb=<mã thiết bị>&kh=<mã kích hoạt>
 function docMaQR(raw) {
   try { const u = new URL(raw); const tb = u.searchParams.get('tb'); if (tb) return { ma: tb.toLowerCase(), pin: u.searchParams.get('kh') || '' }; } catch {}
