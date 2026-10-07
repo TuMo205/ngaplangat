@@ -500,6 +500,79 @@
   .ghi-mxh .btn-lien { font-size:12px; padding:0; }
   .hoac-mxh { display:flex; align-items:center; gap:12px; color:var(--text-3); font-size:12.5px; margin:18px 0 16px; }
   .hoac-mxh::before, .hoac-mxh::after { content:""; flex:1; height:1px; background:var(--line); }
+
+  /* ======================= GIAO DIỆN V4: hoàn thiện ======================= */
+  /* Nút chính trong chế độ tối: nền xanh đậm hơn để chữ trắng dễ đọc */
+  :root { --primary-btn:#0b5cd5; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --primary-btn:#2563eb; } }
+  :root[data-theme="dark"] { --primary-btn:#2563eb; }
+  .btn-primary { background:var(--primary-btn); }
+  .hero-title { text-wrap:balance; }
+  .hero-desc, .slide p, .note span { text-wrap:pretty; }
+  .logo .ten-sp small { white-space:nowrap !important; overflow:hidden; text-overflow:ellipsis; }
+  /* Nút quay lại trên dải màu: dạng viên thuốc mờ, cách mép trên */
+  .man > .lui { top:calc(6px + env(safe-area-inset-top)); left:-6px; padding:7px 14px 7px 11px; border-radius:999px; font-size:14px;
+    background:rgba(255,255,255,.16); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
+  .man > .lui:hover { background:rgba(255,255,255,.26); }
+  @media (min-width:900px) { .man > .lui { top:14px; left:-20px; } }
+
+  /* Màn hình chào: thương hiệu trên cùng, hình lớn ở giữa, nút ở đáy */
+  .man[data-man="chao"].hien { display:flex; flex-direction:column; min-height:calc(100dvh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  .chao-dau { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .chao-logo { display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700; line-height:1.25; color:var(--text); min-width:0; }
+  .chao-logo img { width:36px; height:36px; border-radius:11px; flex:none; box-shadow:0 4px 12px rgba(11,92,213,.25); }
+  .chao-dau .btn-lien { flex:none; color:var(--text-3); font-weight:600; }
+  .man[data-man="chao"] .slides { flex:1; display:flex; align-items:center; justify-content:center; min-height:300px; }
+  .man[data-man="chao"] .slide { padding-top:0; }
+  .man[data-man="chao"] .slide-ic { width:148px; height:148px; border-radius:46px; margin-bottom:34px;
+    box-shadow:0 0 0 14px var(--primary-soft), 0 26px 50px rgba(11,92,213,.25); }
+  .man[data-man="chao"] .slide-ic svg { width:64px; height:64px; }
+  .man[data-man="chao"] .slide h2 { font-size:26px; line-height:1.25; text-wrap:balance; }
+  .man[data-man="chao"] .slide p { max-width:330px; margin:0 auto; }
+  @media (min-width:900px) { .man[data-man="chao"].hien { min-height:560px; } }
+
+  /* Thẻ thiết bị trong mục Tài khoản */
+  .tb { align-items:flex-start; padding:13px 0; }
+  .tb .ic { margin-top:1px; }
+  .tb-dong { display:flex; align-items:center; gap:8px; min-width:0; }
+  .tb-dong b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tb .tt small.tb-dc { display:block; margin-top:3px; font-size:12.5px; color:var(--text-2); line-height:1.45; }
+  .tb-the { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .tb-the > * { font:inherit; font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--surface-2); color:var(--text-2); border:none; }
+  .tb-the button { color:var(--primary); background:var(--primary-soft); cursor:pointer; }
+  .tb .pill { font-size:11px; padding:3px 8px; flex:none; }
+  .tb .act, .tb .xoa { margin-top:2px; }
+
+  /* Khẩn cấp: số điện thoại cứu nạn, cẩm nang an toàn */
+  .the-khan { border:1px solid rgba(224,45,60,.28); }
+  .the-khan .card-t .ic { background:var(--bad-soft) !important; color:var(--bad) !important; }
+  .khan-nut { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; }
+  .khan-nut a { display:flex; flex-direction:column; align-items:center; gap:1px; padding:10px 4px; border-radius:14px; background:var(--bad-soft);
+    color:var(--bad); text-decoration:none; font-weight:800; font-size:20px; font-variant-numeric:tabular-nums; }
+  .khan-nut a small { font-size:11.5px; font-weight:600; color:var(--text-2); }
+  .khan-nut a:active { transform:scale(.97); }
+  .dong-lien { display:flex; align-items:center; gap:12px; width:100%; padding:12px 0; border:none; border-bottom:1px solid var(--line); background:none;
+    font:inherit; font-size:14px; font-weight:600; color:var(--text); text-align:left; cursor:pointer; }
+  .dong-lien:last-child { border-bottom:none; }
+  .dong-lien .ic { width:34px; height:34px; border-radius:11px; display:grid; place-items:center; background:var(--surface-2); color:var(--text-2); flex:none; }
+  .dong-lien .ic svg { width:18px; height:18px; }
+  .dong-lien span { flex:1; }
+  .dong-lien small { display:block; font-size:12px; font-weight:500; color:var(--text-3); margin-top:1px; }
+  .dong-lien::after { content:"›"; font-size:20px; color:var(--text-3); }
+  .the-khan .dong-lien { padding-bottom:0; margin-top:6px; }
+  #htNoiDung h4 { margin:16px 0 6px; font-size:14.5px; }
+  #htNoiDung ul { margin:0; padding-left:18px; }
+  #htNoiDung li { margin:4px 0; line-height:1.5; }
+  @media (min-width:1000px) {
+    #tab-tongquan.active { grid-template-areas:"cai cai" "hero ai" "stats ai" "khan ai" "dien nk"; }
+    .the-khan { grid-area:khan; }
+  }
+
+  /* Bản đồ: ghim hình ngôi nhà cho nhà mình */
+  .ghim-nha { width:38px; height:38px; border-radius:50% 50% 50% 6px; transform:rotate(-45deg); display:grid; place-items:center;
+    border:3px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,.3); }
+  .ghim-nha svg { transform:rotate(45deg); width:18px; height:18px; stroke:#fff; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  #tab-bando .legend { gap:6px 12px; font-size:12px; }
 </style>
 </head>
 <body>
@@ -524,6 +597,8 @@
   <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
   <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4M12 2v13"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></symbol>
   <symbol id="i-house2" viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11"/><path d="M9 21v-6h6v6M5 14h14"/></symbol>
 </svg>
 
@@ -532,6 +607,10 @@
   <div class="man hien" data-man="tai"><div class="auth-giua"><img class="auth-icon" src="icons/icon-192.png" alt=""><div class="sub">Đang tải…</div></div></div>
 
   <div class="man" data-man="chao">
+    <div class="chao-dau">
+      <span class="chao-logo"><img src="icons/icon-192.png" alt="">Thiết bị tự ngắt điện<br>khi nhà bị ngập nước</span>
+      <button class="btn-lien" data-den="dangnhap" id="btnBoQuaChao">Bỏ qua</button>
+    </div>
     <div class="slides" id="slides">
       <div class="slide hien"><div class="slide-ic" style="--c:linear-gradient(135deg,#0b5cd5,#1fb6ff)"><svg class="i"><use href="#i-drop"/></svg></div>
         <h2>Biết ngay khi nước vào nhà</h2><p>Cảm biến đo mực nước liên tục. AI dự báo còn bao lâu nữa nước chạm mức nguy hiểm.</p></div>
@@ -540,9 +619,11 @@
       <div class="slide"><div class="slide-ic" style="--c:linear-gradient(135deg,#6d3fd6,#a77bff)"><svg class="i"><use href="#i-bell"/></svg></div>
         <h2>Báo người thân, báo xã</h2><p>Nhắn tin, gọi điện cho người nhà kể cả khi mất điện. Xã biết ngay nhà nào cần cứu hộ trước.</p></div>
     </div>
-    <div class="dots" id="dots"><i class="on"></i><i></i><i></i></div>
-    <button class="btn btn-primary" id="btnTiep">Tiếp tục</button>
-    <p class="cuoi">Đã có tài khoản? <button class="btn-lien" data-den="dangnhap">Đăng nhập</button></p>
+    <div class="chao-cuoi">
+      <div class="dots" id="dots"><i class="on"></i><i></i><i></i></div>
+      <button class="btn btn-primary" id="btnTiep">Tiếp tục</button>
+      <p class="cuoi">Đã có tài khoản? <button class="btn-lien" data-den="dangnhap">Đăng nhập</button></p>
+    </div>
   </div>
 
   <div class="man" data-man="dangnhap">
@@ -631,7 +712,7 @@
 <div class="topbar">
   <div class="logo">
     <div class="mark"><img src="icons/icon-192.png" alt=""></div>
-    <div class="ten-sp"><b id="tenNha">Nhà của tôi</b><small>Thiết bị tự ngắt điện khi nhà bị ngập nước</small></div>
+    <div class="ten-sp"><b id="tenNha">Nhà của tôi</b><small id="diaChiNha">Thiết bị tự ngắt điện khi nhà bị ngập nước</small></div>
   </div>
   <div class="tb-trang" id="tieuDeTrang">Tổng quan</div>
   <div class="conn" id="ketNoi"><span class="dot"></span><span id="ketNoiTxt">Đang kết nối</span></div>
@@ -696,6 +777,17 @@
       <div><small>Tốc độ dâng</small><b><span id="tocDo">--</span><em>cm/ph</em></b></div>
       <div><small>Ngưỡng ngắt</small><b><span id="chipNguong">10 / 14</span><em>cm</em></b></div>
       <div><small>Cảm biến</small><b id="camBienNgan">--</b></div>
+    </div>
+
+    <div class="card the-khan" id="theKhan" style="display:none">
+      <div class="card-h"><div class="card-t"><span class="ic"><svg class="i"><use href="#i-phone"/></svg></span>Gọi khẩn cấp</div></div>
+      <div class="khan-nut">
+        <a href="tel:112">112<small>Cứu nạn</small></a>
+        <a href="tel:114">114<small>Cứu hộ, cứu hoả</small></a>
+        <a href="tel:115">115<small>Cấp cứu y tế</small></a>
+      </div>
+      <button class="dong-lien" data-modal="camnang"><span class="ic"><svg class="i"><use href="#i-book"/></svg></span>
+        <span>Cẩm nang an toàn khi ngập<small>Việc cần làm trước, trong và sau khi nước vào nhà</small></span></button>
     </div>
 
     <div class="card the-ai">
@@ -784,6 +876,15 @@
         <button class="act" id="btnKiemTraCapNhat">Kiểm tra</button></div>
       <div class="field"><div class="sub">Dự án "Thiết bị tự ngắt điện khi nhà bị ngập nước" – Cuộc thi Học sinh, sinh viên với ý tưởng khởi nghiệp tỉnh Phú Thọ 2026–2027</div></div>
     </div>
+    <div class="group-t">Hỗ trợ</div>
+    <div class="card" style="margin-top:0;padding-top:6px;padding-bottom:6px">
+      <button class="dong-lien" data-modal="camnang"><span class="ic"><svg class="i"><use href="#i-book"/></svg></span>
+        <span>Cẩm nang an toàn khi ngập<small>Trước, trong và sau khi nước vào nhà</small></span></button>
+      <button class="dong-lien" data-modal="huongdan"><span class="ic"><svg class="i"><use href="#i-info"/></svg></span>
+        <span>Hướng dẫn sử dụng<small>Ý nghĩa các trạng thái, nút ngắt điện, nút RESET</small></span></button>
+      <button class="dong-lien" data-modal="khancap"><span class="ic"><svg class="i"><use href="#i-phone"/></svg></span>
+        <span>Số điện thoại khẩn cấp<small>112 cứu nạn · 114 cứu hộ · 115 cấp cứu</small></span></button>
+    </div>
     <div class="group-t">Thông báo</div>
     <div class="card" style="margin-top:0">
       <div class="field switch-row"><div><b style="font-size:14px">Đọc to cảnh báo</b><div class="sub">Đọc to khi nước dâng hoặc khi ngắt điện</div></div>
@@ -810,14 +911,13 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.7.0';
+const PHIEN_BAN_APP = '1.8.0';
 const CO_GI_MOI = [
-  'Dùng được ở mọi tỉnh, thành: chọn tỉnh, xã, phường (theo đơn vị hành chính mới từ 01/07/2025) cho từng ngôi nhà.',
-  'App tự gợi ý xã theo vị trí ngôi nhà. Vào Tài khoản > Sửa thông tin để thêm địa chỉ cho nhà đã có.',
-  'Thông tin hộ chia sẻ với UBND xã giờ lưu trên máy chủ bảo mật, chỉ cán bộ xã xem được.',
-  'Tắt "Đồng ý chia sẻ" hoặc xoá thiết bị thì thông tin tự xoá khỏi bảng của xã.',
-  'Sửa lỗi: thẻ trạng thái chính không hiện khi nhà đang an toàn.',
-];
+  'Giao diện hoàn thiện: màn hình chào mới, thanh trên cùng hiện địa chỉ ngôi nhà, số liệu ghi kiểu Việt Nam (6,4 cm).',
+  'Khi nước vào nhà: hiện nút gọi nhanh 112, 114, 115 và Cẩm nang an toàn khi ngập.',
+  'Mục Tài khoản có thêm Hỗ trợ: cẩm nang, hướng dẫn sử dụng, số khẩn cấp.',
+  'Dùng được ở mọi tỉnh, thành: chọn tỉnh, xã cho từng ngôi nhà, app tự gợi ý xã theo vị trí.',
+]
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong lib/ben_vung.js (khớp với code ESP32)
 const MUC_CANH_BAO = 3, MUC_NGAT_MAC_DINH = 10, MUC_NGAT_HET_MAC_DINH = 14, MUC_BAO_TRUOC_HET = 12;  // cm, khớp code ESP32
 const TEN_TT = ['An toàn', 'Cảnh báo ngập', 'Đã ngắt điện tầng 1', 'Đã ngắt toàn bộ điện'];
@@ -837,10 +937,10 @@ const CHU_NHA = {
     nut1: 'Ngắt tầng 1', lenh1: 'ngắt điện tầng 1', muc1: 'Ngắt tầng 1', ca2: 'cả tầng 2',
     moTa: ['Chưa có nước trong nhà. Thiết bị đang theo dõi liên tục.', 'Nước đã vào nhà. Kê đồ lên cao, chuẩn bị lên tầng 2.',
       'Tầng 2 vẫn có điện. Không chạm vào ổ cắm, thiết bị điện ở tầng 1.', 'Nước đã tới mức tủ điện tổng nên ngắt cả tầng 2. Dùng đèn pin, không lội qua nước.'],
-    noi2: 'Đã ngắt điện tầng một. Không chạm vào ổ cắm và thiết bị điện.',
-    noi3: 'Đã ngắt toàn bộ điện trong nhà, kể cả tầng hai. Dùng đèn pin, không lội qua nước.',
+    noi2: 'Đã ngắt điện tầng 1. Không chạm vào ổ cắm và thiết bị điện.',
+    noi3: 'Đã ngắt toàn bộ điện trong nhà, kể cả tầng 2. Dùng đèn pin, không lội qua nước.',
     lyDo2: 'Thiết bị đã ngắt điện tầng 1, tầng 2 vẫn có điện.', lyDo3: 'Thiết bị đã ngắt toàn bộ điện, kể cả tầng 2.',
-    baoTruoc: 'Nước sắp chạm tủ điện tổng. Hãy sạc điện thoại, chuẩn bị đèn pin: sắp ngắt cả tầng hai.',
+    baoTruoc: 'Nước sắp chạm tủ điện tổng. Hãy sạc điện thoại, chuẩn bị đèn pin: sắp ngắt cả tầng 2.',
     hoi1: 'Ngắt điện tầng 1 ngay bây giờ?\nTầng 2 vẫn có điện. Chỉ đóng lại được bằng nút RESET tại thiết bị.',
     hoi3: 'Ngắt TOÀN BỘ điện trong nhà, kể cả tầng 2?\nChỉ dùng khi cả nhà đã sơ tán. Chỉ đóng lại được bằng nút RESET tại thiết bị.',
   },
@@ -860,6 +960,8 @@ const CHU_NHA = {
 let motTang = docLuu('motTang', false);  // loại nhà của thiết bị đang xem
 const chu = () => motTang ? CHU_NHA.mot : CHU_NHA.hai;
 const MAU = { ok: '#0e9f6e', warn: '#e08a00', bad: '#e02d3c', crit: '#9b1c1c', primary: '#0b5cd5', ai: '#6d3fd6' };
+// Số hiển thị theo kiểu Việt Nam, 1 chữ số thập phân: 6,4
+const so1 = v => (+v || 0).toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 function docLuu(khoa, macDinh) {
   try { const v = localStorage.getItem('nln_' + khoa); return v === null ? macDinh : JSON.parse(v); } catch { return macDinh; }
@@ -931,6 +1033,8 @@ function ghiNhatKy(text, loai = 'info', luc = Date.now(), luu = true) {
 docLuu(KHOA_NK, []).forEach(x => ghiNhatKy(x.text, x.loai, x.luc, false));
 function docTo(text) {
   if (!cauHinh.docTo || !('speechSynthesis' in window)) return;
+  // Viết "6,4 cm", "tầng 1" nhưng đọc "6,4 xăng ti mét", "tầng một"
+  text = text.replace(/(\d)\s*cm\b/g, '$1 xăng ti mét').replace(/tầng 1\b/g, 'tầng một').replace(/tầng 2\b/g, 'tầng hai');
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'vi-VN';
   speechSynthesis.cancel();
@@ -951,7 +1055,7 @@ function hoiQuy() {
   const n = xs.length, mx = xs.reduce((a, b) => a + b) / n, my = ys.reduce((a, b) => a + b) / n;
   let tu = 0, mau = 0;
   for (let i = 0; i < n; i++) { tu += (xs[i] - mx) * (ys[i] - my); mau += (xs[i] - mx) ** 2; }
-  const doDoc = mau ? tu / mau : 0;
+  const doDoc = mau ? Math.max(-60, Math.min(60, tu / mau)) : 0;  // nước dâng, rút không quá 60 cm/phút
   return { doDoc, chan: my - doDoc * mx };  // chan = mực nước ước lượng tại thời điểm hiện tại
 }
 
@@ -969,9 +1073,9 @@ function tinhDuBao() {
   else if (duLieu.trangthai === 2) { diem = 99; lyDo.push(chu().lyDo2); }
   if (+duLieu.sieuamloi === 1) lyDo.push('Cảm biến siêu âm đang lỗi: thiết bị dùng phao dự phòng để ngắt điện.');
   if (phutDenNgatHet !== null && phutDenNgatHet < 30) lyDo.push(`Dự kiến chạm mức tủ điện tổng (ngắt toàn bộ) sau khoảng ${Math.ceil(phutDenNgatHet)} phút.`);
-  if (duLieu.muc >= (duLieu.muccb || MUC_CANH_BAO)) { diem += 2; lyDo.push(`Nước trong nhà đã ${duLieu.muc.toFixed(1)} cm.`); }
-  if (doDoc > 0.05) { diem += 1; lyDo.push(`Nước đang dâng ${doDoc.toFixed(2)} cm/phút.`); }
-  else if (doDoc < -0.05) lyDo.push(`Nước đang rút ${(-doDoc).toFixed(2)} cm/phút.`);
+  if (duLieu.muc >= (duLieu.muccb || MUC_CANH_BAO)) { diem += 2; lyDo.push(`Nước trong nhà đã ${so1(duLieu.muc)} cm.`); }
+  if (doDoc > 0.05) { diem += 1; lyDo.push(`Nước đang dâng ${so1(doDoc)} cm/phút.`); }
+  else if (doDoc < -0.05) lyDo.push(`Nước đang rút ${so1(-doDoc)} cm/phút.`);
   if (phutDenNgat !== null && phutDenNgat < 30) { diem += 2; lyDo.push(`Dự kiến chạm mức ngắt điện sau khoảng ${Math.ceil(phutDenNgat)} phút.`); }
   if (phutDenNgat !== null && phutDenNgat < 10) diem += 1;
   if (muaSauGio !== null && muaSauGio >= 50) { diem += 2; lyDo.push(`Dự báo mưa rất lớn: ${muaSauGio.toFixed(0)} mm trong 6 giờ tới.`); }
@@ -991,7 +1095,7 @@ async function layDuBaoMua() {
     const gio = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:00`;
     const i = Math.max(0, j.hourly.time.indexOf(gio));
     muaSauGio = j.hourly.precipitation.slice(i, i + 6).reduce((a, b) => a + (b || 0), 0);
-    $('muaTxt').textContent = `Dự báo mưa 6 giờ tới tại nhà: ${muaSauGio.toFixed(1)} mm`;
+    $('muaTxt').textContent = `Dự báo mưa 6 giờ tới tại nhà: ${so1(muaSauGio)} mm`;
   } catch {
     $('muaTxt').textContent = 'Không lấy được dự báo mưa (kiểm tra mạng).';
   }
@@ -1030,11 +1134,12 @@ function capNhatGiaoDien() {
   $('gioCapNhat').textContent = 'Cập nhật ' + new Date(lanNhanCuoi || Date.now()).toLocaleTimeString('vi-VN');
   $('ttTen').textContent = TEN_TT[tt];
   $('ttMoTa').textContent = MO_TA_TT[tt];
-  $('mucNuoc').textContent = duLieu.muc.toFixed(1);
+  $('mucNuoc').textContent = so1(duLieu.muc);
+  $('theKhan').style.display = tt >= 1 ? '' : 'none';
   veNha();
   $('chipNguong').textContent = mn + ' / ' + (duLieu.mucngat2 || MUC_NGAT_HET_MAC_DINH);  // ngắt tầng 1 / ngắt toàn bộ
   const td = duBaoAI.doDoc;
-  $('tocDo').textContent = (td > 0.005 ? '+' : '') + td.toFixed(1);
+  $('tocDo').textContent = (td >= 0.05 ? '+' : '') + so1(td);
   $('dien1').textContent = tt >= 2 ? 'Đã ngắt' : 'Có điện';
   $('o1').className = 'tang ' + (tt >= 2 ? 'tat' : 'sang');
   $('dien2').textContent = tt === 3 ? 'Đã ngắt' : 'Có điện';
@@ -1118,7 +1223,8 @@ function nhanDuLieu(d) {
     if (window.dongBoThietBiApp) window.dongBoThietBiApp();  // gửi lại số người thân phòng khi thiết bị vừa khởi động lại
   }
   duLieu = { ...duLieu, ...d, muc: +d.muc || 0, trangthai: +d.trangthai || 0 };
-  lichSu.push({ t: Date.now(), muc: duLieu.muc });
+  const cuoi = lichSu[lichSu.length - 1];  // mỗi tin đến từ 2 máy chủ dự phòng: gộp các tin cách nhau dưới 1,5 giây
+  if (cuoi && Date.now() - cuoi.t < 1500) cuoi.muc = duLieu.muc; else lichSu.push({ t: Date.now(), muc: duLieu.muc });
   while (lichSu.length && Date.now() - lichSu[0].t > 15 * 60000) lichSu.shift();
   tinhDuBao();
   capNhatGiaoDien();
@@ -1129,7 +1235,7 @@ function nhanDuLieu(d) {
   if (duLieu.trangthai !== ttTruoc) {
     const loiBao = [
       'Nước đã rút. Nhà đã trở lại bình thường.',
-      `Cảnh báo! Nước đã vào nhà, mực nước ${duLieu.muc.toFixed(1)} xăng ti mét.`,
+      `Cảnh báo! Nước đã vào nhà, mực nước ${so1(duLieu.muc)} cm.`,
       chu().noi2,
       chu().noi3,
     ][duLieu.trangthai];
@@ -1210,8 +1316,8 @@ function capNhatBieuDo() {
   bieuDo.data.datasets[4].data = [{ x: -qua, y: mn2 }, { x: toi, y: mn2 }];
   // Hàng tóm tắt
   const gan = bieuDo.data.datasets[0].data;
-  $('bdHienTai').textContent = lanNhanCuoi ? duLieu.muc.toFixed(1) : '--';
-  $('bdCaoNhat').textContent = gan.length ? Math.max(...gan.map(p => p.y)).toFixed(1) : '--';
+  $('bdHienTai').textContent = lanNhanCuoi ? so1(duLieu.muc) : '--';
+  $('bdCaoNhat').textContent = gan.length ? so1(Math.max(...gan.map(p => p.y))) : '--';
   $('bdXuHuong').textContent = !lanNhanCuoi ? '--' : doDoc > 0.05 ? 'Đang dâng' : doDoc < -0.05 ? 'Đang rút' : 'Ổn định';
   $('bdXuHuong').style.color = !lanNhanCuoi ? '' : doDoc > 0.05 ? 'var(--bad)' : doDoc < -0.05 ? 'var(--ok)' : 'var(--text)';
   if ($('tab-bieudo').classList.contains('active')) bieuDo.update();
@@ -1233,11 +1339,16 @@ function capNhatBanDo() {
   const mau = [MAU.ok, MAU.warn, MAU.bad, MAU.crit];
   for (const [id, d] of cacNha) {
     let m = dauCham.get(id);
-    if (!m) { m = L.circleMarker([d.lat, d.lon], { radius: d.laNhaToi ? 13 : 9, weight: d.laNhaToi ? 4 : 2, fillOpacity: .9 }).addTo(banDo); dauCham.set(id, m); }
+    if (!m) {
+      m = d.laNhaToi ? L.marker([d.lat, d.lon], { zIndexOffset: 1000 }) : L.circleMarker([d.lat, d.lon], { radius: 9, weight: 2, fillOpacity: .9 });
+      m.addTo(banDo); dauCham.set(id, m);
+    }
     m.setLatLng([d.lat, d.lon]);
-    m.setStyle({ color: '#fff', fillColor: mau[d.trangthai || 0] });
+    if (d.laNhaToi) m.setIcon(L.divIcon({ className: '', iconSize: [38, 38], iconAnchor: [19, 44], popupAnchor: [0, -40],
+      html: `<div class="ghim-nha" style="background:${mau[d.trangthai || 0]}"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></div>` }));
+    else m.setStyle({ color: '#fff', fillColor: mau[d.trangthai || 0] });
     // Nhà khác chỉ hiện ẩn danh để bảo vệ quyền riêng tư (thông tin chi tiết chỉ có trên bảng điều hành của xã)
-    m.bindPopup(`<b>${d.laNhaToi ? 'Nhà tôi' : 'Nhà trong xóm (ẩn danh)'}</b><br>${TEN_TT[d.trangthai || 0]}<br>Mực nước: ${(+d.muc || 0).toFixed(1)} cm`);
+    m.bindPopup(`<b>${d.laNhaToi ? 'Nhà tôi' : 'Nhà trong xóm (ẩn danh)'}</b><br>${TEN_TT[d.trangthai || 0]}<br>Mực nước: ${so1(d.muc)} cm`);
   }
 }
 
@@ -1314,6 +1425,8 @@ window.guiLenhThietBi = (ma, loai, noiDung, giu) => {
 // Chọn thiết bị đang xem. Trả về true nếu phải tải lại trang để chuyển sang thiết bị khác.
 window.apDungThietBi = tb => {
   $('tenNha').textContent = tb.ten;
+  $('diaChiNha').textContent = [tb.thon, tb.tenXa, (tb.tinh || '').replace(/^(Tỉnh|Thành phố)\s+/, '')].filter(Boolean).join(', ')
+    || 'Thiết bị tự ngắt điện khi nhà bị ngập nước';
   if (!!tb.motTang !== motTang) window.datLoaiNha(!!tb.motTang);
   if (tb.ma === cauHinh.ma && tb.lat === cauHinh.viDo && tb.lon === cauHinh.kinhDo) return false;
   ghiLuu('ma', tb.ma); ghiLuu('viDo', tb.lat); ghiLuu('kinhDo', tb.lon);
@@ -1692,6 +1805,7 @@ function capSlide() {
   Array.from($('dots').children).forEach((d, i) => d.classList.toggle('on', i === slide));
   $('btnTiep').textContent = slide < 2 ? 'Tiếp tục' : 'Tạo tài khoản';
 }
+$('btnBoQuaChao').addEventListener('click', () => ghiJ('nln_daXemChao', true));
 $('btnTiep').onclick = () => { if (slide < 2) { slide++; capSlide(); } else { ghiJ('nln_daXemChao', true); man('dangky'); } };
 let xDau = null;
 $('slides').addEventListener('touchstart', e => { xDau = e.touches[0].clientX; }, { passive: true });
@@ -1900,9 +2014,12 @@ function veTaiKhoan() {
     <div class="card" style="margin-top:0">
       ${hoSo.thietBi.map(t => `<div class="tb ${t.ma === hoSo.thietBiChon ? 'chon' : ''}">
         <span class="ic"><svg class="i"><use href="#i-house2"/></svg></span>
-        <div class="tt"><b>${esc(t.ten)}</b><small>${esc(t.ma)} · <button class="btn-lien" data-loai="${esc(t.ma)}" style="font-size:12px;padding:0">${t.motTang ? 'Nhà 1 tầng' : 'Nhà 2 tầng'}</button></small>
-          <small>${esc([t.thon, t.tenXa, t.tinh].filter(Boolean).join(', ') || 'Chưa có địa chỉ (Sửa thông tin để thêm)')}</small></div>
-        ${t.ma === hoSo.thietBiChon ? '<span class="pill on">Đang xem</span>' : `<button class="act" data-chon="${esc(t.ma)}">Xem</button>`}
+        <div class="tt">
+          <div class="tb-dong"><b>${esc(t.ten)}</b>${t.ma === hoSo.thietBiChon ? '<span class="pill on">Đang xem</span>' : ''}</div>
+          <small class="tb-dc">${esc([t.thon, t.tenXa, t.tinh].filter(Boolean).join(', ') || 'Chưa có địa chỉ: bấm "Sửa thông tin" để thêm')}</small>
+          <div class="tb-the"><span>${esc(t.ma)}</span><button data-loai="${esc(t.ma)}">${t.motTang ? 'Nhà 1 tầng' : 'Nhà 2 tầng'}</button></div>
+        </div>
+        ${t.ma === hoSo.thietBiChon ? '' : `<button class="act" data-chon="${esc(t.ma)}">Xem</button>`}
         <button class="xoa" data-xoa="${esc(t.ma)}" aria-label="Xoá thiết bị">×</button></div>`).join('')}
       <button class="btn btn-ghost" id="tkThemTB" style="margin-top:12px">+ Thêm thiết bị</button>
     </div>
@@ -2000,6 +2117,45 @@ const VAN_BAN = {
     <p><b>Mật khẩu:</b> được mã hoá, nhóm phát triển không xem được mật khẩu của bạn.</p>
     <p><b>Quyền của bạn:</b> xem, sửa thông tin bất kỳ lúc nào trong mục Tài khoản; xoá tài khoản cùng toàn bộ dữ liệu bằng nút "Xoá tài khoản".</p>
     <p class="sub">Bản thử nghiệm phục vụ cuộc thi "Học sinh, sinh viên với ý tưởng khởi nghiệp" tỉnh Phú Thọ năm học 2026–2027.</p>`],
+  camnang: ['Cẩm nang an toàn khi ngập', `
+    <h4>Trước mùa mưa lũ</h4>
+    <ul><li>Lưu số người thân trong app để thiết bị nhắn tin, gọi điện khi nước vào nhà.</li>
+      <li>Chuẩn bị đèn pin, sạc dự phòng, áo phao, nước uống, thuốc thường dùng.</li>
+      <li>Cất giấy tờ quan trọng vào túi chống nước, để ở chỗ cao.</li>
+      <li>Biết đường sơ tán và điểm tập trung của thôn, xã.</li></ul>
+    <h4>Khi nước bắt đầu vào nhà</h4>
+    <ul><li>Kê đồ điện, đồ có giá trị lên cao. Rút phích cắm các thiết bị không dùng.</li>
+      <li>Không chạm vào ổ cắm, dây điện, thiết bị điện khi tay ướt hoặc đang đứng trong nước.</li>
+      <li>Đưa người già, trẻ nhỏ, người khuyết tật lên tầng cao hoặc tới nơi an toàn trước.</li>
+      <li>Theo dõi thông báo của chính quyền, sơ tán ngay khi được yêu cầu.</li></ul>
+    <h4>Khi đã ngắt điện</h4>
+    <ul><li>Dùng đèn pin, không dùng nến gần đồ dễ cháy.</li>
+      <li>Không lội qua dòng nước chảy xiết: nước chảy chỉ ngang đầu gối cũng có thể làm ngã người.</li>
+      <li>Cần cứu giúp: gọi 112 (cứu nạn), 114 (cứu hộ), 115 (cấp cứu).</li></ul>
+    <h4>Sau khi nước rút</h4>
+    <ul><li>Chỉ bấm RESET để đóng điện lại khi nước đã rút hết, sàn và ổ cắm đã khô.</li>
+      <li>Nếu ổ cắm, dây điện, tủ điện đã ngập: nhờ thợ điện kiểm tra trước khi dùng lại.</li>
+      <li>Dọn bùn, khử trùng nhà cửa; đun sôi nước trước khi uống.</li></ul>`],
+  huongdan: ['Hướng dẫn sử dụng', `
+    <h4>Các trạng thái</h4>
+    <ul><li><b style="color:var(--ok)">An toàn</b>: chưa có nước trong nhà.</li>
+      <li><b style="color:var(--warn)">Cảnh báo</b>: nước đã vào nhà (từ 3 cm ở mô hình). App báo, đọc to và rung.</li>
+      <li><b style="color:var(--bad)">Đã ngắt điện</b>: nước gần tới ổ cắm, thiết bị ngắt tầng 1 (nhà 1 tầng: ngắt mạch ổ cắm, giữ đèn sáng).</li>
+      <li><b style="color:var(--crit)">Ngắt toàn bộ</b>: nước tới mức tủ điện tổng, thiết bị ngắt cả nhà.</li></ul>
+    <h4>Thiết bị tự làm, không cần mạng</h4>
+    <ul><li>Tự ngắt điện theo mực nước, kể cả khi mất wifi.</li>
+      <li>Phát loa cảnh báo, nhắn tin và gọi điện cho người thân qua 4G.</li></ul>
+    <h4>Trên app</h4>
+    <ul><li><b>Ngắt điện từ xa</b>: dùng khi cả nhà đã sơ tán.</li>
+      <li><b>AI dự báo</b>: ước tính còn bao nhiêu phút nữa nước chạm mức ngắt, dựa trên tốc độ nước 2 phút gần nhất và dự báo mưa.</li>
+      <li><b>Đóng điện lại</b>: chỉ bằng nút RESET tại thiết bị, khi nước đã rút và sàn đã khô.</li></ul>`],
+  khancap: ['Số điện thoại khẩn cấp', `
+    <div class="khan-nut" style="margin-top:6px">
+      <a href="tel:112">112<small>Cứu nạn</small></a>
+      <a href="tel:114">114<small>Cứu hộ, cứu hoả</small></a>
+      <a href="tel:115">115<small>Cấp cứu y tế</small></a>
+    </div>
+    <p class="sub" style="margin-top:12px">Gọi miễn phí từ mọi điện thoại, kể cả khi không có sim hoặc hết tiền. Nói rõ địa chỉ, số người cần giúp, có người già, trẻ nhỏ hay không.</p>`],
 };
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-modal]');
