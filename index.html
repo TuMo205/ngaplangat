@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b5cd5">
+<meta name="description" content="Ngập Là Ngắt: thiết bị IoT tự ngắt điện tầng 1 khi nhà bị ngập, kèm app cảnh báo cho hộ gia đình và bảng điều hành cứu hộ cấp xã.">
+<meta property="og:title" content="Ngập Là Ngắt – nước vào nhà, điện tầng 1 tự ngắt">
+<meta property="og:description" content="Thiết bị IoT + AI dự báo ngập, tự ngắt điện tầng 1, báo người thân và báo xã. Dự án dự thi tỉnh Phú Thọ 2026–2027.">
+<meta property="og:image" content="app/icons/icon-512.png">
+<link rel="icon" type="image/png" href="app/icons/favicon.png">
+<link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png">
+<title>Ngập Là Ngắt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f5f6f8; --surface:#ffffff; --surface-2:#f7f8fb; --text:#0f1b2d; --text-2:#4a5568; --text-3:#8a94a6;
+    --line:#e8eaef; --primary:#0b5cd5; --primary-soft:#e8f0fd; --ok:#0e9f6e; --ok-soft:#e3f6ee; --bad:#e02d3c; --bad-soft:#fde8ea;
+    --ai:#6d3fd6; --ai-soft:#f0ebfc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0b1220; --surface:#131c2e; --surface-2:#18233a; --text:#eef2f8; --text-2:#b4bfd0; --text-3:#7d8aa0;
+      --line:#223049; --primary:#4c8dff; --primary-soft:#1a2a48; --ok-soft:#0f2e25; --bad-soft:#3a1519; --ai-soft:#251d40;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0b1220; --surface:#131c2e; --surface-2:#18233a; --text:#eef2f8; --text-2:#b4bfd0; --text-3:#7d8aa0;
+    --line:#223049; --primary:#4c8dff; --primary-soft:#1a2a48; --ok-soft:#0f2e25; --bad-soft:#3a1519; --ai-soft:#251d40;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--text); font-family:"Be Vietnam Pro", system-ui, sans-serif; -webkit-font-smoothing:antialiased; }
+  svg.i { width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+  .khung { max-width:1040px; margin:0 auto; padding:0 16px; }
+
+  header { padding:calc(18px + env(safe-area-inset-top)) 0 0; }
+  header .khung { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .logo { display:flex; align-items:center; gap:10px; font-weight:800; font-size:17px; letter-spacing:-.01em; }
+  .logo img { width:36px; height:36px; border-radius:10px; display:block; }
+  .nhan { font-size:12px; font-weight:600; color:var(--primary); background:var(--primary-soft); padding:6px 10px; border-radius:999px; white-space:nowrap; }
+
+  .hero { padding:56px 0 34px; max-width:720px; }
+  .hero h1 { font-size:clamp(30px, 6vw, 48px); line-height:1.12; letter-spacing:-.03em; margin:0 0 16px; }
+  .hero h1 span { color:var(--primary); }
+  .hero p { font-size:17px; line-height:1.65; color:var(--text-2); margin:0; }
+
+  .hai { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; }
+  .the { display:flex; flex-direction:column; gap:12px; background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:24px;
+    color:inherit; text-decoration:none; transition:border-color .2s, transform .15s; }
+  .the:hover { border-color:var(--primary); }
+  .the:active { transform:scale(.99); }
+  .the .ic { width:48px; height:48px; border-radius:14px; display:grid; place-items:center; background:var(--primary-soft); color:var(--primary); }
+  .the.xa .ic { background:var(--ok-soft); color:var(--ok); }
+  .the h2 { margin:4px 0 0; font-size:21px; letter-spacing:-.02em; }
+  .the p { margin:0; color:var(--text-2); line-height:1.6; font-size:15px; flex:1; }
+  .the .nut { display:inline-flex; align-items:center; gap:8px; align-self:flex-start; margin-top:6px; background:var(--primary); color:#fff;
+    font-weight:700; font-size:15px; padding:12px 18px; border-radius:14px; }
+  .the.xa .nut { background:var(--surface-2); color:var(--text); border:1px solid var(--line); }
+  .the .nut svg { width:18px; height:18px; }
+
+  .qr { display:flex; align-items:center; gap:24px; margin-top:16px; background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:22px; }
+  #ma { width:156px; height:156px; flex:none; background:#fff; border-radius:14px; padding:8px; }
+  #ma svg { width:100%; height:100%; display:block; }
+  .qr b { display:block; font-size:18px; letter-spacing:-.01em; margin-bottom:6px; }
+  .qr p { margin:0 0 10px; color:var(--text-2); line-height:1.6; font-size:14.5px; }
+  .qr code { display:inline-block; max-width:100%; overflow-wrap:anywhere; font-family:inherit; font-size:13px; font-weight:600; color:var(--primary);
+    background:var(--primary-soft); padding:6px 10px; border-radius:10px; }
+
+  .ba { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:16px; margin:44px 0 0; }
+  .ba div { padding:4px 2px; }
+  .ba .ic { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; margin-bottom:12px; }
+  .ba b { display:block; font-size:16px; margin-bottom:6px; }
+  .ba p { margin:0; color:var(--text-2); line-height:1.6; font-size:14.5px; }
+
+  footer { margin-top:56px; padding:22px 0 calc(28px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); color:var(--text-3); font-size:13px; line-height:1.6; }
+
+  @media (max-width:760px) {
+    .hero { padding:36px 0 26px; }
+    .hero p { font-size:16px; }
+    .hai, .ba { grid-template-columns:minmax(0, 1fr); }
+    .qr { flex-direction:column; align-items:flex-start; }
+    .nhan { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2.7l5.7 5.6a8 8 0 1 1-11.3 0z"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M18.4 6.6a9 9 0 1 1-12.7 0"/><path d="M12 2v10"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+</svg>
+
+<header><div class="khung">
+  <div class="logo"><img src="app/icons/icon-192.png" alt="">Ngập Là Ngắt</div>
+  <span class="nhan">Dự án khởi nghiệp · Phú Thọ 2026–2027</span>
+</div></header>
+
+<main class="khung">
+  <section class="hero">
+    <h1>Nước vào nhà,<br><span>điện tầng 1 tự ngắt.</span></h1>
+    <p>Thiết bị IoT đo mực nước trong nhà, AI dự báo lúc nước chạm mức nguy hiểm, tự ngắt điện tầng 1 và gọi điện, nhắn tin cho người thân, kể cả khi mất điện lưới.</p>
+  </section>
+
+  <section class="hai">
+    <a class="the" href="app/">
+      <span class="ic"><svg class="i"><use href="#i-home"/></svg></span>
+      <h2>App cho hộ gia đình</h2>
+      <p>Xem mực nước trong nhà, AI dự báo nguy cơ, nhận cảnh báo và ngắt điện tầng 1 từ xa. Cài được lên Android, iPhone và máy tính.</p>
+      <span class="nut">Mở app <svg class="i"><use href="#i-arrow"/></svg></span>
+    </a>
+    <a class="the xa" href="xa/">
+      <span class="ic"><svg class="i"><use href="#i-map"/></svg></span>
+      <h2>Bảng điều hành cấp xã</h2>
+      <p>Bản đồ ngập toàn xã, xếp hạng hộ cần cứu trước theo người già, trẻ nhỏ, cử đội cứu hộ và báo cáo nhanh gửi Zalo.</p>
+      <span class="nut">Mở bảng điều hành <svg class="i"><use href="#i-arrow"/></svg></span>
+    </a>
+  </section>
+
+  <section class="qr">
+    <div id="ma" role="img" aria-label="Mã QR mở app"></div>
+    <div>
+      <b>Quét mã để mở app trên điện thoại</b>
+      <p>Mở bằng Chrome (Android) hoặc Safari (iPhone), rồi chọn <b style="display:inline;font-size:inherit">"Thêm vào màn hình chính"</b> để cài như app thật. Bấm "Dùng thử không cần tài khoản" để xem ngay.</p>
+      <code id="duongDan">app/</code>
+    </div>
+  </section>
+
+  <section class="ba">
+    <div><span class="ic" style="background:var(--primary-soft);color:var(--primary)"><svg class="i"><use href="#i-drop"/></svg></span>
+      <b>Đo và dự báo</b><p>Cảm biến siêu âm và phao đo mực nước. AI tính tốc độ nước dâng, báo trước còn bao nhiêu phút thì nguy hiểm.</p></div>
+    <div><span class="ic" style="background:var(--bad-soft);color:var(--bad)"><svg class="i"><use href="#i-power"/></svg></span>
+      <b>Tự ngắt điện tầng 1</b><p>Ngắt trước khi nước chạm ổ cắm, tầng 2 vẫn có điện. Chỉ đóng lại tại thiết bị khi nước đã rút.</p></div>
+    <div><span class="ic" style="background:var(--ai-soft);color:var(--ai)"><svg class="i"><use href="#i-bell"/></svg></span>
+      <b>Báo người thân, báo xã</b><p>Nhắn tin, gọi điện qua 4G khi mất điện. Xã biết ngay nhà nào có người già, trẻ nhỏ cần cứu trước.</p></div>
+  </section>
+</main>
+
+<footer><div class="khung">
+  Dự án dự thi "Học sinh, sinh viên với ý tưởng khởi nghiệp" tỉnh Phú Thọ năm học 2026–2027 · Đoan Hùng, Phú Thọ.<br>
+  Số liệu các hộ trên bảng điều hành xã là dữ liệu mô phỏng phục vụ trình diễn.
+</div></footer>
+
+<script src="app/lib/qrcode.min.js"></script>
+<script>
+// Mã QR tự trỏ tới app trên đúng địa chỉ trang đang mở (GitHub Pages, Netlify… đều đúng, không cần sửa)
+const linkApp = new URL('app/', location.href).href;
+document.getElementById('duongDan').textContent = linkApp;
+try {
+  const qr = qrcode(0, 'M');
+  qr.addData(linkApp);
+  qr.make();
+  document.getElementById('ma').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+} catch (e) {
+  document.getElementById('ma').style.display = 'none';
+}
+</script>
+</body>
+</html>
