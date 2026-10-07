@@ -60,13 +60,26 @@
   .the.xa .nut { background:var(--surface-2); color:var(--text); border:1px solid var(--line); }
   .the .nut svg { width:18px; height:18px; }
 
-  .qr { display:flex; align-items:center; gap:24px; margin-top:16px; background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:22px; }
-  #ma { width:156px; height:156px; flex:none; background:#fff; border-radius:14px; padding:8px; }
-  #ma svg { width:100%; height:100%; display:block; }
+  .cai { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; margin-top:16px; }
+  .qr { display:flex; align-items:center; gap:20px; background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:22px; min-width:0; }
+  .ma { width:148px; height:148px; flex:none; background:#fff; border-radius:14px; padding:8px; border:1px solid var(--line); }
+  .ma svg { width:100%; height:100%; display:block; }
+  .qr > div:last-child { min-width:0; }
+  .he { display:inline-block; font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--ok); background:var(--ok-soft);
+    padding:4px 9px; border-radius:999px; margin-bottom:8px; }
+  .he.web { color:var(--primary); background:var(--primary-soft); }
   .qr b { display:block; font-size:18px; letter-spacing:-.01em; margin-bottom:6px; }
-  .qr p { margin:0 0 10px; color:var(--text-2); line-height:1.6; font-size:14.5px; }
+  .qr p { margin:0 0 12px; color:var(--text-2); line-height:1.6; font-size:14px; }
+  .qr p b { display:inline; font-size:inherit; margin:0; }
   .qr code { display:inline-block; max-width:100%; overflow-wrap:anywhere; font-family:inherit; font-size:13px; font-weight:600; color:var(--primary);
     background:var(--primary-soft); padding:6px 10px; border-radius:10px; }
+  .nut-tai { display:inline-flex; align-items:center; gap:8px; background:var(--ok); color:#fff; text-decoration:none; font-weight:700; font-size:14.5px;
+    padding:11px 16px; border-radius:12px; }
+  .nut-tai svg { width:18px; height:18px; }
+  .hanh { display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
+  .hanh .nut-tai { background:var(--primary); padding:13px 18px; font-size:15px; }
+  .nut-phu { display:inline-flex; align-items:center; font-weight:700; font-size:15px; padding:13px 18px; border-radius:12px; text-decoration:none;
+    color:var(--text); background:var(--surface); border:1px solid var(--line); }
 
   .ba { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:16px; margin:44px 0 0; }
   .ba div { padding:4px 2px; }
@@ -79,7 +92,7 @@
   @media (max-width:760px) {
     .hero { padding:36px 0 26px; }
     .hero p { font-size:16px; }
-    .hai, .ba { grid-template-columns:minmax(0, 1fr); }
+    .hai, .ba, .cai { grid-template-columns:minmax(0, 1fr); }
     .qr { flex-direction:column; align-items:flex-start; }
     .nhan { display:none; }
   }
@@ -93,6 +106,7 @@
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2.7l5.7 5.6a8 8 0 1 1-11.3 0z"/></symbol>
   <symbol id="i-power" viewBox="0 0 24 24"><path d="M18.4 6.6a9 9 0 1 1-12.7 0"/><path d="M12 2v10"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
 </svg>
 
@@ -105,6 +119,10 @@
   <section class="hero">
     <h1>Nước vào nhà,<br><span>điện tầng 1 tự ngắt.</span></h1>
     <p>Thiết bị IoT đo mực nước trong nhà, AI dự báo lúc nước chạm mức nguy hiểm, tự ngắt điện tầng 1 và gọi điện, nhắn tin cho người thân, kể cả khi mất điện lưới.</p>
+    <div class="hanh">
+      <a class="nut-tai" href="NgapLaNgat.apk" download><svg class="i"><use href="#i-down"/></svg>Tải app Android</a>
+      <a class="nut-phu" href="app/">Mở app trên web</a>
+    </div>
   </section>
 
   <section class="hai">
@@ -122,12 +140,24 @@
     </a>
   </section>
 
-  <section class="qr">
-    <div id="ma" role="img" aria-label="Mã QR mở app"></div>
-    <div>
-      <b>Quét mã để mở app trên điện thoại</b>
-      <p>Mở bằng Chrome (Android) hoặc Safari (iPhone), rồi chọn <b style="display:inline;font-size:inherit">"Thêm vào màn hình chính"</b> để cài như app thật. Bấm "Dùng thử không cần tài khoản" để xem ngay.</p>
-      <code id="duongDan">app/</code>
+  <section class="cai" id="tai-app">
+    <div class="qr">
+      <div class="ma" id="maApk" role="img" aria-label="Mã QR tải app Android"></div>
+      <div>
+        <span class="he">Android</span>
+        <b>Quét mã là tải app về máy</b>
+        <p>Tải xong, mở file <b>NgapLaNgat.apk</b> rồi bấm <b>Cài đặt</b>. Nếu máy hỏi, cho phép "Cài ứng dụng không rõ nguồn gốc".</p>
+        <a class="nut-tai" href="NgapLaNgat.apk" download><svg class="i"><use href="#i-down"/></svg>Tải file APK</a>
+      </div>
+    </div>
+    <div class="qr">
+      <div class="ma" id="maWeb" role="img" aria-label="Mã QR mở app trên web"></div>
+      <div>
+        <span class="he web">iPhone · máy tính</span>
+        <b>Quét mã để mở app trên web</b>
+        <p>iPhone: mở bằng Safari, bấm <b>Chia sẻ → Thêm vào MH chính</b> để cài như app thật. Bấm "Dùng thử không cần tài khoản" để xem ngay.</p>
+        <code id="duongDan">app/</code>
+      </div>
     </div>
   </section>
 
@@ -148,17 +178,21 @@
 
 <script src="app/lib/qrcode.min.js"></script>
 <script>
-// Mã QR tự trỏ tới app trên đúng địa chỉ trang đang mở (GitHub Pages, Netlify… đều đúng, không cần sửa)
+// Mã QR tự trỏ đúng địa chỉ trang đang mở (GitHub Pages, Netlify… đều đúng, không cần sửa)
+function veQR(id, link) {
+  try {
+    const qr = qrcode(0, 'M');
+    qr.addData(link);
+    qr.make();
+    document.getElementById(id).innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+  } catch (e) {
+    document.getElementById(id).style.display = 'none';
+  }
+}
 const linkApp = new URL('app/', location.href).href;
 document.getElementById('duongDan').textContent = linkApp;
-try {
-  const qr = qrcode(0, 'M');
-  qr.addData(linkApp);
-  qr.make();
-  document.getElementById('ma').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
-} catch (e) {
-  document.getElementById('ma').style.display = 'none';
-}
+veQR('maWeb', linkApp);
+veQR('maApk', new URL('NgapLaNgat.apk', location.href).href);
 </script>
 </body>
 </html>
