@@ -1,7 +1,7 @@
 // Service worker: lưu sẵn giao diện app để mở được cả khi mất mạng.
 // Đổi PHIEN_BAN mỗi khi sửa app để máy người dùng tải bản mới.
 // Sửa lib/ben_vung.js hoặc firebase-config.js thì tăng thêm số ?v=... ở thẻ <script> trong app/index.html và xa/index.html.
-const PHIEN_BAN = 'nln-v28';
+const PHIEN_BAN = 'nln-v29';
 
 const VO_APP = [
   './', './index.html', './manifest.webmanifest', './firebase-config.js',

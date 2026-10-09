@@ -156,7 +156,8 @@
   .dn-trai::before { width:520px; height:520px; right:-200px; top:-160px; }
   .dn-trai::after { width:380px; height:380px; left:-140px; bottom:-170px; }
   .dn-logo { display:flex; align-items:center; gap:12px; font-weight:800; font-size:18px; position:relative; z-index:1; }
-  .dn-logo .mark { width:42px; height:42px; border-radius:13px; display:grid; place-items:center; background:rgba(255,255,255,.18); }
+  .dn-logo .mark { width:42px; height:42px; border-radius:13px; display:grid; place-items:center; background:rgba(255,255,255,.18); overflow:hidden; }
+  .dn-logo .mark img { width:100%; height:100%; display:block; }
   .dn-logo small { display:block; font-weight:500; font-size:12.5px; opacity:.85; }
   .dn-giua { margin:auto 0; position:relative; z-index:1; max-width:460px; }
   .dn-giua h2 { font-size:38px; line-height:1.15; letter-spacing:-.03em; margin:0 0 14px; }
@@ -342,7 +343,7 @@
 <!-- ===================== ĐĂNG NHẬP CÁN BỘ ===================== -->
 <div class="dn hien" id="manDN">
   <div class="dn-trai">
-    <div class="dn-logo"><div class="mark"><svg class="i"><use href="#i-drop"/></svg></div><div>Thiết bị tự ngắt điện khi nhà bị ngập nước<small>Điều hành cấp xã</small></div></div>
+    <div class="dn-logo"><div class="mark"><img src="../app/icons/icon-192.png" alt=""></div><div>Thiết bị tự ngắt điện khi nhà bị ngập nước<small>Điều hành cấp xã</small></div></div>
     <div class="dn-giua">
       <h2>Hệ thống điều hành<br>phòng chống ngập</h2>
       <p>Theo dõi mọi hộ dân có lắp thiết bị, biết ngay nhà nào đang ngập, nhà nào có người già, trẻ nhỏ để ưu tiên cứu hộ.</p>
@@ -668,7 +669,11 @@
 let TAM_XA = [16.2, 106.2];  // giữa Việt Nam, tới khi biết xã đang xem
 let HOP_XA = null, MA_XA = '';  // khung toạ độ [tây, nam, đông, bắc] và mã của xã đang xem
 const BAN_KINH_XA_KM = 8;  // xã chưa có khung toạ độ: thiết bị chưa đăng ký hiện khi nằm trong khoảng này quanh trung tâm
-const MUC_CANH_BAO = 3, MUC_NGAT = 10, MUC_NGAT_HET = 14;  // khớp code ESP32
+const MUC_CANH_BAO = 3, MUC_NGAT = 10, MUC_NGAT_HET = 14;  // mặc định, khớp code ESP32 (mỗi thiết bị gửi kèm mức của nó)
+// Số viết kiểu Việt Nam, 1 chữ số thập phân (giống app người dân): 11,6
+const so1 = v => (+v || 0).toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+// Tên trạng thái của một hộ, giống app: nhà 1 tầng ngắt mạch ổ cắm trước, nhà 2 tầng trở lên ngắt tầng 1 trước
+const tenTT = h => h.trangThai === 2 ? (h.motTang ? 'Ngắt ổ cắm' : 'Ngắt tầng 1') : TEN_TT[h.trangThai];
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong ../app/lib/ben_vung.js
 const TEN_TT = ['An toàn', 'Cảnh báo', 'Ngắt một phần', 'Ngắt toàn bộ'];  // một phần: tầng 1 (nhà 2 tầng) hoặc mạch ổ cắm (nhà 1 tầng)
 const MAU_TT = ['#0e9f6e', '#e08a00', '#e02d3c', '#9b1c1c'];
@@ -808,12 +813,23 @@ function canBanDo() {
 }
 
 // Số liệu thiết bị gửi lên (mực nước, trạng thái điện do chính thiết bị quyết định)
-function capNhatHo(h, mucMoi, now, trangThai, tocDo) {
-  if (tocDo !== undefined) h.tocDo = tocDo;  // thiết bị tự tính tốc độ nước dâng (cm/phút)
-  else if (h.mocMucTruoc) {
-    const phut = (now - h.mocMucTruoc.t) / 60000;
-    if (phut > 0) h.tocDo = (mucMoi - h.mocMucTruoc.muc) / phut;
-  }
+// Tốc độ nước dâng (cm/phút): hồi quy tuyến tính trên số liệu 2 phút gần nhất, đúng cách app người dân tính,
+// để cùng một nhà thì app và bảng xã hiện cùng một con số.
+function tocDoHoiQuy(ls, now) {
+  const diem = ls.filter(p => now - p.t <= 120000);
+  if (diem.length < 5) return 0;
+  const xs = diem.map(p => (p.t - now) / 60000), ys = diem.map(p => p.muc);
+  const n = xs.length, mx = xs.reduce((a, b) => a + b) / n, my = ys.reduce((a, b) => a + b) / n;
+  let tu = 0, mau = 0;
+  for (let i = 0; i < n; i++) { tu += (xs[i] - mx) * (ys[i] - my); mau += (xs[i] - mx) ** 2; }
+  return mau ? Math.max(-60, Math.min(60, tu / mau)) : 0;
+}
+function capNhatHo(h, mucMoi, now, trangThai) {
+  h.ls = h.ls || [];
+  const cuoi = h.ls[h.ls.length - 1];  // mỗi tin đến từ 2 máy chủ dự phòng: gộp các tin cách nhau dưới 1,5 giây
+  if (cuoi && now - cuoi.t < 1500) cuoi.muc = mucMoi; else h.ls.push({ t: now, muc: mucMoi });
+  while (h.ls.length && now - h.ls[0].t > 150000) h.ls.shift();
+  h.tocDo = tocDoHoiQuy(h.ls, now);
   h.mocMucTruoc = { t: now, muc: mucMoi };
   h.muc = mucMoi;
   h.trangThai = trangThai;
@@ -840,7 +856,7 @@ const canHoTro = h => h.trangThai > 0 || (matKetNoi(h) && h.muc > 0);
 const badge = (text, mau, nen) => `<span class="badge" style="color:${mau};background:${nen}">${text}</span>`;
 function badgeTrangThai(h) {
   if (matKetNoi(h)) return badge(tenMatKetNoi(h), 'var(--off)', 'var(--off-soft)');
-  return badge(TEN_TT[h.trangThai], ['var(--ok)', 'var(--warn)', 'var(--bad)', 'var(--crit)'][h.trangThai], ['var(--ok-soft)', 'var(--warn-soft)', 'var(--bad-soft)', 'var(--crit-soft)'][h.trangThai]);
+  return badge(tenTT(h), ['var(--ok)', 'var(--warn)', 'var(--bad)', 'var(--crit)'][h.trangThai], ['var(--ok-soft)', 'var(--warn-soft)', 'var(--bad-soft)', 'var(--crit-soft)'][h.trangThai]);
 }
 
 // ===================== BẢN ĐỒ =====================
@@ -880,7 +896,7 @@ function veBanDo() {
     m.setStyle({ fillColor: matKetNoi(h) ? MAU_OFF : MAU_TT[h.trangThai] });
     m.setRadius(6 + Math.min(h.muc, 15) * 0.7);
     const nhom = [h.nguoiGia && `${h.nguoiGia} người già`, h.treEm && `${h.treEm} trẻ nhỏ`, h.khuyetTat && 'người khuyết tật'].filter(Boolean).join(', ') || 'không';
-    m.bindPopup(`<b>${escH(tenHo(h))}</b><br>${escH(h.thon)} · ${escH(sdtHo(h))}<br>Trạng thái: <b>${matKetNoi(h) ? tenMatKetNoi(h) : TEN_TT[h.trangThai]}</b><br>Mực nước: ${h.muc.toFixed(1)} cm<br>Nhóm dễ tổn thương: ${nhom}${h.oMotMinh ? '<br><b>Người già ở một mình</b>' : ''}`);
+    m.bindPopup(`<b>${escH(tenHo(h))}</b><br>${escH(h.thon)} · ${escH(sdtHo(h))}<br>Trạng thái: <b>${matKetNoi(h) ? tenMatKetNoi(h) : tenTT(h)}</b><br>Mực nước: ${so1(h.muc)} cm<br>Nhóm dễ tổn thương: ${nhom}${h.oMotMinh ? '<br><b>Người già ở một mình</b>' : ''}`);
   }
 }
 $('locThon').onchange = $('locTT').onchange = veBanDo;
@@ -914,16 +930,17 @@ function veBang() {
       h.motTang && '<span class="tag alone">Nhà 1 tầng</span>']
       .filter(Boolean).join('') || '<span style="color:var(--text-3)">—</span>';
     const pct = Math.min(h.muc / 15, 1) * 100;
-    const mauNuoc = h.muc >= MUC_NGAT ? 'var(--bad)' : h.muc >= MUC_CANH_BAO ? 'var(--warn)' : 'var(--primary)';
-    const xuHuong = h.tocDo > 0.05 ? `<span class="trend up">▲ ${h.tocDo.toFixed(1)} cm/ph</span>`
-      : h.tocDo < -0.05 ? `<span class="trend down">▼ ${(-h.tocDo).toFixed(1)} cm/ph</span>` : '<span style="color:var(--text-3)">Ổn định</span>';
+    const mauNuoc = h.muc >= (h.mucngat2 || MUC_NGAT_HET) ? 'var(--crit)' : h.muc >= (h.mucngat || MUC_NGAT) ? 'var(--bad)'
+      : h.muc >= (h.muccb || MUC_CANH_BAO) ? 'var(--warn)' : 'var(--primary)';
+    const xuHuong = h.tocDo >= 0.05 ? `<span class="trend up">▲ ${so1(h.tocDo)} cm/ph</span>`
+      : h.tocDo <= -0.05 ? `<span class="trend down">▼ ${so1(-h.tocDo)} cm/ph</span>` : '<span style="color:var(--text-3)">Ổn định</span>';
     const s = Math.round((Date.now() - h.lanCuoi) / 1000);
     const capNhat = !h.lanCuoi ? 'Chưa có số liệu' : s < 5 ? 'Vừa xong' : s < 60 ? s + ' giây trước' : s < 3600 ? Math.floor(s / 60) + ' phút trước' : Math.floor(s / 3600) + ' giờ trước';
     tr.innerHTML = `<td style="color:var(--text-3);font-weight:700">${i + 1}</td>
       <td><div class="ho" data-id="${escH(h.id)}"><span class="av" style="background:${h.mauAv}1f;color:${h.mauAv}">${escH(!h.dangKy ? 'TB' : anDanh ? 'HD' : h.vietTat)}</span><div><b>${escH(tenHo(h))}</b><small>${escH(h.thon)}</small></div></div></td>
       <td>${badge(nhan, mau, nen)}<span class="score">${d}</span></td>
       <td>${badgeTrangThai(h)}</td>
-      <td><div class="water"><span class="bar"><i style="width:${pct}%;background:${mauNuoc}"></i></span><b>${h.muc.toFixed(1)}</b> cm</div></td>
+      <td><div class="water"><span class="bar"><i style="width:${pct}%;background:${mauNuoc}"></i></span><b>${so1(h.muc)}</b> cm</div></td>
       <td>${xuHuong}</td><td>${nhom}</td><td>${escH(sdtHo(h))}</td>
       <td style="color:var(--text-3)">${capNhat}</td>
       <td>${nutCuDoi(h.id)}</td>`;
@@ -953,7 +970,7 @@ $('btnCSV').onclick = () => {
     ['Mực nước (cm)', 10], ['Nước dâng (cm/phút)', 11], ['Người già', 8], ['Trẻ nhỏ', 8], ['Khuyết tật', 9], ['Ở một mình', 9], ['Nhà 1 tầng', 9],
     ['Đã cử đội', 9], ['Người cử', 20], ['Lúc cử', 17], ['Cập nhật', 17]].map(([ten, rong]) => ({ ten, rong }));
   const ngay = t => t ? new Date(t).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-  const dong = ds.map(({ h, d }, i) => [i + 1, nhanUuTien(d)[0], d, tenHo(h), h.thon, sdtHo(h), matKetNoi(h) ? tenMatKetNoi(h) : TEN_TT[h.trangThai],
+  const dong = ds.map(({ h, d }, i) => [i + 1, nhanUuTien(d)[0], d, tenHo(h), h.thon, sdtHo(h), matKetNoi(h) ? tenMatKetNoi(h) : tenTT(h),
     +h.muc.toFixed(1), +h.tocDo.toFixed(1), h.nguoiGia, h.treEm, h.khuyetTat, h.oMotMinh ? 'Có' : '', h.motTang ? 'Có' : '',
     daCu(h.id) ? 'Có' : '', daCu(h.id) ? cuDoi[h.id].boi : '', daCu(h.id) ? ngay(cuDoi[h.id].luc) : '', ngay(h.lanCuoi)]);
   const tenXa = $('tenXa').textContent, khongDau = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
@@ -1053,7 +1070,7 @@ async function layMua() {
     bdMua.data.datasets[0].data = mua;
     bdMua.update();
     muaDuBao = { tong6h: mua.slice(0, 6).reduce((a, b) => a + (b || 0), 0), tong24h: mua.reduce((a, b) => a + (b || 0), 0) };
-    $('muaChip').textContent = `Mưa 6h tới ${muaDuBao.tong6h.toFixed(1)} mm · 24h tới ${muaDuBao.tong24h.toFixed(1)} mm`;
+    $('muaChip').textContent = `Mưa 6h tới ${so1(muaDuBao.tong6h)} mm · 24h tới ${so1(muaDuBao.tong24h)} mm`;
   } catch {
     $('muaChip').textContent = 'Không lấy được dự báo mưa';
   }
@@ -1084,8 +1101,9 @@ function ketNoiMQTT() {
       }
       if (!h.lat && trongVN(lat, lon)) { h.lat = lat; h.lon = lon; }
       if (d.motang === 1 || d.motang === 0) h.motTang = d.motang === 1;
-      const td = +d.tocdo;
-      capNhatHo(h, soGH(d.muc, 0, 300), Date.now(), Math.round(soGH(d.trangthai, 0, 3)), Number.isFinite(td) ? Math.max(-100, Math.min(100, td)) : undefined);
+      // Mức ngắt riêng của thiết bị (để tô màu mực nước đúng như app của hộ đó)
+      h.muccb = soGH(d.muccb, 0.5, 100) || MUC_CANH_BAO; h.mucngat = soGH(d.mucngat, 1, 100) || MUC_NGAT; h.mucngat2 = soGH(d.mucngat2, 1, 300) || MUC_NGAT_HET;
+      capNhatHo(h, soGH(d.muc, 0, 300), Date.now(), Math.round(soGH(d.trangthai, 0, 3)));
       if (!daCanBanDo) daCanBanDo = canBanDo();
     },
   });
@@ -1096,7 +1114,7 @@ function ketNoiMQTT() {
 // Soạn theo mẫu cố định ngay trên máy: không cần mạng, không tốn phí, chỉ dùng số liệu có thật trên bảng.
 function lyDoUuTien(h) {
   const ly = [matKetNoi(h) ? (h.lanCuoi ? 'mất kết nối khi đang ngập' : 'thiết bị chưa gửi số liệu') : h.trangThai === 3 ? 'đã ngắt toàn bộ điện' : h.trangThai === 2 ? (h.motTang ? 'đã ngắt mạch ổ cắm' : 'đã ngắt điện tầng 1') : 'đang cảnh báo',
-    'nước ' + h.muc.toFixed(0) + ' cm' + (h.tocDo > 0.05 ? ', đang dâng' : '')];
+    'nước ' + so1(h.muc) + ' cm' + (h.tocDo >= 0.05 ? ', đang dâng' : '')];
   if (h.motTang) ly.push('nhà 1 tầng');
   if (h.oMotMinh) ly.push('người già ở một mình');
   else if (h.nguoiGia) ly.push(h.nguoiGia + ' người già');
