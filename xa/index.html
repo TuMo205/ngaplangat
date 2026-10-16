@@ -447,7 +447,10 @@
 
 <!-- Thêm thiết bị vào kho (nhóm phát triển) -->
 <div class="md" id="mdThemTB"><div class="md-hop">
-  <h3>Thêm thiết bị</h3><div class="sub" style="margin-bottom:16px">In tem có mã QR dán lên hộp thiết bị sau khi thêm.</div>
+  <h3>Thêm thiết bị</h3><div class="sub" style="margin-bottom:16px">In tem có mã QR dán lên hộp thiết bị sau khi thêm.
+    Mã thiết bị và mã kích hoạt phải <b>trùng với thiết bị</b>: cắm thiết bị vào máy tính, mở Serial Monitor (115200) xem dòng
+    "Ma thiet bi" và "Ma kich hoat" rồi nhập vào đây (hoặc giữ mã ngẫu nhiên rồi gõ <b>PIN:&lt;mã&gt;</b> vào Serial Monitor).
+    Thiết bị chỉ làm theo lệnh từ app có chữ ký bằng đúng mã kích hoạt này.</div>
   <div class="loi" id="loiTB"></div>
   <label class="o"><span>Mã thiết bị (trùng mã nạp trong code ESP32)</span><input id="tbMa" autocapitalize="off" placeholder="VD: nln-000124"></label>
   <label class="o"><span>Mã kích hoạt</span><div class="mk"><input id="tbPin" inputmode="numeric" autocomplete="off"><button type="button" class="hien-mk" id="btnTaoPin">Tạo ngẫu nhiên</button></div></label>

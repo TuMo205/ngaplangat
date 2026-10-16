@@ -927,8 +927,10 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.10.1';
+const PHIEN_BAN_APP = '1.11.0';
 const CO_GI_MOI = [
+  'Bảo mật: lệnh ngắt điện, đổi số người thân... gửi tới thiết bị đều có chữ ký bằng mã kích hoạt in trên tem. Thiết bị bỏ qua lệnh giả.',
+  'Thiết bị đang ngắt điện mà khởi động lại (mất điện, sụt nguồn) vẫn giữ nguyên ngắt điện, chỉ nút RESET mới đóng lại.',
   'Vị trí trên thiết bị tự khớp với vị trí nhà đã lưu trong app (gửi lại xuống thiết bị khi thấy lệch).',
   'Cài Wi-Fi cho thiết bị bằng điện thoại, không cần nạp code: thiết bị tự phát Wi-Fi "NgapLaNgat-…", điện thoại kết nối vào là trang cài đặt tự hiện. Màn hình kết nối thiết bị báo ngay khi thiết bị đã vào mạng.',
   'Chuyển thiết bị sang chỗ khác: thiết bị tự nhận ra (Wi-Fi xung quanh khác hẳn), app hiện nhắc "Cập nhật vị trí". Đứng cạnh thiết bị, bấm Cập nhật là xong.',
@@ -1234,6 +1236,7 @@ function nhanDuLieu(d) {
   $('theChuyenCho').classList.toggle('hien', d.chuyencho === 1);
   if (d.chuyencho === 1 && !nhanDuLieu.daBaoChuyenCho) ghiNhatKy('Thiết bị có vẻ đã bị chuyển sang chỗ khác. Đứng cạnh thiết bị rồi bấm "Cập nhật" để lấy vị trí mới.', 1);
   nhanDuLieu.daBaoChuyenCho = d.chuyencho === 1;
+  if (d.kh && window.kiemTraKhoaTB) window.kiemTraKhoaTB(cauHinh.ma, d.kh);  // mã kích hoạt trên thiết bị có khớp tem không
   if (d.motang !== null && d.motang !== undefined && (d.motang === 1) !== motTang) {
     if (window.laCheDoKhach && window.laCheDoKhach()) window.datLoaiNha(d.motang === 1);   // khách: hiện đúng như thiết bị
     else if (Date.now() - (nhanDuLieu.lanGuiLoai || 0) > 30000 && window.dongBoThietBiApp) {  // chủ nhà: gửi lại cài đặt
@@ -1385,7 +1388,7 @@ function locDuLieu(d) {
     mucngat: soTrong(d.mucngat, 1, 100) || MUC_NGAT_MAC_DINH, mucngat2: soTrong(d.mucngat2, 1, 300) || MUC_NGAT_HET_MAC_DINH,
     motang: d.motang === 1 || d.motang === 0 ? d.motang : null,
     baotruoc2: +d.baotruoc2 === 1 ? 1 : 0, muccb: soTrong(d.muccb, 0.5, 100) || MUC_CANH_BAO,
-    phao1: +d.phao1 === 1 ? 1 : 0, phao2: +d.phao2 === 1 ? 1 : 0, sieuamloi: +d.sieuamloi === 1 ? 1 : 0, chuyencho: +d.chuyencho === 1 ? 1 : 0, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
+    phao1: +d.phao1 === 1 ? 1 : 0, phao2: +d.phao2 === 1 ? 1 : 0, sieuamloi: +d.sieuamloi === 1 ? 1 : 0, chuyencho: +d.chuyencho === 1 ? 1 : 0, kh: /^[0-9a-f]{2}$/.test(d.kh) ? d.kh : null, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
 }
 const lanThayTB = new Map();  // mã thiết bị -> lúc nhận tin gần nhất
 // Vị trí thiết bị gửi lên lệch với vị trí nhà chủ nhà đã lưu trong app (VD: kết nối thiết bị đúng lúc thiết bị đang phát
@@ -1433,7 +1436,7 @@ function ketNoiMQTT() {
 
 // ===================== NGẮT ĐIỆN TỪ XA =====================
 // cap = 2: ngắt tầng 1 (lệnh NGAT); cap = 3: ngắt toàn bộ cả tầng 2 (lệnh NGAT_HET)
-function ngatTuXa(cap) {
+async function ngatTuXa(cap) {
   if (duLieu.trangthai >= cap) { toast(cap === 3 ? 'Đã ngắt toàn bộ điện rồi' : chu().ngat1 + ' rồi'); return; }
   // Khách dùng thử chỉ được xem thiết bị thật, muốn điều khiển phải đăng nhập (tránh người lạ ngắt điện nhà người khác)
   if (window.laCheDoKhach && window.laCheDoKhach()) { toast('Đăng nhập tài khoản để điều khiển thiết bị'); return; }
@@ -1442,7 +1445,10 @@ function ngatTuXa(cap) {
   const hoi = cap === 3 ? chu().hoi3 : chu().hoi1;
   if (!confirm(hoi)) return;
   const ten = cap === 3 ? 'ngắt toàn bộ điện' : chu().lenh1;
-  if (ketNoi) ketNoi.gui(`ngaplangat/${cauHinh.ma}/cmd`, cap === 3 ? 'NGAT_HET' : 'NGAT');
+  if (!(await window.guiLenhThietBi(cauHinh.ma, 'cmd', cap === 3 ? 'NGAT_HET' : 'NGAT'))) {
+    toast('Chưa gửi được lệnh: chưa đọc được mã kích hoạt của thiết bị. Kiểm tra mạng, hoặc xác minh thiết bị trong Tài khoản.');
+    return;
+  }
   ghiNhatKy(`Đã gửi lệnh ${ten}, đang chờ thiết bị làm theo…`, cap);
   toast('Đã gửi lệnh ' + ten);
   const luc = Date.now();
@@ -1459,9 +1465,27 @@ $('btnNgat').onclick = () => ngatTuXa(2);
 $('btnNgatHet').onclick = () => ngatTuXa(3);
 
 // ===================== DÙNG CHUNG VỚI PHẦN TÀI KHOẢN =====================
+// HMAC-SHA256 (dạng chữ hex), giống hàm hmacHex trong code ESP32
+async function hmacHex(khoa, noiDung) {
+  const ma = new TextEncoder();
+  const k = await crypto.subtle.importKey('raw', ma.encode(khoa), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return [...new Uint8Array(await crypto.subtle.sign('HMAC', k, ma.encode(noiDung)))].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+window.hmacHex = hmacHex;
 // Gửi lệnh (cmd) hoặc thông tin hộ (info, giữ lại trên máy chủ) tới thiết bị qua cả 2 máy chủ; chưa có mạng thì tự xếp hàng chờ.
-window.guiLenhThietBi = (ma, loai, noiDung, giu) => {
-  if (ketNoi) ketNoi.gui('ngaplangat/' + ma + '/' + loai, noiDung, giu);
+// Lệnh điều khiển có chữ ký: "<lệnh>|<thời điểm ms>|<16 ký tự đầu của HMAC(mã kích hoạt, mã thiết bị|lệnh|thời điểm)>".
+// Thiết bị bỏ qua lệnh không có chữ ký đúng. Trả về false nếu chưa gửi được (chưa có mã kích hoạt).
+let tsLenhCuoi = 0;
+window.guiLenhThietBi = async (ma, loai, noiDung, giu) => {
+  if (!ketNoi) return false;
+  if (loai === 'cmd') {
+    const pin = window.layPinTB ? await window.layPinTB(ma) : null;
+    if (!pin) return false;
+    const ts = String(tsLenhCuoi = Math.max(Date.now(), tsLenhCuoi + 1));
+    noiDung = `${noiDung}|${ts}|${(await hmacHex(pin, `${ma}|${noiDung}|${ts}`)).slice(0, 16)}`;
+  }
+  ketNoi.gui('ngaplangat/' + ma + '/' + loai, noiDung, giu);
+  return true;
 };
 // Vị trí nhà đang xem vừa được cập nhật (GPS điện thoại): dời ghim trên bản đồ, lấy lại dự báo mưa
 window.datViTriNha = (lat, lon) => {
@@ -1646,6 +1670,7 @@ const Demo = {
   async xoaTaiKhoan(u) { const ds = this.ds(); delete ds[u.id]; ghiJ('nln_taiKhoan', ds); ghiJ('nln_phien', null); },
   async layXa() { return null; },
   async xacMinhThietBi() { return { soTang: 2, lat: null, lon: null }; },  // bản demo không có kho thiết bị
+  async layPinThietBi() { return null; },
   async boThietBi() {},
 };
 
@@ -1710,6 +1735,8 @@ const Firebase = {
     return { soTang: Math.min(5, Math.max(1, Math.round(+d.soTang || 2))), lat: +d.lat || null, lon: +d.lon || null };
   },
   async boThietBi(u, ma) { await this.fs.updateDoc(this.fs.doc(this.db, 'thietBi', ma), { nguoiDung: this.fs.arrayRemove(u.id) }).catch(() => {}); },
+  // Mã kích hoạt để ký lệnh điều khiển (luật bảo mật: chỉ người có trong danh sách người dùng thiết bị mới đọc được)
+  async layPinThietBi(u, ma) { const d = (await this.fs.getDoc(this.fs.doc(this.db, 'thietBi', ma))).data(); return (d && d.pin) || null; },
 };
 
 const TK = cfg && cfg.apiKey ? Firebase : Demo;
@@ -2091,6 +2118,26 @@ async function capNhatViTriTB(ma, nut) {
 window.capNhatViTriTB = capNhatViTriTB;
 // Thiết bị này có trong tài khoản đang đăng nhập không (khách dùng thử, chưa đăng nhập: không)
 window.laChuThietBi = ma => !laKhach && !!nguoiDung && !!hoSo && hoSo.thietBi.some(t => t.ma === ma);
+const pinTB = {};
+window.layPinTB = async ma => {
+  if (!window.laChuThietBi(ma)) return null;
+  if (!pinTB[ma]) pinTB[ma] = await TK.layPinThietBi(nguoiDung, ma).catch(() => null);
+  return pinTB[ma];
+};
+// Thiết bị gửi lên 2 ký tự kiểm tra: so với mã kích hoạt trong kho để biết lệnh từ app có tác dụng không
+const khoaKhop = {};  // mã thiết bị -> true (khớp) / false (chưa khớp)
+let dangKiemKhoa = false;
+window.kiemTraKhoaTB = async (ma, kh) => {
+  if (ma in khoaKhop || dangKiemKhoa) return;
+  dangKiemKhoa = true;
+  try {
+    const pin = await window.layPinTB(ma);
+    if (!pin) return;
+    khoaKhop[ma] = (await window.hmacHex(pin, 'kiemtra')).slice(0, 2) === kh;
+    if (!khoaKhop[ma]) window.toast('Mã kích hoạt trên thiết bị chưa khớp với tem: lệnh từ app chưa có tác dụng');
+    veTaiKhoan();
+  } finally { dangKiemKhoa = false; }
+};
 // Màn hình kết nối: thiết bị đã vào mạng chưa (app nghe tin của mọi thiết bị nên biết ngay khi vừa cài Wi-Fi xong)
 function capNhatTTWifi() {
   if ($('tlWifi').offsetParent === null) return;  // màn hình đang ẩn
@@ -2185,7 +2232,7 @@ function veTaiKhoan() {
         <div class="tt">
           <div class="tb-dong"><b>${esc(t.ten)}</b>${t.ma === hoSo.thietBiChon ? '<span class="pill on">Đang xem</span>' : ''}</div>
           <small class="tb-dc">${esc([t.thon, t.tenXa, t.tinh].filter(Boolean).join(', ') || 'Chưa có địa chỉ: bấm "Sửa thông tin" để thêm')}</small>
-          <div class="tb-the"><span>${esc(t.ma)}</span><span>Nhà ${t.soTang || (t.motTang ? 1 : 2)} tầng</span>${t.xacMinh || laKhach ? '' : `<button class="chua" data-xacminh="${esc(t.ma)}">Chưa xác minh · nhập mã kích hoạt</button>`}${laKhach ? '' : `<button data-vitri="${esc(t.ma)}">Cập nhật vị trí</button><button data-modal="caiwifi">Cài Wi-Fi</button>`}</div>
+          <div class="tb-the"><span>${esc(t.ma)}</span><span>Nhà ${t.soTang || (t.motTang ? 1 : 2)} tầng</span>${t.xacMinh || laKhach ? '' : `<button class="chua" data-xacminh="${esc(t.ma)}">Chưa xác minh · nhập mã kích hoạt</button>`}${laKhach ? '' : `<button data-vitri="${esc(t.ma)}">Cập nhật vị trí</button><button data-modal="caiwifi">Cài Wi-Fi</button>`}${khoaKhop[t.ma] === false ? '<span class="chua">Mã kích hoạt trên thiết bị chưa khớp tem: lệnh từ app chưa có tác dụng</span>' : ''}</div>
         </div>
         ${t.ma === hoSo.thietBiChon ? '' : `<button class="act" data-chon="${esc(t.ma)}">Xem</button>`}
         <button class="xoa" data-xoa="${esc(t.ma)}" aria-label="Xoá thiết bị">×</button></div>`).join('')}
