@@ -927,8 +927,9 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.11.0';
+const PHIEN_BAN_APP = '1.11.1';
 const CO_GI_MOI = [
+  'Bớt báo "Mất kết nối" nhầm: thiết bị nối lại máy chủ trong vài chục giây thì app không báo mất kết nối nữa.',
   'Bảo mật: lệnh ngắt điện, đổi số người thân... gửi tới thiết bị đều có chữ ký bằng mã kích hoạt in trên tem. Thiết bị bỏ qua lệnh giả.',
   'Thiết bị đang ngắt điện mà khởi động lại (mất điện, sụt nguồn) vẫn giữ nguyên ngắt điện, chỉ nút RESET mới đóng lại.',
   'Vị trí trên thiết bị tự khớp với vị trí nhà đã lưu trong app (gửi lại xuống thiết bị khi thấy lệch).',
@@ -1001,7 +1002,7 @@ window.cauHinh = cauHinh;
 let duLieu = { muc: 0, tocdo: 0, trangthai: 0, mucngat: MUC_NGAT_MAC_DINH, mucngat2: MUC_NGAT_HET_MAC_DINH, lat: cauHinh.viDo, lon: cauHinh.kinhDo };
 let daBaoTruocHet = false;    // đã báo "sắp ngắt toàn bộ" chưa
 let lanNhanCuoi = 0;           // lúc nhận số liệu thiết bị lần cuối (ms), 0 = chưa nhận lần nào
-const MAT_KET_NOI_MS = 30000;   // thiết bị gửi 5 giây/lần: 30 giây không thấy là mất kết nối
+const MAT_KET_NOI_MS = 60000;   // thiết bị gửi 5 giây/lần; 60 giây không thấy mới báo mất kết nối (thiết bị nối lại, đổi máy chủ dự phòng mất tới ~35 giây)
 const thietBiOnline = () => lanNhanCuoi > 0 && Date.now() - lanNhanCuoi < MAT_KET_NOI_MS;
 let lenhCho = null;            // lệnh ngắt đang chờ thiết bị xác nhận: { cap, luc }
 let ttTruoc = docLuu('ttCuoi_' + cauHinh.ma, 0);  // trạng thái lần trước, để mở lại app không báo trùng

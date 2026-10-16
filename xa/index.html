@@ -686,7 +686,7 @@ const tenTT = h => h.trangThai === 2 ? (h.motTang ? 'Ngắt ổ cắm' : 'Ngắt
 const TEN_TT = ['An toàn', 'Cảnh báo', 'Ngắt một phần', 'Ngắt toàn bộ'];  // một phần: tầng 1 (nhà 2 tầng) hoặc mạch ổ cắm (nhà 1 tầng)
 const MAU_TT = ['#0e9f6e', '#e08a00', '#e02d3c', '#9b1c1c'];
 const MAU_OFF = '#64748b';
-const MAT_KET_NOI_MS = 30000;
+const MAT_KET_NOI_MS = 60000;  // 60 giây không có tin mới tính mất kết nối (thiết bị nối lại, đổi máy chủ mất tới ~35 giây)
 const $ = id => document.getElementById(id);
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
