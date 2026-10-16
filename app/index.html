@@ -927,8 +927,9 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.10.0';
+const PHIEN_BAN_APP = '1.10.1';
 const CO_GI_MOI = [
+  'Vị trí trên thiết bị tự khớp với vị trí nhà đã lưu trong app (gửi lại xuống thiết bị khi thấy lệch).',
   'Cài Wi-Fi cho thiết bị bằng điện thoại, không cần nạp code: thiết bị tự phát Wi-Fi "NgapLaNgat-…", điện thoại kết nối vào là trang cài đặt tự hiện. Màn hình kết nối thiết bị báo ngay khi thiết bị đã vào mạng.',
   'Chuyển thiết bị sang chỗ khác: thiết bị tự nhận ra (Wi-Fi xung quanh khác hẳn), app hiện nhắc "Cập nhật vị trí". Đứng cạnh thiết bị, bấm Cập nhật là xong.',
   'Mục Tài khoản: mỗi thiết bị có nút "Cập nhật vị trí" dùng GPS điện thoại. Vị trí mới gửi xuống thiết bị và lên bảng điều hành xã.',
@@ -1387,6 +1388,20 @@ function locDuLieu(d) {
     phao1: +d.phao1 === 1 ? 1 : 0, phao2: +d.phao2 === 1 ? 1 : 0, sieuamloi: +d.sieuamloi === 1 ? 1 : 0, chuyencho: +d.chuyencho === 1 ? 1 : 0, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
 }
 const lanThayTB = new Map();  // mã thiết bị -> lúc nhận tin gần nhất
+// Vị trí thiết bị gửi lên lệch với vị trí nhà chủ nhà đã lưu trong app (VD: kết nối thiết bị đúng lúc thiết bị đang phát
+// Wi-Fi cài đặt nên chưa nhận được vị trí): gửi lại xuống thiết bị. Không gửi khi thiết bị báo bị chuyển chỗ
+// (lúc đó app nhắc chủ nhà đứng cạnh thiết bị cập nhật vị trí mới).
+let lanGuiViTri = 0;
+function dongBoViTriTB(id, d) {
+  if (id !== cauHinh.ma || +d.chuyencho === 1 || !window.laChuThietBi || !window.laChuThietBi(id)) return;
+  const vd = +cauHinh.viDo, kd = +cauHinh.kinhDo, lat = +d.lat, lon = +d.lon;
+  if (!(vd > 8 && vd < 24 && kd > 102 && kd < 110)) return;
+  if (Math.abs(lat - vd) < 0.0005 && Math.abs(lon - kd) < 0.0005) return;  // lệch dưới khoảng 50 m: coi như khớp
+  if (Date.now() - lanGuiViTri < 120000) return;
+  lanGuiViTri = Date.now();
+  window.guiLenhThietBi(id, 'cmd', `VITRI:${vd},${kd}`);
+}
+window.dongBoViTriTB = dongBoViTriTB;
 window.lanThayTB = lanThayTB;
 let ketNoi = null;
 function ketNoiMQTT() {
@@ -1401,6 +1416,7 @@ function ketNoiMQTT() {
     const id = chuDe.split('/')[1];
     if (!d || typeof d !== 'object' || !MA_HOP_LE.test(id)) return;
     lanThayTB.set(id, Date.now());
+    dongBoViTriTB(id, d);
     d = locDuLieu(d);
     if (id === cauHinh.ma) {
       // Vị trí nhà lấy theo thông tin người dùng nhập khi thêm thiết bị (toạ độ trong code thiết bị chỉ là mặc định)
@@ -2073,6 +2089,8 @@ async function capNhatViTriTB(ma, nut) {
   } finally { nut.disabled = false; nut.textContent = chu; }
 }
 window.capNhatViTriTB = capNhatViTriTB;
+// Thiết bị này có trong tài khoản đang đăng nhập không (khách dùng thử, chưa đăng nhập: không)
+window.laChuThietBi = ma => !laKhach && !!nguoiDung && !!hoSo && hoSo.thietBi.some(t => t.ma === ma);
 // Màn hình kết nối: thiết bị đã vào mạng chưa (app nghe tin của mọi thiết bị nên biết ngay khi vừa cài Wi-Fi xong)
 function capNhatTTWifi() {
   if ($('tlWifi').offsetParent === null) return;  // màn hình đang ẩn
