@@ -424,6 +424,7 @@
 <div class="md" id="mdChonXa"><div class="md-hop">
   <h3>Chọn xã, phường để xem</h3><div class="sub" style="margin-bottom:16px">Chế độ xem thử chỉ thấy các thiết bị đang hoạt động trong địa bàn (ẩn danh), không thấy thông tin hộ dân.</div>
   <div class="loi" id="loiCX"></div>
+  <button class="btn btn-ghost" id="btnXemToanHT" style="display:none;width:100%;margin-bottom:14px">Xem toàn hệ thống (mọi xã, phường)</button>
   <label class="o"><span>Tỉnh, thành phố</span><select id="cxTinh"></select></label>
   <label class="o"><span>Xã, phường</span><select id="cxXa"></select></label>
   <div class="dn-ghi" id="cxGoiY" style="text-align:left;margin:-6px 0 14px"></div>
@@ -1001,7 +1002,7 @@ function demTrangThai(ds) {
 function veKPI() {
   const ds = hoHienThi(), c = demTrangThai(ds), n = ds.length;
   const pt = v => n ? Math.round(v / n * 100) + '% số hộ' : '—';
-  $('kTong').textContent = n; $('sTong').textContent = phamViThon || (THON.length ? THON.length + ' thôn, khu' : 'Toàn xã');
+  $('kTong').textContent = n; $('sTong').textContent = phamViThon || (THON.length ? THON.length + ' thôn, khu' : MA_XA === 'toanhethong' ? 'Mọi xã, phường' : 'Toàn xã');
   if (mqttTrucTuyen) datKetNoi('online', `Trực tuyến · ${ds.filter(h => !matKetNoi(h)).length} thiết bị gửi số liệu`);
   $('kOk').textContent = c.ok; $('sOk').textContent = pt(c.ok);
   $('kWarn').textContent = c.warn; $('sWarn').textContent = pt(c.warn);
@@ -1066,6 +1067,7 @@ const bdMua = new Chart($('bdMua'), {
 });
 async function layMua() {
   if (!MA_XA) return;  // chưa chọn xã
+  if (MA_XA === 'toanhethong') { $('muaChip').textContent = 'Dự báo mưa: chọn từng xã để xem'; return; }
   try {
     const j = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${TAM_XA[0]}&longitude=${TAM_XA[1]}&hourly=precipitation&forecast_days=2&timezone=auto`)).json();
     const d = new Date();
@@ -1235,6 +1237,7 @@ const KHACH = { id: 'khach', hoTen: 'Khách tham quan', email: '', vaiTro: 'khac
 // Tài khoản tạo từ bản một xã (chưa có trường xa) thuộc Xã Đoan Hùng, tỉnh Phú Thọ.
 const MA_XA_CU = '07969';
 const xaCua = u => (u && u.xa) || MA_XA_CU;
+const XA_TOAN_HT = 'toanhethong';  // chế độ xem mọi xã, phường của nhóm phát triển
 const maXaUrl = () => { const m = new URLSearchParams(location.search).get('xa') || ''; return /^\d{5}$/.test(m) ? m : ''; };
 
 // Danh mục 34 tỉnh, thành và 3.321 xã, phường (từ 01/07/2025), tải khi cần
@@ -1589,8 +1592,11 @@ async function batDau() {
 }
 
 async function vaoHeThong(ghiLog) {
+  // Nhóm phát triển vừa đăng nhập: mở chế độ Toàn hệ thống (mọi xã, phường), chọn xem từng xã sau
+  if (nd.sieu && !nd.goc) nd = Object.assign({}, nd, { vaiTro: 'sieuQuanTri', xa: XA_TOAN_HT, goc: nd });
   const ma = nd.vaiTro === 'sieuQuanTri' ? nd.xa : xaCua(nd);
-  if (!ma) caiDat = { ma: '', tenXa: '', tinh: '', dsThon: [] };  // nhóm phát triển chưa chọn xã để xem
+  if (ma === XA_TOAN_HT) caiDat = { ma, tenXa: 'toàn hệ thống', tinh: 'Mọi xã, phường', dsThon: [], hop: [102, 8, 110, 24] };
+  else if (!ma) caiDat = { ma: '', tenXa: '', tinh: '', dsThon: [] };  // nhóm phát triển chưa chọn xã để xem
   else { try { caiDat = await thongTinXa(ma); } catch { caiDat = { ma, tenXa: 'Xã ' + ma, tinh: '', dsThon: [] }; } }
   hienTenXa();
   window.datCaiDatXa(caiDat);
@@ -1613,7 +1619,7 @@ async function vaoHeThong(ghiLog) {
     // Nhóm phát triển (kể cả khi kiêm quản trị một xã): trang Tổng toàn hệ thống lên đầu, chọn xem được mọi xã
     $('umVaiTro').textContent = VAI_TRO.sieuQuanTri + ' · toàn hệ thống';
     $('umDoiXa').style.display = '';
-    $('nhanXaTen').textContent = [caiDat.tenXa, caiDat.tinh].filter(Boolean).join(', ') || 'chưa chọn xã';
+    $('nhanXaTen').textContent = ma === XA_TOAN_HT ? 'Toàn hệ thống (mọi xã, phường)' : [caiDat.tenXa, caiDat.tinh].filter(Boolean).join(', ') || 'chưa chọn xã';
     const top = $('tong-quan');
     if (top.nextElementSibling !== $('kho-tb')) top.after($('kho-tb'));
     const nav = $('navKho').parentNode;
@@ -1703,7 +1709,17 @@ $('mxhXa').addEventListener('click', e => {
   });
 });
 
-function moChonXa() { dungChonXa('cx', (nd && nd.xa) || maXaUrl() || docJ('nln_xa_cuoi', '')); moMD('mdChonXa'); }
+function moChonXa() {
+  $('btnXemToanHT').style.display = nd && nd.sieu ? '' : 'none';
+  dungChonXa('cx', (nd && /^\d{5}$/.test(nd.xa || '') && nd.xa) || maXaUrl() || docJ('nln_xa_cuoi', ''));
+  moMD('mdChonXa');
+}
+$('btnXemToanHT').onclick = async () => {
+  const goc = nd.goc || nd;
+  nd = Object.assign({}, goc, { vaiTro: 'sieuQuanTri', xa: XA_TOAN_HT, goc });
+  dongMD('mdChonXa');
+  await vaoHeThong(true);
+};
 $('btnXemThu').onclick = moChonXa;
 $('umDoiXa').onclick = () => { $('umDrop').classList.remove('hien'); moChonXa(); };
 $('btnXemXaKhac').onclick = moChonXa;
@@ -1714,7 +1730,7 @@ $('btnChonXa').onclick = () => cho($('btnChonXa'), async () => {
   if (nd && nd.sieu) {
     // Nhóm phát triển xem xã khác: chỉ xem (ẩn danh hộ dân). Chọn lại đúng xã mình quản trị thì về tài khoản gốc.
     const goc = nd.goc || nd;
-    nd = goc.vaiTro !== 'sieuQuanTri' && xa === xaCua(goc) ? goc : Object.assign({}, goc, { vaiTro: 'sieuQuanTri', xa, goc });
+    nd = goc.vaiTro !== 'sieuQuanTri' && xa === xaCua(goc) ? Object.assign({}, goc, { goc }) : Object.assign({}, goc, { vaiTro: 'sieuQuanTri', xa, goc });
   } else if (nd && nd.vaiTro === 'sieuQuanTri') nd = Object.assign({}, nd, { xa });
   else { nd = Object.assign({}, KHACH, { xa }); ghiJ('nln_xa_khach', xa, sessionStorage); }
   dongMD('mdChonXa');
