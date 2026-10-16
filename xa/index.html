@@ -486,7 +486,7 @@
     <a href="#thong-ke"><svg class="i"><use href="#i-chart"/></svg><span class="dai">Thống kê</span><span class="ngan">Thống kê</span></a>
     <a href="#can-bo" id="navCanBo" style="display:none"><svg class="i"><use href="#i-user"/></svg><span class="dai">Cán bộ</span><span class="ngan">Cán bộ</span></a>
     <a href="#duyet-xa" id="navDuyet" style="display:none"><svg class="i"><use href="#i-check"/></svg><span class="dai">Duyệt xã đăng ký</span><span class="ngan">Duyệt xã</span></a>
-    <a href="#kho-tb" id="navKho" style="display:none"><svg class="i"><use href="#i-layers"/></svg><span class="dai">Kho thiết bị</span><span class="ngan">Thiết bị</span></a>
+    <a href="#kho-tb" id="navKho" style="display:none"><svg class="i"><use href="#i-layers"/></svg><span class="dai">Tổng hệ thống</span><span class="ngan">Tổng</span></a>
     <a href="#nhat-ky" id="navNhatKy" style="display:none"><svg class="i"><use href="#i-clock"/></svg><span class="dai">Nhật ký</span><span class="ngan">Nhật ký</span></a>
   </nav>
   <div class="side-foot"><b>Số liệu thật</b>Chỉ hiện các hộ có lắp thiết bị và đồng ý chia sẻ với xã. Bảng chỉ để theo dõi, không điều khiển điện nhà dân.</div>
@@ -514,6 +514,8 @@
     </div>
   </div>
 
+  <div id="nhanXaXem" style="display:none;margin:2px 0 12px;font-size:14px;color:var(--text-2)">Số liệu chi tiết bên dưới: <b id="nhanXaTen"></b>
+    · <button class="btn-lien" id="btnXemXaKhac" style="font-size:14px">Xem xã, phường khác</button></div>
   <div class="kpis">
     <div class="kpi"><div class="ic" style="background:var(--primary-soft);color:var(--primary)"><svg class="i"><use href="#i-home"/></svg></div>
       <div class="v" id="kTong">0</div><div class="l">Hộ lắp thiết bị</div><div class="s" id="sTong">Toàn xã</div></div>
@@ -634,16 +636,18 @@
     <!-- KHO THIẾT BỊ (chỉ nhóm phát triển) -->
     <section class="card full" id="kho-tb" style="display:none">
       <div class="card-h">
-        <div class="card-t"><span class="ic"><svg class="i"><use href="#i-layers"/></svg></span><div>Kho thiết bị<small id="demKho">—</small></div></div>
+        <div class="card-t"><span class="ic"><svg class="i"><use href="#i-layers"/></svg></span><div>Tổng toàn hệ thống · Kho thiết bị<small id="demKho">—</small></div></div>
         <button class="btn btn-primary" id="btnMoThemTB">Thêm thiết bị</button>
       </div>
+      <div id="banDoKho" style="height:340px;border-radius:14px;margin:4px 0 14px;z-index:0"></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Mã thiết bị</th><th>Mã kích hoạt</th><th>Loại nhà</th><th>Vị trí lắp</th><th>Người dùng</th><th>Thêm lúc</th><th></th></tr></thead>
+          <thead><tr><th>Mã thiết bị</th><th>Tình trạng</th><th>Mã kích hoạt</th><th>Loại nhà</th><th>Xã, phường (theo vị trí)</th><th>Người dùng</th><th>Thêm lúc</th><th></th></tr></thead>
           <tbody id="bangKho"></tbody>
         </table>
       </div>
-      <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span>Người dân phải nhập đúng mã kích hoạt (hoặc quét QR trên tem) mới thêm được thiết bị vào app. Loại nhà và vị trí lắp tự áp dụng theo thiết bị.</span></div>
+      <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span>Người dân phải nhập đúng mã kích hoạt (hoặc quét QR trên tem) mới thêm được thiết bị vào app. Loại nhà và vị trí lắp tự áp dụng theo thiết bị.
+        Tổng toàn hệ thống chỉ có số liệu đo và vị trí; thông tin hộ dân chỉ cán bộ đúng xã của hộ đó xem được.</span></div>
     </section>
 
     <!-- NHẬT KÝ THAO TÁC (chỉ quản trị) -->
@@ -1081,6 +1085,8 @@ async function layMua() {
 // ===================== THIẾT BỊ THẬT (MQTT) =====================
 function datKetNoi(lop, text) { $('ketNoi').className = 'chip ' + lop; $('ketNoiTxt').textContent = text; }
 let mqttTrucTuyen = false;
+// Mọi thiết bị đang gửi số liệu, không lọc theo xã: cho trang Tổng toàn hệ thống của nhóm phát triển (chỉ số liệu đo)
+const tbToanQuoc = new Map();
 function ketNoiMQTT() {
   // Chỉ nhận số liệu đo (mực nước, trạng thái điện). Thông tin hộ dân không đi qua máy chủ MQTT công cộng.
   const kn = window.taoKetNoiMQTT && window.taoKetNoiMQTT({
@@ -1095,6 +1101,9 @@ function ketNoiMQTT() {
       try { d = JSON.parse(buf.toString()); } catch { return; }
       if (!d || typeof d !== 'object') return;
       const lat = soGH(d.lat, 0, 90), lon = soGH(d.lon, 0, 180);
+      const truoc = tbToanQuoc.get(id), coViTri = trongVN(lat, lon);
+      tbToanQuoc.set(id, { id, muc: soGH(d.muc, 0, 300), trangThai: Math.round(soGH(d.trangthai, 0, 3)), motTang: d.motang === 1, lanCuoi: Date.now(),
+        lat: coViTri ? lat : truoc ? truoc.lat : 0, lon: coViTri ? lon : truoc ? truoc.lon : 0, chuyenCho: +d.chuyencho === 1, sieuAmLoi: +d.sieuamloi === 1 });
       let h = cacHo.find(x => x.id === id);
       if (!h) {
         // Thiết bị chưa có hộ nào chia sẻ thông tin: chỉ hiện (ẩn danh) khi nằm trong địa bàn xã
@@ -1599,7 +1608,18 @@ async function vaoHeThong(ghiLog) {
   const chiXem = nd.vaiTro === 'khach' || nd.vaiTro === 'sieuQuanTri';
   $('umDoiXa').style.display = chiXem ? '' : 'none';
   ['navDuyet', 'duyet-xa', 'navKho', 'kho-tb'].forEach(id => { $(id).style.display = nd.sieu ? '' : 'none'; });
-  if (nd.sieu) { veDuyet(); veKho(); }
+  $('nhanXaXem').style.display = nd.sieu ? '' : 'none';
+  if (nd.sieu) {
+    // Nhóm phát triển (kể cả khi kiêm quản trị một xã): trang Tổng toàn hệ thống lên đầu, chọn xem được mọi xã
+    $('umVaiTro').textContent = VAI_TRO.sieuQuanTri + ' · toàn hệ thống';
+    $('umDoiXa').style.display = '';
+    $('nhanXaTen').textContent = [caiDat.tenXa, caiDat.tinh].filter(Boolean).join(', ') || 'chưa chọn xã';
+    const top = $('tong-quan');
+    if (top.nextElementSibling !== $('kho-tb')) top.after($('kho-tb'));
+    const nav = $('navKho').parentNode;
+    if (nav.firstElementChild !== $('navKho')) nav.prepend($('navKho'));
+    veDuyet(); veKho();
+  }
   if (!ma) moChonXa();
   window.datAnDanh(chiXem);
   window.datPhamVi(nd.vaiTro === 'thon' ? nd.thon : '');
@@ -1686,11 +1706,16 @@ $('mxhXa').addEventListener('click', e => {
 function moChonXa() { dungChonXa('cx', (nd && nd.xa) || maXaUrl() || docJ('nln_xa_cuoi', '')); moMD('mdChonXa'); }
 $('btnXemThu').onclick = moChonXa;
 $('umDoiXa').onclick = () => { $('umDrop').classList.remove('hien'); moChonXa(); };
+$('btnXemXaKhac').onclick = moChonXa;
 $('btnChonXa').onclick = () => cho($('btnChonXa'), async () => {
   const xa = $('cxXa').value;
   if (!/^\d{5}$/.test(xa)) return loi('loiCX', 'Chọn tỉnh, thành phố và xã, phường.');
   ghiJ('nln_xa_cuoi', xa);
-  if (nd && nd.vaiTro === 'sieuQuanTri') nd = Object.assign({}, nd, { xa });
+  if (nd && nd.sieu) {
+    // Nhóm phát triển xem xã khác: chỉ xem (ẩn danh hộ dân). Chọn lại đúng xã mình quản trị thì về tài khoản gốc.
+    const goc = nd.goc || nd;
+    nd = goc.vaiTro !== 'sieuQuanTri' && xa === xaCua(goc) ? goc : Object.assign({}, goc, { vaiTro: 'sieuQuanTri', xa, goc });
+  } else if (nd && nd.vaiTro === 'sieuQuanTri') nd = Object.assign({}, nd, { xa });
   else { nd = Object.assign({}, KHACH, { xa }); ghiJ('nln_xa_khach', xa, sessionStorage); }
   dongMD('mdChonXa');
   await vaoHeThong(true);
@@ -1871,18 +1896,85 @@ const taoPin = () => { const so = new Uint32Array(1); crypto.getRandomValues(so)
 const hienPin = p => String(p).replace(/(\d{4})(?=\d)/g, '$1 ');
 async function veKho() {
   let ds;
-  try { ds = await TK.dsThietBi(); } catch (e) { $('bangKho').innerHTML = `<tr><td colspan="7" class="empty">${esc(loiTV(e))}</td></tr>`; return; }
+  try { ds = await TK.dsThietBi(); } catch (e) { $('bangKho').innerHTML = `<tr><td colspan="8" class="empty">${esc(loiTV(e))}</td></tr>`; return; }
   ds.sort((a, b) => String(b.taoLuc).localeCompare(String(a.taoLuc)));
-  $('demKho').textContent = `${ds.length} thiết bị · ${ds.filter(t => (t.nguoiDung || []).length).length} đã có người dùng`;
-  $('bangKho').innerHTML = ds.length ? ds.map(t => `<tr>
-      <td><b>${esc(t.ma)}</b></td><td style="font-variant-numeric:tabular-nums">${esc(hienPin(t.pin))}</td>
-      <td>Nhà ${esc(t.soTang)} tầng</td>
-      <td style="color:var(--text-3)">${t.lat && t.lon ? esc((+t.lat).toFixed(5) + ', ' + (+t.lon).toFixed(5)) : '—'}</td>
-      <td>${(t.nguoiDung || []).length}</td><td style="color:var(--text-3)">${esc(ngayGio(t.taoLuc))}</td>
-      <td style="white-space:nowrap"><button class="act" data-tem="${esc(t.ma)}">In tem</button> <button class="act" data-xoatb="${esc(t.ma)}">Xoá</button></td></tr>`).join('')
-    : '<tr><td colspan="7" class="empty">Chưa có thiết bị nào. Bấm "Thêm thiết bị".</td></tr>';
   veKho.ds = ds;
+  veKho.dv = await napDVHC().catch(() => null);
+  veBangKho();
 }
+// Tổng toàn hệ thống: kho thiết bị + tình trạng trực tiếp của từng thiết bị, xã theo vị trí, bản đồ cả nước.
+// Chỉ có số liệu đo và vị trí; thông tin hộ dân (tên, số điện thoại...) vẫn chỉ cán bộ đúng xã của hộ xem được.
+function xaTheoViTri(d, lat, lon) {
+  let tot = null, gan = Infinity;
+  for (const x of d.xa.values()) {
+    const h = x.hop;
+    if (!h || lon < h[0] || lon > h[2] || lat < h[1] || lat > h[3]) continue;
+    const k = Math.hypot((h[0] + h[2]) / 2 - lon, (h[1] + h[3]) / 2 - lat);
+    if (k < gan) { gan = k; tot = x; }
+  }
+  return tot;
+}
+const slKho = t => tbToanQuoc.get(t.ma);
+// Vị trí: thiết bị đang gửi lên (mới nhất), chưa có thì lấy vị trí lắp trong kho
+const viTriKho = t => { const s = slKho(t); return s && s.lat ? [s.lat, s.lon] : t.lat && t.lon ? [+t.lat, +t.lon] : null; };
+function xaKho(t) {
+  const v = viTriKho(t), x = v && veKho.dv && xaTheoViTri(veKho.dv, v[0], v[1]);
+  return x ? `${x.ten}, ${boTienTo(x.tinh)}` : v ? 'Chưa rõ xã' : 'Chưa có vị trí';
+}
+function tinhTrangKho(t) {
+  const s = slKho(t);
+  if (!s) return `<span style="color:${MAU_OFF}">Chưa có số liệu</span>`;
+  if (matKetNoi(s)) return `<span style="color:${MAU_OFF}">Mất kết nối từ ${new Date(s.lanCuoi).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>`;
+  return `<b style="color:${MAU_TT[s.trangThai]}">${esc(tenTT(s))}</b> · ${so1(s.muc)} cm${s.chuyenCho ? ' · vừa chuyển chỗ' : ''}${s.sieuAmLoi ? ' · siêu âm lỗi' : ''}`;
+}
+function veBangKho() {
+  const ds = veKho.ds;
+  if (!ds) return;
+  const trongKho = new Set(ds.map(t => t.ma));
+  const hang = [...ds, ...[...tbToanQuoc.keys()].filter(ma => !trongKho.has(ma)).map(ma => ({ ma, ngoaiKho: true }))];
+  const dem = { on: 0, cb: 0, ngat: 0, chua: 0 };
+  for (const t of ds) {
+    const s = slKho(t);
+    if (!s || matKetNoi(s)) dem.chua++;
+    else { dem.on++; if (s.trangThai === 1) dem.cb++; if (s.trangThai >= 2) dem.ngat++; }
+  }
+  $('demKho').textContent = `${ds.length} thiết bị · ${ds.filter(t => (t.nguoiDung || []).length).length} đã có người dùng · ${dem.on} trực tuyến`
+    + (dem.cb ? ` · ${dem.cb} cảnh báo` : '') + (dem.ngat ? ` · ${dem.ngat} đã ngắt điện` : '') + ` · ${dem.chua} chưa kết nối`;
+  $('bangKho').innerHTML = hang.length ? hang.map(t => `<tr>
+      <td><b>${esc(t.ma)}</b></td><td>${tinhTrangKho(t)}</td>
+      <td style="font-variant-numeric:tabular-nums">${t.ngoaiKho ? '<span style="color:var(--warn)">Chưa có trong kho</span>' : esc(hienPin(t.pin))}</td>
+      <td>${t.ngoaiKho ? '—' : 'Nhà ' + esc(t.soTang) + ' tầng'}</td>
+      <td>${esc(xaKho(t))}</td>
+      <td>${t.ngoaiKho ? '—' : (t.nguoiDung || []).length}</td><td style="color:var(--text-3)">${t.ngoaiKho ? '—' : esc(ngayGio(t.taoLuc))}</td>
+      <td style="white-space:nowrap">${t.ngoaiKho ? '' : `<button class="act" data-tem="${esc(t.ma)}">In tem</button> <button class="act" data-xoatb="${esc(t.ma)}">Xoá</button>`}</td></tr>`).join('')
+    : '<tr><td colspan="8" class="empty">Chưa có thiết bị nào. Bấm "Thêm thiết bị".</td></tr>';
+  veBanDoKho(hang);
+}
+// Bản đồ cả nước: mỗi thiết bị một chấm, màu theo tình trạng
+let banDoKho = null, daCanBanDoKho = false;
+const chamKho = new Map();
+function veBanDoKho(hang) {
+  if (!$('banDoKho').offsetParent) return;  // mục đang ẩn
+  if (!banDoKho) {
+    banDoKho = L.map('banDoKho').setView([16.2, 106.2], 5);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(banDoKho);
+  }
+  const diem = [];
+  for (const t of hang) {
+    const v = viTriKho(t);
+    if (!v) continue;
+    diem.push(v);
+    let m = chamKho.get(t.ma);
+    if (!m) { m = L.circleMarker(v, { radius: 8, weight: 2, color: '#fff', fillOpacity: .9 }).addTo(banDoKho); chamKho.set(t.ma, m); }
+    const s = slKho(t);
+    m.setLatLng(v).setStyle({ fillColor: !s || matKetNoi(s) ? MAU_OFF : MAU_TT[s.trangThai] });
+    const noiDung = `<b>${esc(t.ma)}</b><br>${tinhTrangKho(t)}<br>${esc(xaKho(t))}<br>${t.ngoaiKho ? 'Chưa có trong kho' : 'Người dùng: ' + (t.nguoiDung || []).length}`;
+    if (m.getPopup()) m.setPopupContent(noiDung); else m.bindPopup(noiDung);
+  }
+  if (!daCanBanDoKho && diem.length) { daCanBanDoKho = true; banDoKho.fitBounds(diem, { padding: [30, 30], maxZoom: 13 }); }
+}
+setInterval(() => { if (veKho.ds && $('kho-tb').offsetParent) veBangKho(); }, 5000);
 // Lấy vị trí GPS chính xác nhất trong tối đa 15 giây (cần bật định vị chính xác cao). capNhat(p) báo tiến trình.
 function layGPS(capNhat) {
   return new Promise((ok, hong) => {
