@@ -890,13 +890,14 @@ function veBanDo() {
     if (!h.lat) continue;  // hộ chưa có vị trí
     let m = dauCham.get(h.id);
     if (!m) { m = L.circleMarker([h.lat, h.lon], { weight: 2, color: '#fff', fillOpacity: .9 }); dauCham.set(h.id, m); }
+    m.setLatLng([h.lat, h.lon]);  // nhà vừa cập nhật vị trí mới
     const hien = hopLoc(h);
     if (hien && !banDo.hasLayer(m)) m.addTo(banDo);
     if (!hien && banDo.hasLayer(m)) banDo.removeLayer(m);
     m.setStyle({ fillColor: matKetNoi(h) ? MAU_OFF : MAU_TT[h.trangThai] });
     m.setRadius(6 + Math.min(h.muc, 15) * 0.7);
     const nhom = [h.nguoiGia && `${h.nguoiGia} người già`, h.treEm && `${h.treEm} trẻ nhỏ`, h.khuyetTat && 'người khuyết tật'].filter(Boolean).join(', ') || 'không';
-    m.bindPopup(`<b>${escH(tenHo(h))}</b><br>${escH(h.thon)} · ${escH(sdtHo(h))}<br>Trạng thái: <b>${matKetNoi(h) ? tenMatKetNoi(h) : tenTT(h)}</b><br>Mực nước: ${so1(h.muc)} cm<br>Nhóm dễ tổn thương: ${nhom}${h.oMotMinh ? '<br><b>Người già ở một mình</b>' : ''}`);
+    m.bindPopup(`<b>${escH(tenHo(h))}</b><br>${escH(h.thon)} · ${escH(sdtHo(h))}<br>Trạng thái: <b>${matKetNoi(h) ? tenMatKetNoi(h) : tenTT(h)}</b><br>Mực nước: ${so1(h.muc)} cm<br>Nhóm dễ tổn thương: ${nhom}${h.oMotMinh ? '<br><b>Người già ở một mình</b>' : ''}${h.chuyenCho ? '<br><b>Thiết bị vừa bị chuyển chỗ: vị trí trên bản đồ có thể chưa đúng</b>' : ''}`);
   }
 }
 $('locThon').onchange = $('locTT').onchange = veBanDo;
@@ -1100,9 +1101,11 @@ function ketNoiMQTT() {
         if (!trongVN(lat, lon) || !trongXa(lat, lon)) return;
         h = taoHo(id);
       }
-      if (!h.lat && trongVN(lat, lon)) { h.lat = lat; h.lon = lon; }
+      // Hộ chưa chia sẻ thông tin: vị trí theo thiết bị gửi lên (chủ nhà cập nhật vị trí mới thì chấm dời theo)
+      if (trongVN(lat, lon) && (!h.lat || !h.dangKy)) { h.lat = lat; h.lon = lon; }
       if (d.motang === 1 || d.motang === 0) h.motTang = d.motang === 1;
       // Mức ngắt riêng của thiết bị (để tô màu mực nước đúng như app của hộ đó)
+      h.chuyenCho = +d.chuyencho === 1;  // thiết bị báo bị chuyển chỗ, chủ nhà chưa cập nhật vị trí mới
       h.muccb = soGH(d.muccb, 0.5, 100) || MUC_CANH_BAO; h.mucngat = soGH(d.mucngat, 1, 100) || MUC_NGAT; h.mucngat2 = soGH(d.mucngat2, 1, 300) || MUC_NGAT_HET;
       capNhatHo(h, soGH(d.muc, 0, 300), Date.now(), Math.round(soGH(d.trangthai, 0, 3)));
       if (!daCanBanDo) daCanBanDo = canBanDo();
@@ -1932,7 +1935,8 @@ function inTem(t) {
     @media print{body{margin:0} button{display:none}}</style></head><body>
     <div class="tem"><div class="ten">THIẾT BỊ TỰ NGẮT ĐIỆN<br>KHI NHÀ BỊ NGẬP NƯỚC</div><div class="qr">${svg}</div>
     <div class="dong">Mã thiết bị: <b>${esc(t.ma)}</b></div><div class="dong">Mã kích hoạt: <b>${esc(hienPin(t.pin))}</b></div>
-    <div class="nho">Quét mã bằng camera điện thoại để kết nối app. Nhà ${esc(t.soTang)} tầng.</div></div>
+    <div class="dong">Wi-Fi cài đặt: <b>${esc(('NgapLaNgat-' + t.ma.replace(/^nln-/, '')).slice(0, 32))}</b></div>
+    <div class="nho">Quét mã bằng camera điện thoại để kết nối app. Cắm điện thiết bị, điện thoại kết nối Wi-Fi cài đặt để chọn Wi-Fi nhà. Nhà ${esc(t.soTang)} tầng.</div></div>
     <p><button onclick="print()">In tem</button></p></body></html>`);
   w.document.close();
 }

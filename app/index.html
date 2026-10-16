@@ -50,6 +50,7 @@
   .install { display:none; align-items:center; gap:12px; background:var(--surface); border-radius:var(--r); padding:12px 14px; margin-top:12px; box-shadow:var(--shadow); }
   .install.hien { display:flex; }
   .install img { width:44px; height:44px; border-radius:12px; flex:none; }
+  .install .ic-vt { width:44px; height:44px; border-radius:12px; flex:none; display:grid; place-items:center; background:var(--warn-soft); color:var(--warn); }
   .install .t { flex:1; font-size:13px; color:var(--text-2); line-height:1.4; }
   .install .t b { display:block; color:var(--text); font-size:14px; }
   .install .btn { width:auto; padding:9px 14px; font-size:13px; }
@@ -577,6 +578,10 @@
   .xac-minh:empty { display:none; }
   .xac-minh { margin-top:10px; padding:11px 13px; border-radius:12px; font-size:13.5px; font-weight:600; line-height:1.45; background:var(--ok-soft); color:var(--ok); }
   .xac-minh.sai { background:var(--bad-soft); color:var(--bad); }
+  .wifi-tb { margin-top:10px; padding:11px 13px; border-radius:12px; background:var(--surface-2); }
+  .wifi-tt { font-size:13.5px; font-weight:600; line-height:1.45; color:var(--text-2); }
+  .wifi-tt.on { color:var(--ok); }
+  .wifi-tb .btn-lien { margin-top:6px; font-size:13.5px; }
   .tb-the button.chua { color:var(--warn); background:var(--warn-soft); }
 </style>
 </head>
@@ -677,6 +682,10 @@
       <label class="o"><span>Mã kích hoạt (in cạnh mã thiết bị)</span><input id="tlPin" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="VD: 4827 1934"></label>
       <button type="button" class="btn btn-ghost" id="btnXacMinh">Kiểm tra thiết bị</button>
       <div class="xac-minh" id="tlXacMinh" role="status"></div>
+      <div class="wifi-tb" id="tlWifi">
+        <div class="wifi-tt" id="tlWifiTT" role="status"></div>
+        <button type="button" class="btn-lien" data-modal="caiwifi">Thiết bị chưa vào mạng? Cài Wi-Fi cho thiết bị</button>
+      </div>
       <label class="o" style="margin-top:14px"><span>Đặt tên cho ngôi nhà</span><input id="tlTenNha" placeholder="VD: Nhà bố mẹ"></label>
       <div class="hang2"><label class="o"><span>Vĩ độ</span><input id="tlLat" type="number" step="0.00001" inputmode="decimal"></label><label class="o"><span>Kinh độ</span><input id="tlLon" type="number" step="0.00001" inputmode="decimal"></label></div>
       <button type="button" class="btn btn-ghost" id="btnGPS">Lấy vị trí GPS</button>
@@ -728,6 +737,11 @@
       <div class="t"><b>Cài app lên máy</b>Mở nhanh từ màn hình chính, nhận cảnh báo như app thật.</div>
       <button class="btn btn-primary" id="btnCaiNhanh">Cài đặt</button>
       <button class="x" id="btnBoQuaCai" aria-label="Đóng">×</button>
+    </div>
+    <div class="install" id="theChuyenCho">
+      <span class="ic-vt"><svg class="i"><use href="#i-map"/></svg></span>
+      <div class="t"><b>Thiết bị đã bị chuyển chỗ?</b>Wi-Fi quanh thiết bị khác hẳn trước. Đứng cạnh thiết bị rồi bấm Cập nhật để lấy vị trí mới.</div>
+      <button class="btn btn-primary" id="btnViTriMoi">Cập nhật</button>
     </div>
     <div class="hero cho" id="theTT">
       <div class="hero-dau"><span class="tt-nhan" id="ttNhan">Đang chờ</span><span class="hero-gio" id="gioCapNhat"></span></div>
@@ -913,12 +927,12 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.9.4';
+const PHIEN_BAN_APP = '1.10.0';
 const CO_GI_MOI = [
-  'Thêm thiết bị bằng mã thiết bị và mã kích hoạt in trên tem (hoặc quét QR trên tem): app không nhận mã sai.',
-  'Loại nhà (1 đến 5 tầng) tự lấy theo thiết bị. Vị trí lấy bằng GPS khi đứng cạnh thiết bị (có hiện sai số), hoặc nhập tay.',
-  'Thiết bị thêm từ bản cũ: vào Tài khoản, bấm "Chưa xác minh" và nhập mã kích hoạt để tiếp tục chia sẻ với xã.',
-  'Khi nước vào nhà: nút gọi nhanh 112, 114, 115 và Cẩm nang an toàn khi ngập.',
+  'Cài Wi-Fi cho thiết bị bằng điện thoại, không cần nạp code: thiết bị tự phát Wi-Fi "NgapLaNgat-…", điện thoại kết nối vào là trang cài đặt tự hiện. Màn hình kết nối thiết bị báo ngay khi thiết bị đã vào mạng.',
+  'Chuyển thiết bị sang chỗ khác: thiết bị tự nhận ra (Wi-Fi xung quanh khác hẳn), app hiện nhắc "Cập nhật vị trí". Đứng cạnh thiết bị, bấm Cập nhật là xong.',
+  'Mục Tài khoản: mỗi thiết bị có nút "Cập nhật vị trí" dùng GPS điện thoại. Vị trí mới gửi xuống thiết bị và lên bảng điều hành xã.',
+  'Vị trí mới thuộc xã khác thì app hỏi để đổi luôn địa chỉ ngôi nhà.',
 ];
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong lib/ben_vung.js (khớp với code ESP32)
 const MUC_CANH_BAO = 3, MUC_NGAT_MAC_DINH = 10, MUC_NGAT_HET_MAC_DINH = 14, MUC_BAO_TRUOC_HET = 12;  // cm, khớp code ESP32
@@ -1199,7 +1213,7 @@ function hienCho(tieuDe, moTa) {
 let daBaoMatKetNoi = false;
 function kiemTraThietBi() {
   if (!lanNhanCuoi) {
-    hienCho('Đang chờ thiết bị', `Chưa nhận được số liệu từ thiết bị ${cauHinh.ma}. Hãy bật nguồn thiết bị và kiểm tra wifi.`);
+    hienCho('Đang chờ thiết bị', `Chưa nhận được số liệu từ thiết bị ${cauHinh.ma}. Hãy cắm điện thiết bị. Thiết bị mới hoặc nhà vừa đổi Wi-Fi: vào Tài khoản, bấm "Cài Wi-Fi" ở thiết bị.`);
     datKetNoi('', ketNoi && ketNoi.coKetNoi() ? 'Chờ thiết bị' : 'Đang kết nối');
   } else if (!thietBiOnline()) {
     const gio = new Date(lanNhanCuoi).toLocaleTimeString('vi-VN');
@@ -1215,6 +1229,10 @@ function nhanDuLieu(d) {
   lanNhanCuoi = Date.now();
   daBaoMatKetNoi = false;
   datKetNoi('online', 'Trực tuyến');
+  // Thiết bị báo bị chuyển chỗ (Wi-Fi xung quanh khác hẳn): nhắc chủ nhà cập nhật vị trí
+  $('theChuyenCho').classList.toggle('hien', d.chuyencho === 1);
+  if (d.chuyencho === 1 && !nhanDuLieu.daBaoChuyenCho) ghiNhatKy('Thiết bị có vẻ đã bị chuyển sang chỗ khác. Đứng cạnh thiết bị rồi bấm "Cập nhật" để lấy vị trí mới.', 1);
+  nhanDuLieu.daBaoChuyenCho = d.chuyencho === 1;
   if (d.motang !== null && d.motang !== undefined && (d.motang === 1) !== motTang) {
     if (window.laCheDoKhach && window.laCheDoKhach()) window.datLoaiNha(d.motang === 1);   // khách: hiện đúng như thiết bị
     else if (Date.now() - (nhanDuLieu.lanGuiLoai || 0) > 30000 && window.dongBoThietBiApp) {  // chủ nhà: gửi lại cài đặt
@@ -1366,8 +1384,10 @@ function locDuLieu(d) {
     mucngat: soTrong(d.mucngat, 1, 100) || MUC_NGAT_MAC_DINH, mucngat2: soTrong(d.mucngat2, 1, 300) || MUC_NGAT_HET_MAC_DINH,
     motang: d.motang === 1 || d.motang === 0 ? d.motang : null,
     baotruoc2: +d.baotruoc2 === 1 ? 1 : 0, muccb: soTrong(d.muccb, 0.5, 100) || MUC_CANH_BAO,
-    phao1: +d.phao1 === 1 ? 1 : 0, phao2: +d.phao2 === 1 ? 1 : 0, sieuamloi: +d.sieuamloi === 1 ? 1 : 0, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
+    phao1: +d.phao1 === 1 ? 1 : 0, phao2: +d.phao2 === 1 ? 1 : 0, sieuamloi: +d.sieuamloi === 1 ? 1 : 0, chuyencho: +d.chuyencho === 1 ? 1 : 0, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
 }
+const lanThayTB = new Map();  // mã thiết bị -> lúc nhận tin gần nhất
+window.lanThayTB = lanThayTB;
 let ketNoi = null;
 function ketNoiMQTT() {
   ketNoi = window.taoKetNoiMQTT && window.taoKetNoiMQTT({
@@ -1380,6 +1400,7 @@ function ketNoiMQTT() {
     try { d = JSON.parse(buf.toString()); } catch { return; }
     const id = chuDe.split('/')[1];
     if (!d || typeof d !== 'object' || !MA_HOP_LE.test(id)) return;
+    lanThayTB.set(id, Date.now());
     d = locDuLieu(d);
     if (id === cauHinh.ma) {
       // Vị trí nhà lấy theo thông tin người dùng nhập khi thêm thiết bị (toạ độ trong code thiết bị chỉ là mặc định)
@@ -1426,6 +1447,18 @@ $('btnNgatHet').onclick = () => ngatTuXa(3);
 window.guiLenhThietBi = (ma, loai, noiDung, giu) => {
   if (ketNoi) ketNoi.gui('ngaplangat/' + ma + '/' + loai, noiDung, giu);
 };
+// Vị trí nhà đang xem vừa được cập nhật (GPS điện thoại): dời ghim trên bản đồ, lấy lại dự báo mưa
+window.datViTriNha = (lat, lon) => {
+  cauHinh.viDo = lat; cauHinh.kinhDo = lon;
+  ghiLuu('viDo', lat); ghiLuu('kinhDo', lon);
+  duLieu.lat = lat; duLieu.lon = lon;
+  const nha = cacNha.get(cauHinh.ma);
+  if (nha) Object.assign(nha, { lat, lon });
+  capNhatBanDo();
+  if (banDoDaVe) banDo.setView([lat, lon]);
+  layDuBaoMua();
+};
+$('btnViTriMoi').onclick = () => window.capNhatViTriTB && window.capNhatViTriTB(cauHinh.ma, $('btnViTriMoi'));
 // Chọn thiết bị đang xem. Trả về true nếu phải tải lại trang để chuyển sang thiết bị khác.
 window.apDungThietBi = tb => {
   $('tenNha').textContent = tb.ten;
@@ -1938,6 +1971,7 @@ $('btnLuuTL').onclick = () => cho($('btnLuuTL'), async () => {
   if (coDiaChi && chiaSe && !x) return loi('loiTL', 'Chọn tỉnh và xã, phường nơi đặt nhà để xã biết nhà bạn ở đâu khi cần cứu hộ.');
   if (coDiaChi && chiaSe && !thon && dsThonXa.length) return loi('loiTL', 'Chọn thôn, khu để xã biết nhà bạn ở đâu khi cần cứu hộ.');
   const diaChi = x ? { xa: x.ma, tenXa: x.ten, tinh: x.tinh, thon } : { xa: '', tenXa: '', tinh: '', thon };
+  let viTriMoi = null;  // thiết bị vừa thêm: gửi vị trí xuống thiết bị sau khi lưu
   if (cheDoTL !== 'ho') {
     const ma = $('tlMa').value.trim().toLowerCase();
     if (!tbXacMinh || tbXacMinh.ma !== ma) { if (!(await xacMinh())) return; }
@@ -1948,6 +1982,7 @@ $('btnLuuTL').onclick = () => cho($('btnLuuTL'), async () => {
     if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) return loi('loiTL', 'Bấm "Lấy vị trí GPS" khi đứng cạnh thiết bị, hoặc nhập tay vĩ độ, kinh độ.');
     const n = tbXacMinh.soTang;
     hoSo.thietBi.push(Object.assign({ ma, ten: $('tlTenNha').value.trim() || 'Nhà của tôi', lat, lon, soTang: n, motTang: n === 1, xacMinh: true }, diaChi));
+    viTriMoi = { ma, lat, lon };
     hoSo.thietBiChon = ma;
   } else if (coDiaChi) {
     Object.assign(thietBiDangChon(), diaChi);
@@ -1962,6 +1997,7 @@ $('btnLuuTL').onclick = () => cho($('btnLuuTL'), async () => {
     if (sdt) { hoSo.nguoiThan = hoSo.nguoiThan.filter(n => n.sdt !== sdt); hoSo.nguoiThan.unshift({ ten: 'Người thân', sdt }); }
   }
   try { await luuHoSo(); } catch (e) { return loi('loiTL', loiTV(e)); }
+  if (viTriMoi) window.guiLenhThietBi(viTriMoi.ma, 'cmd', `VITRI:${viTriMoi.lat},${viTriMoi.lon}`);
   vaoApp();
   if (cheDoTL !== 'dau') window.toast('Đã lưu');
 });
@@ -2007,6 +2043,51 @@ function layGPS(capNhat) {
     h = setTimeout(xong, 15000);
   });
 }
+// Cập nhật vị trí thiết bị bằng GPS điện thoại (khi chuyển thiết bị sang chỗ khác): lưu vào tài khoản,
+// gửi xuống thiết bị (lệnh VITRI, thiết bị lấy Wi-Fi xung quanh làm mốc mới) và gửi lại cho xã nếu có chia sẻ.
+async function capNhatViTriTB(ma, nut) {
+  if (laKhach || !hoSo) { window.toast('Đăng nhập tài khoản để cập nhật vị trí thiết bị'); return; }
+  const tb = hoSo.thietBi.find(x => x.ma === ma);
+  if (!tb) { window.toast('Thiết bị này chưa có trong tài khoản của bạn'); return; }
+  if (!confirm('Đứng cạnh thiết bị (trong nhà khó bắt GPS thì ra cửa, sân ngay đó) rồi bấm OK để lấy vị trí mới.')) return;
+  const chu = nut.textContent;
+  nut.disabled = true; nut.textContent = 'Đang dò GPS…';
+  try {
+    const p = await layGPS(p => { nut.textContent = `Đang dò GPS… ±${Math.round(p.coords.accuracy)} m`; });
+    const lat = +p.coords.latitude.toFixed(6), lon = +p.coords.longitude.toFixed(6);
+    if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) { window.toast('Vị trí lấy được nằm ngoài Việt Nam, thử lại'); return; }
+    Object.assign(tb, { lat, lon });
+    // Vị trí mới thuộc xã khác: hỏi đổi luôn địa chỉ ngôi nhà
+    const x = await napDVHC().then(d => xaTheoViTri(d, lat, lon)).catch(() => null);
+    if (x && x.ma !== tb.xa && confirm(`Vị trí mới thuộc ${x.ten}, ${x.tinh}. Đổi địa chỉ ngôi nhà sang xã này?`)) {
+      Object.assign(tb, { xa: x.ma, tenXa: x.ten, tinh: x.tinh, thon: '' });
+    }
+    await luuHoSo();
+    window.guiLenhThietBi(ma, 'cmd', `VITRI:${lat},${lon}`);
+    if (nguoiDung && TK.chiaSeXa) TK.chiaSeXa(nguoiDung, hoSo).catch(() => {});
+    if (ma === hoSo.thietBiChon) { window.datViTriNha(lat, lon); $('diaChiNha').textContent = [tb.thon, tb.tenXa, (tb.tinh || '').replace(/^(Tỉnh|Thành phố)\s+/, '')].filter(Boolean).join(', ') || $('diaChiNha').textContent; }
+    veTaiKhoan();
+    window.toast(`Đã cập nhật vị trí, sai số khoảng ±${Math.round(p.coords.accuracy)} m`);
+  } catch (e) {
+    window.toast(e && e.code === 'khong-ho-tro' ? 'Máy không hỗ trợ GPS' : 'Không lấy được GPS. Bật định vị, cho phép app dùng vị trí rồi thử lại.');
+  } finally { nut.disabled = false; nut.textContent = chu; }
+}
+window.capNhatViTriTB = capNhatViTriTB;
+// Màn hình kết nối: thiết bị đã vào mạng chưa (app nghe tin của mọi thiết bị nên biết ngay khi vừa cài Wi-Fi xong)
+function capNhatTTWifi() {
+  if ($('tlWifi').offsetParent === null) return;  // màn hình đang ẩn
+  const ma = $('tlMa').value.trim().toLowerCase(), tt = $('tlWifiTT');
+  if (!/^[a-z0-9-]{4,40}$/.test(ma)) {
+    tt.className = 'wifi-tt';
+    tt.textContent = 'Nhập mã thiết bị (hoặc quét QR trên tem) để xem thiết bị đã vào mạng chưa.';
+    return;
+  }
+  const luc = window.lanThayTB.get(ma), on = luc && Date.now() - luc < 20000;
+  tt.className = 'wifi-tt' + (on ? ' on' : '');
+  tt.textContent = on ? `✓ Thiết bị ${ma} đã vào mạng.` : `Thiết bị ${ma} chưa vào mạng. Cắm điện thiết bị rồi cài Wi-Fi cho thiết bị như hướng dẫn.`;
+}
+setInterval(capNhatTTWifi, 2000);
+$('tlMa').addEventListener('input', capNhatTTWifi);
 $('btnGPS').onclick = async () => {
   const nut = $('btnGPS');
   nut.disabled = true; nut.textContent = 'Đang dò GPS…';
@@ -2086,7 +2167,7 @@ function veTaiKhoan() {
         <div class="tt">
           <div class="tb-dong"><b>${esc(t.ten)}</b>${t.ma === hoSo.thietBiChon ? '<span class="pill on">Đang xem</span>' : ''}</div>
           <small class="tb-dc">${esc([t.thon, t.tenXa, t.tinh].filter(Boolean).join(', ') || 'Chưa có địa chỉ: bấm "Sửa thông tin" để thêm')}</small>
-          <div class="tb-the"><span>${esc(t.ma)}</span><span>Nhà ${t.soTang || (t.motTang ? 1 : 2)} tầng</span>${t.xacMinh || laKhach ? '' : `<button class="chua" data-xacminh="${esc(t.ma)}">Chưa xác minh · nhập mã kích hoạt</button>`}</div>
+          <div class="tb-the"><span>${esc(t.ma)}</span><span>Nhà ${t.soTang || (t.motTang ? 1 : 2)} tầng</span>${t.xacMinh || laKhach ? '' : `<button class="chua" data-xacminh="${esc(t.ma)}">Chưa xác minh · nhập mã kích hoạt</button>`}${laKhach ? '' : `<button data-vitri="${esc(t.ma)}">Cập nhật vị trí</button><button data-modal="caiwifi">Cài Wi-Fi</button>`}</div>
         </div>
         ${t.ma === hoSo.thietBiChon ? '' : `<button class="act" data-chon="${esc(t.ma)}">Xem</button>`}
         <button class="xoa" data-xoa="${esc(t.ma)}" aria-label="Xoá thiết bị">×</button></div>`).join('')}
@@ -2150,6 +2231,7 @@ document.addEventListener('click', async e => {
       window.toast('Đã xác minh thiết bị');
     } catch (er) { alert(loiTV(er)); }
   }
+  else if (t.dataset.vitri) capNhatViTriTB(t.dataset.vitri, t);
   else if (t.id === 'tkThemTB') moThietLap('them');
   else if (t.id === 'tkSuaHo') moThietLap('ho');
   else if (t.id === 'tkDangKy') man('dangky');
@@ -2227,6 +2309,17 @@ const VAN_BAN = {
       <a href="tel:115">115<small>Cấp cứu y tế</small></a>
     </div>
     <p class="sub" style="margin-top:12px">Gọi miễn phí từ mọi điện thoại, kể cả khi không có sim hoặc hết tiền. Nói rõ địa chỉ, số người cần giúp, có người già, trẻ nhỏ hay không.</p>`],
+  caiwifi: ['Cài Wi-Fi cho thiết bị', `
+    <p>Làm 1 lần khi mới mua, hoặc khi nhà đổi Wi-Fi, đổi mật khẩu. Đứng gần thiết bị, bật Wi-Fi trên điện thoại.</p>
+    <ol style="padding-left:20px;line-height:1.55;margin:10px 0">
+      <li><b>Cắm điện thiết bị.</b> Thiết bị mới tự phát Wi-Fi tên <b>NgapLaNgat-…</b> (phần sau trùng mã thiết bị trên tem), đèn xanh nháy chậm.
+        Đổi sang Wi-Fi khác: giữ nút RESET trên thiết bị 10 giây, đến khi còi bíp 3 tiếng.</li>
+      <li><b>Vào Cài đặt Wi-Fi của điện thoại</b>, chọn Wi-Fi <b>NgapLaNgat-…</b> (không có mật khẩu). Trang cài đặt tự hiện ra; không thấy thì bấm nút "Mở trang cài đặt" bên dưới.</li>
+      <li><b>Chọn Wi-Fi của nhà</b>, nhập mật khẩu, bấm <b>Lưu và kết nối</b>. Thiết bị chỉ dùng được Wi-Fi 2,4 GHz.</li>
+      <li><b>Quay lại app.</b> Loa nói "đã sẵn sàng" là thiết bị đã vào mạng; app hiện Trực tuyến sau khoảng 30 giây.</li>
+    </ol>
+    <a class="btn btn-ghost" href="http://192.168.4.1/" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">Mở trang cài đặt (192.168.4.1)</a>
+    <p class="sub" style="margin-top:12px">Điện thoại báo "Wi-Fi không có Internet": chọn Vẫn kết nối (Giữ kết nối). Sau 3 phút thiết bị lại phát Wi-Fi NgapLaNgat-… là mật khẩu chưa đúng: làm lại từ bước 2.</p>`],
 };
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-modal]');
