@@ -1111,8 +1111,9 @@ function ketNoiMQTT() {
         lat: coViTri ? lat : truoc ? truoc.lat : 0, lon: coViTri ? lon : truoc ? truoc.lon : 0, chuyenCho: +d.chuyencho === 1, sieuAmLoi: +d.sieuamloi === 1 });
       let h = cacHo.find(x => x.id === id);
       if (!h) {
-        // Thiết bị chưa có hộ nào chia sẻ thông tin: chỉ hiện (ẩn danh) khi nằm trong địa bàn xã
-        if (!trongVN(lat, lon) || !trongXa(lat, lon)) return;
+        // Thiết bị chưa có hộ nào chia sẻ thông tin: chỉ hiện (ẩn danh) khi nằm trong địa bàn xã.
+        // Chế độ Toàn hệ thống: hiện mọi thiết bị, kể cả thiết bị vừa bị chuyển chỗ (chưa có vị trí mới, gửi toạ độ 0).
+        if (MA_XA !== 'toanhethong' && (!trongVN(lat, lon) || !trongXa(lat, lon))) return;
         h = taoHo(id);
       }
       // Hộ chưa chia sẻ thông tin: vị trí theo thiết bị gửi lên (chủ nhà cập nhật vị trí mới thì chấm dời theo)
