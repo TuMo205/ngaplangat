@@ -932,7 +932,7 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.13.0';
+const PHIEN_BAN_APP = '1.13.1';
 const CO_GI_MOI = [
   'Bớt báo "Mất kết nối" nhầm: thiết bị nối lại máy chủ trong vài chục giây thì app không báo mất kết nối nữa.',
   'Bảo mật: lệnh ngắt điện, đổi số người thân... gửi tới thiết bị đều có chữ ký bằng mã kích hoạt in trên tem. Thiết bị bỏ qua lệnh giả.',
@@ -2429,14 +2429,15 @@ const VAN_BAN = {
   caiwifi: ['Cài Wi-Fi cho thiết bị', `
     <p>Làm 1 lần khi mới mua, hoặc khi nhà đổi Wi-Fi, đổi mật khẩu. Đứng gần thiết bị, bật Wi-Fi trên điện thoại.</p>
     <ol style="padding-left:20px;line-height:1.55;margin:10px 0">
-      <li><b>Cắm điện thiết bị.</b> Thiết bị mới tự phát Wi-Fi tên <b>NgapLaNgat-…</b> (phần sau trùng mã thiết bị trên tem), đèn xanh nháy chậm.
-        Đổi sang Wi-Fi khác: giữ nút RESET trên thiết bị 10 giây, đến khi còi bíp 3 tiếng.</li>
-      <li><b>Vào Cài đặt Wi-Fi của điện thoại</b>, chọn Wi-Fi <b>NgapLaNgat-…</b> (không có mật khẩu). Trang cài đặt tự hiện ra; không thấy thì bấm nút "Mở trang cài đặt" bên dưới.</li>
+      <li><b>Cho thiết bị phát Wi-Fi cài đặt.</b> Thiết bị mới cắm điện là tự phát. Đổi sang Wi-Fi khác: lúc nhà đang có điện bình thường,
+        <b>giữ nút trên nắp hộp 10 giây</b>, đến khi còi bíp 3 tiếng. Đèn đỏ nháy đôi, loa đọc hướng dẫn.</li>
+      <li><b>Vào Cài đặt Wi-Fi của điện thoại</b>, chọn Wi-Fi <b>NgapLaNgat-…</b> (phần sau trùng mã thiết bị trên tem, không có mật khẩu). Trang cài đặt tự hiện ra; không thấy thì bấm nút "Mở trang cài đặt" bên dưới.</li>
       <li><b>Chọn Wi-Fi của nhà</b>, nhập mật khẩu, bấm <b>Lưu và kết nối</b>. Thiết bị chỉ dùng được Wi-Fi 2,4 GHz.</li>
-      <li><b>Quay lại app.</b> Loa nói "đã sẵn sàng" là thiết bị đã vào mạng; app hiện Trực tuyến sau khoảng 30 giây.</li>
+      <li><b>Quay lại app.</b> Loa nói "Kết nối Wi-Fi thành công" là xong; app hiện Trực tuyến sau khoảng 30 giây.</li>
     </ol>
     <a class="btn btn-ghost" href="http://192.168.4.1/" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">Mở trang cài đặt (192.168.4.1)</a>
-    <p class="sub" style="margin-top:12px">Điện thoại báo "Wi-Fi không có Internet": chọn Vẫn kết nối (Giữ kết nối). Sau 3 phút thiết bị lại phát Wi-Fi NgapLaNgat-… là mật khẩu chưa đúng: làm lại từ bước 2.</p>`],
+    <p class="sub" style="margin-top:12px">Điện thoại báo "Wi-Fi không có Internet": chọn Vẫn kết nối (Giữ kết nối). Khoảng 1 phút sau thiết bị lại phát Wi-Fi NgapLaNgat-… là mật khẩu chưa đúng: làm lại từ bước 2.
+      Không cài gì trong 10 phút thì thiết bị tự quay lại Wi-Fi cũ. Mất Wi-Fi (modem tắt, mất điện) thiết bị vẫn tự ngắt điện và nhắn tin qua 4G, tự vào lại khi modem có điện.</p>`],
 };
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-modal]');
