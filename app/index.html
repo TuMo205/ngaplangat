@@ -463,6 +463,10 @@
   .nut-doi { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
   .btn-vien { background:var(--surface); color:var(--bad); border:1.5px solid rgba(224,45,60,.35); font-size:14px; padding:12px 8px; border-radius:14px; }
   .btn-vien.dam { background:var(--bad); color:#fff; border-color:var(--bad); }
+  .btn-bat-dien { width:100%; margin-top:10px; background:var(--ok); color:#fff; font-size:14px; padding:12px 8px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center; gap:8px; }
+  .btn-bat-dien svg { width:18px; height:18px; }
+  .btn-bat-dien[hidden] { display:none; }
   .btn-vien svg { width:18px; height:18px; }
   .cam-bien { margin-top:12px; padding-top:10px; border-top:1px solid var(--line); }
   @media (min-width:1000px) {
@@ -822,12 +826,13 @@
     </div>
 
     <div class="card the-dien">
-      <div class="card-h"><div class="card-t"><span class="ic"><svg class="i"><use href="#i-power"/></svg></span>Ngắt điện từ xa</div></div>
+      <div class="card-h"><div class="card-t"><span class="ic"><svg class="i"><use href="#i-power"/></svg></span>Điện từ xa</div></div>
       <div class="nut-doi">
         <button class="btn btn-vien" id="btnNgat"><svg class="i"><use href="#i-power"/></svg><span id="chuNut1">Ngắt tầng 1</span></button>
         <button class="btn btn-vien dam" id="btnNgatHet"><svg class="i"><use href="#i-power"/></svg>Ngắt toàn bộ</button>
       </div>
-      <div class="note"><svg class="i"><use href="#i-info"/></svg><span>Dùng khi cả nhà đã sơ tán. Thiết bị vẫn tự ngắt khi nước dâng. Vì an toàn, chỉ đóng điện lại được bằng nút RESET tại thiết bị khi nước đã rút hết.</span></div>
+      <button class="btn btn-bat-dien" id="btnBatDien" hidden><svg class="i"><use href="#i-power"/></svg><span id="chuBatDien">Bật lại điện</span></button>
+      <div class="note"><svg class="i"><use href="#i-info"/></svg><span>Ngắt từ xa khi cả nhà đã sơ tán; thiết bị vẫn tự ngắt khi nước dâng. Chỉ bật lại điện khi nước đã rút hết, ổ cắm và đồ điện đã khô: thiết bị tự kiểm tra lại, còi bíp báo 5 giây rồi mới đóng điện. Cũng có thể giữ nút trên nắp thiết bị 3 giây.</span></div>
       <div class="cam-bien" id="camBien">Cảm biến: chưa có số liệu</div>
     </div>
 
@@ -927,11 +932,11 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.11.1';
+const PHIEN_BAN_APP = '1.12.0';
 const CO_GI_MOI = [
   'Bớt báo "Mất kết nối" nhầm: thiết bị nối lại máy chủ trong vài chục giây thì app không báo mất kết nối nữa.',
   'Bảo mật: lệnh ngắt điện, đổi số người thân... gửi tới thiết bị đều có chữ ký bằng mã kích hoạt in trên tem. Thiết bị bỏ qua lệnh giả.',
-  'Thiết bị đang ngắt điện mà khởi động lại (mất điện, sụt nguồn) vẫn giữ nguyên ngắt điện, chỉ nút RESET mới đóng lại.',
+  'Thiết bị đang ngắt điện mà khởi động lại (mất điện, sụt nguồn) vẫn giữ nguyên ngắt điện; chỉ đóng lại khi nước đã rút, bằng nút trên thiết bị hoặc nút Bật lại điện trong app.',
   'Vị trí trên thiết bị tự khớp với vị trí nhà đã lưu trong app (gửi lại xuống thiết bị khi thấy lệch).',
   'Cài Wi-Fi cho thiết bị bằng điện thoại, không cần nạp code: thiết bị tự phát Wi-Fi "NgapLaNgat-…", điện thoại kết nối vào là trang cài đặt tự hiện. Màn hình kết nối thiết bị báo ngay khi thiết bị đã vào mạng.',
   'Chuyển thiết bị sang chỗ khác: thiết bị tự nhận ra (Wi-Fi xung quanh khác hẳn), app hiện nhắc "Cập nhật vị trí". Đứng cạnh thiết bị, bấm Cập nhật là xong.',
@@ -961,8 +966,8 @@ const CHU_NHA = {
     noi3: 'Đã ngắt toàn bộ điện trong nhà, kể cả tầng 2. Dùng đèn pin, không lội qua nước.',
     lyDo2: 'Thiết bị đã ngắt điện tầng 1, tầng 2 vẫn có điện.', lyDo3: 'Thiết bị đã ngắt toàn bộ điện, kể cả tầng 2.',
     baoTruoc: 'Nước sắp chạm tủ điện tổng. Hãy sạc điện thoại, chuẩn bị đèn pin: sắp ngắt cả tầng 2.',
-    hoi1: 'Ngắt điện tầng 1 ngay bây giờ?\nTầng 2 vẫn có điện. Chỉ đóng lại được bằng nút RESET tại thiết bị.',
-    hoi3: 'Ngắt TOÀN BỘ điện trong nhà, kể cả tầng 2?\nChỉ dùng khi cả nhà đã sơ tán. Chỉ đóng lại được bằng nút RESET tại thiết bị.',
+    hoi1: 'Ngắt điện tầng 1 ngay bây giờ?\nTầng 2 vẫn có điện. Bật lại khi nước đã rút: giữ nút trên thiết bị 3 giây hoặc bấm Bật lại điện trong app.',
+    hoi3: 'Ngắt TOÀN BỘ điện trong nhà, kể cả tầng 2?\nChỉ dùng khi cả nhà đã sơ tán. Bật lại khi nước đã rút: giữ nút trên thiết bị 3 giây hoặc bấm Bật lại điện trong app.',
   },
   mot: {
     mach1: 'Mạch ổ cắm', mach2: 'Mạch đèn', ngat1: 'Đã ngắt mạch ổ cắm', ngat1Ngan: 'Đã ngắt ổ cắm', duDien: 'Có điện đầy đủ',
@@ -973,8 +978,8 @@ const CHU_NHA = {
     noi3: 'Đã ngắt toàn bộ điện trong nhà, kể cả đèn. Dùng đèn pin, không lội qua nước.',
     lyDo2: 'Thiết bị đã ngắt mạch ổ cắm, đèn vẫn sáng.', lyDo3: 'Thiết bị đã ngắt toàn bộ điện, kể cả đèn.',
     baoTruoc: 'Nước sắp chạm tủ điện tổng. Hãy sạc điện thoại, chuẩn bị đèn pin: sắp ngắt toàn bộ, kể cả đèn.',
-    hoi1: 'Ngắt mạch ổ cắm ngay bây giờ?\nĐèn vẫn sáng. Chỉ đóng lại được bằng nút RESET tại thiết bị.',
-    hoi3: 'Ngắt TOÀN BỘ điện trong nhà, kể cả đèn?\nChỉ dùng khi cả nhà đã sơ tán. Chỉ đóng lại được bằng nút RESET tại thiết bị.',
+    hoi1: 'Ngắt mạch ổ cắm ngay bây giờ?\nĐèn vẫn sáng. Bật lại khi nước đã rút: giữ nút trên thiết bị 3 giây hoặc bấm Bật lại điện trong app.',
+    hoi3: 'Ngắt TOÀN BỘ điện trong nhà, kể cả đèn?\nChỉ dùng khi cả nhà đã sơ tán. Bật lại khi nước đã rút: giữ nút trên thiết bị 3 giây hoặc bấm Bật lại điện trong app.',
   },
 };
 let motTang = docLuu('motTang', false);  // loại nhà của thiết bị đang xem
@@ -1161,6 +1166,8 @@ function capNhatGiaoDien() {
   $('chipNguong').textContent = mn + ' / ' + (duLieu.mucngat2 || MUC_NGAT_HET_MAC_DINH);  // ngắt tầng 1 / ngắt toàn bộ
   const td = duBaoAI.doDoc;
   $('tocDo').textContent = (td >= 0.05 ? '+' : '') + so1(td);
+  $('btnBatDien').hidden = tt < 2;
+  $('chuBatDien').textContent = duLieu.chodongdien ? 'Bật lại điện (nước đã rút)' : 'Bật lại điện';
   $('dien1').textContent = tt >= 2 ? 'Đã ngắt' : 'Có điện';
   $('o1').className = 'tang ' + (tt >= 2 ? 'tat' : 'sang');
   $('dien2').textContent = tt === 3 ? 'Đã ngắt' : 'Có điện';
@@ -1279,8 +1286,12 @@ function nhanDuLieu(d) {
     ghiNhatKy(t, 2); thongBao('Sắp ngắt toàn bộ điện', t); docTo(t);
   }
   if (duLieu.trangthai < 2) daBaoTruocHet = false;
-  // Thiết bị đã làm theo lệnh ngắt từ xa
-  if (lenhCho && duLieu.trangthai >= lenhCho.cap) { toast('Thiết bị đã ' + (lenhCho.cap === 3 ? 'ngắt toàn bộ điện' : chu().lenh1)); lenhCho = null; }
+  // Thiết bị đã làm theo lệnh ngắt / bật lại điện từ xa
+  if (lenhCho && lenhCho.dong && duLieu.trangthai === 0) {
+    toast('Thiết bị đã bật lại điện'); ghiNhatKy('Thiết bị đã bật lại điện theo lệnh từ app', 0); lenhCho = null;
+  } else if (lenhCho && !lenhCho.dong && duLieu.trangthai >= lenhCho.cap) {
+    toast('Thiết bị đã ' + (lenhCho.cap === 3 ? 'ngắt toàn bộ điện' : chu().lenh1)); lenhCho = null;
+  }
 }
 
 // ===================== BIỂU ĐỒ =====================
@@ -1389,7 +1400,8 @@ function locDuLieu(d) {
     mucngat: soTrong(d.mucngat, 1, 100) || MUC_NGAT_MAC_DINH, mucngat2: soTrong(d.mucngat2, 1, 300) || MUC_NGAT_HET_MAC_DINH,
     motang: d.motang === 1 || d.motang === 0 ? d.motang : null,
     baotruoc2: +d.baotruoc2 === 1 ? 1 : 0, muccb: soTrong(d.muccb, 0.5, 100) || MUC_CANH_BAO,
-    phao1: +d.phao1 === 1 ? 1 : 0, phao2: +d.phao2 === 1 ? 1 : 0, sieuamloi: +d.sieuamloi === 1 ? 1 : 0, chuyencho: +d.chuyencho === 1 ? 1 : 0, kh: /^[0-9a-f]{2}$/.test(d.kh) ? d.kh : null, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
+    phao1: +d.phao1 === 1 ? 1 : 0, phao2: +d.phao2 === 1 ? 1 : 0, sieuamloi: +d.sieuamloi === 1 ? 1 : 0, chuyencho: +d.chuyencho === 1 ? 1 : 0,
+    chodongdien: +d.chodongdien === 1 ? 1 : 0, kh: /^[0-9a-f]{2}$/.test(d.kh) ? d.kh : null, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
 }
 const lanThayTB = new Map();  // mã thiết bị -> lúc nhận tin gần nhất
 // Vị trí thiết bị gửi lên lệch với vị trí nhà chủ nhà đã lưu trong app (VD: kết nối thiết bị đúng lúc thiết bị đang phát
@@ -1464,6 +1476,34 @@ async function ngatTuXa(cap) {
 }
 $('btnNgat').onclick = () => ngatTuXa(2);
 $('btnNgatHet').onclick = () => ngatTuXa(3);
+
+// Bật lại điện từ xa (lệnh DONG_DIEN). Thiết bị tự kiểm tra lại: 2 phao khô và siêu âm dưới 1 cm mới đóng,
+// còi bíp báo 5 giây trước khi đóng để người ở nhà kịp tránh xa đồ điện.
+async function batDienTuXa() {
+  if (duLieu.trangthai < 2) { toast('Đang có điện rồi'); return; }
+  if (window.laCheDoKhach && window.laCheDoKhach()) { toast('Đăng nhập tài khoản để điều khiển thiết bị'); return; }
+  if (!thietBiOnline()) { toast('Thiết bị đang mất kết nối nên chưa gửi lệnh được'); return; }
+  if (duLieu.phao1 || duLieu.phao2 || (!duLieu.sieuamloi && duLieu.muc >= 1)) {
+    toast('Nước chưa rút hết: thiết bị chưa cho bật lại điện'); return;
+  }
+  if (!confirm('Bật lại điện trong nhà?\nChỉ bật khi nước đã rút hết, ổ cắm và đồ điện đã khô, không ai đang lội nước hay chạm vào đồ điện.\nThiết bị sẽ bíp báo 5 giây rồi mới đóng điện.')) return;
+  if (!(await window.guiLenhThietBi(cauHinh.ma, 'cmd', 'DONG_DIEN'))) {
+    toast('Chưa gửi được lệnh: chưa đọc được mã kích hoạt của thiết bị. Kiểm tra mạng, hoặc xác minh thiết bị trong Tài khoản.');
+    return;
+  }
+  ghiNhatKy('Đã gửi lệnh bật lại điện, thiết bị đang bíp báo trước 5 giây…', 1);
+  toast('Đã gửi lệnh bật lại điện');
+  const luc = Date.now();
+  lenhCho = { cap: 0, dong: true, luc };
+  setTimeout(() => {
+    if (lenhCho && lenhCho.luc === luc) {
+      lenhCho = null;
+      ghiNhatKy('Thiết bị chưa bật lại điện sau 25 giây: có thể nước chưa rút hết hoặc mất kết nối.', 1);
+      toast('Thiết bị chưa bật lại điện');
+    }
+  }, 25000);
+}
+$('btnBatDien').onclick = batDienTuXa;
 
 // ===================== DÙNG CHUNG VỚI PHẦN TÀI KHOẢN =====================
 // HMAC-SHA256 (dạng chữ hex), giống hàm hmacHex trong code ESP32
@@ -2367,7 +2407,7 @@ const VAN_BAN = {
     <h4>Trên app</h4>
     <ul><li><b>Ngắt điện từ xa</b>: dùng khi cả nhà đã sơ tán.</li>
       <li><b>AI dự báo</b>: ước tính còn bao nhiêu phút nữa nước chạm mức ngắt, dựa trên tốc độ nước 2 phút gần nhất và dự báo mưa.</li>
-      <li><b>Đóng điện lại</b>: chỉ bằng nút RESET tại thiết bị, khi nước đã rút và sàn đã khô.</li></ul>`],
+      <li><b>Đóng điện lại</b>: khi nước đã rút và sàn, ổ cắm đã khô: giữ nút trên thiết bị 3 giây, hoặc bấm <b>Bật lại điện</b> trong app (thiết bị tự kiểm tra nước đã rút, còi bíp báo 5 giây rồi mới đóng).</li></ul>`],
   khancap: ['Số điện thoại khẩn cấp', `
     <div class="khan-nut" style="margin-top:6px">
       <a href="tel:112">112<small>Cứu nạn</small></a>
