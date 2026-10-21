@@ -902,7 +902,7 @@
       <button class="dong-lien" data-modal="camnang"><span class="ic"><svg class="i"><use href="#i-book"/></svg></span>
         <span>Cẩm nang an toàn khi ngập<small>Trước, trong và sau khi nước vào nhà</small></span></button>
       <button class="dong-lien" data-modal="huongdan"><span class="ic"><svg class="i"><use href="#i-info"/></svg></span>
-        <span>Hướng dẫn sử dụng<small>Ý nghĩa các trạng thái, nút ngắt điện, nút RESET</small></span></button>
+        <span>Hướng dẫn sử dụng<small>Ý nghĩa các trạng thái, nút trên thiết bị, đổi Wi-Fi</small></span></button>
       <button class="dong-lien" data-modal="khancap"><span class="ic"><svg class="i"><use href="#i-phone"/></svg></span>
         <span>Số điện thoại khẩn cấp<small>112 cứu nạn · 114 cứu hộ · 115 cấp cứu</small></span></button>
     </div>
@@ -932,7 +932,7 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.13.1';
+const PHIEN_BAN_APP = '1.13.2';
 const CO_GI_MOI = [
   'Bớt báo "Mất kết nối" nhầm: thiết bị nối lại máy chủ trong vài chục giây thì app không báo mất kết nối nữa.',
   'Bảo mật: lệnh ngắt điện, đổi số người thân... gửi tới thiết bị đều có chữ ký bằng mã kích hoạt in trên tem. Thiết bị bỏ qua lệnh giả.',
@@ -2403,7 +2403,7 @@ const VAN_BAN = {
       <li>Không lội qua dòng nước chảy xiết: nước chảy chỉ ngang đầu gối cũng có thể làm ngã người.</li>
       <li>Cần cứu giúp: gọi 112 (cứu nạn), 114 (cứu hộ), 115 (cấp cứu).</li></ul>
     <h4>Sau khi nước rút</h4>
-    <ul><li>Chỉ bấm RESET để đóng điện lại khi nước đã rút hết, sàn và ổ cắm đã khô.</li>
+    <ul><li>Chỉ đóng điện lại (giữ nút trên nắp thiết bị 3 giây, hoặc bấm Bật lại điện trong app) khi nước đã rút hết, sàn và ổ cắm đã khô.</li>
       <li>Nếu ổ cắm, dây điện, tủ điện đã ngập: nhờ thợ điện kiểm tra trước khi dùng lại.</li>
       <li>Dọn bùn, khử trùng nhà cửa; đun sôi nước trước khi uống.</li></ul>`],
   huongdan: ['Hướng dẫn sử dụng', `
@@ -2414,7 +2414,12 @@ const VAN_BAN = {
       <li><b style="color:var(--crit)">Ngắt toàn bộ</b>: nước tới mức tủ điện tổng, thiết bị ngắt cả nhà.</li></ul>
     <h4>Thiết bị tự làm, không cần mạng</h4>
     <ul><li>Tự ngắt điện theo mực nước, kể cả khi mất wifi.</li>
-      <li>Phát loa cảnh báo, nhắn tin và gọi điện cho người thân qua 4G.</li></ul>
+      <li>Phát loa cảnh báo, nhắn tin cho tối đa 6 người thân qua 4G, gọi lần lượt theo thứ tự đến khi có người nghe máy.</li>
+      <li>Bị mang sang chỗ khác: loa nhắc, app hiện thẻ nhắc. Đứng cạnh thiết bị bấm <b>Cập nhật vị trí</b>.</li></ul>
+    <h4>Nút trên nắp thiết bị</h4>
+    <ul><li><b>Bấm 1 lần</b>: loa nói "đã sẵn sàng" là thiết bị và loa đang chạy.</li>
+      <li><b>Giữ 3 giây</b> (khi đã ngắt điện, nước đã rút): đóng điện lại.</li>
+      <li><b>Giữ 10 giây</b> (khi nhà đang có điện): đổi Wi-Fi bằng điện thoại, xem mục Cài Wi-Fi.</li></ul>
     <h4>Trên app</h4>
     <ul><li><b>Ngắt điện từ xa</b>: dùng khi cả nhà đã sơ tán.</li>
       <li><b>AI dự báo</b>: ước tính còn bao nhiêu phút nữa nước chạm mức ngắt, dựa trên tốc độ nước 2 phút gần nhất và dự báo mưa.</li>
