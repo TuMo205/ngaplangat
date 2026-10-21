@@ -710,7 +710,7 @@
       <div class="dem"><span>Người khuyết tật, bệnh nặng</span><input id="tlKT" type="number" min="0" max="20" inputmode="numeric"></div>
       <label class="chk" style="margin-top:12px"><input type="checkbox" id="tlMotMinh"><span>Người già sống một mình</span></label>
       <div class="nhom-t">Người thân nhận cảnh báo</div>
-      <label class="o"><span>Số điện thoại nhận tin nhắn và cuộc gọi khẩn</span><input id="tlSdt" type="tel" inputmode="tel" placeholder="VD: 0912 345 678"></label>
+      <label class="o"><span>Số điện thoại nhận tin nhắn và cuộc gọi khẩn (thêm tới 6 người trong mục Tài khoản)</span><input id="tlSdt" type="tel" inputmode="tel" placeholder="VD: 0912 345 678"></label>
       <label class="chk"><input type="checkbox" id="tlChiaSe"><span>Đồng ý chia sẻ thông tin hộ gia đình với UBND xã để được ưu tiên cứu hộ khi có lũ</span></label>
     </div>
     <button class="btn btn-primary" id="btnLuuTL" style="margin-top:8px">Hoàn tất</button>
@@ -932,7 +932,7 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.12.0';
+const PHIEN_BAN_APP = '1.13.0';
 const CO_GI_MOI = [
   'Bớt báo "Mất kết nối" nhầm: thiết bị nối lại máy chủ trong vài chục giây thì app không báo mất kết nối nữa.',
   'Bảo mật: lệnh ngắt điện, đổi số người thân... gửi tới thiết bị đều có chữ ký bằng mã kích hoạt in trên tem. Thiết bị bỏ qua lệnh giả.',
@@ -1829,11 +1829,15 @@ const thietBiDangChon = () => hoSo.thietBi.find(t => t.ma === hoSo.thietBiChon) 
 
 // Gửi số người thân xuống thiết bị (để nhắn tin, gọi điện) và thông tin hộ lên bảng điều hành xã (nếu đồng ý).
 // Thông tin hộ chỉ lưu trên máy chủ bảo mật (Firebase), không gửi qua máy chủ MQTT công cộng.
-function dongBoThietBi() {
+// Thiết bị nhắn tin cho cả danh sách (tối đa 6 người), gọi lần lượt theo thứ tự đến khi có người nghe máy.
+// Danh sách rỗng chỉ gửi khi chủ nhà vừa xoá số: nhà có 2 tài khoản cùng quản lý thì tài khoản chưa nhập số
+// không xoá mất số của tài khoản kia mỗi lần mở app.
+const TOI_DA_NT = 6;
+function dongBoThietBi(guiDanhSachRong) {
   if (laKhach) return;  // khách dùng thử không được đổi số điện thoại, thông tin hộ của thiết bị
-  const nt = hoSo.nguoiThan[0];
+  const ds = hoSo.nguoiThan.slice(0, TOI_DA_NT).map(n => sdtQuocTe(n.sdt)).join(',');
   for (const tb of hoSo.thietBi) {
-    if (nt) window.guiLenhThietBi(tb.ma, 'cmd', 'SDT:' + sdtQuocTe(nt.sdt));
+    if (ds || guiDanhSachRong) window.guiLenhThietBi(tb.ma, 'cmd', 'SDT:' + ds);
     window.guiLenhThietBi(tb.ma, 'cmd', tb.motTang ? 'LOAI:1' : 'LOAI:2');  // loại nhà: thiết bị lưu vào bộ nhớ
     window.guiLenhThietBi(tb.ma, 'info', '', true);  // xoá thông tin hộ mà bản cũ (trước 1.6.0) đã để lại trên máy chủ MQTT
   }
@@ -2078,6 +2082,8 @@ $('btnLuuTL').onclick = () => cho($('btnLuuTL'), async () => {
     delete hoSo.thon;  // bản 1.6.0 lưu thôn theo tài khoản, nay lưu theo từng ngôi nhà
     hoSo.nguoiGia = so($('tlGia').value); hoSo.treEm = so($('tlTre').value); hoSo.khuyetTat = so($('tlKT').value);
     hoSo.oMotMinh = $('tlMotMinh').checked; hoSo.chiaSeXa = $('tlChiaSe').checked;
+    if (sdt && hoSo.nguoiThan.length >= TOI_DA_NT && !hoSo.nguoiThan.some(n => n.sdt === sdt))
+      return loi('loiTL', 'Đã đủ ' + TOI_DA_NT + ' người thân. Xoá bớt một số trong mục Tài khoản rồi thêm số mới.');
     if (sdt) { hoSo.nguoiThan = hoSo.nguoiThan.filter(n => n.sdt !== sdt); hoSo.nguoiThan.unshift({ ten: 'Người thân', sdt }); }
   }
   try { await luuHoSo(); } catch (e) { return loi('loiTL', loiTV(e)); }
@@ -2288,12 +2294,13 @@ function veTaiKhoan() {
       <div class="tk-row"><span>Chia sẻ với UBND xã</span><b>${hoSo.chiaSeXa ? 'Đồng ý' : 'Không'}</b></div>
       <button class="btn btn-ghost" id="tkSuaHo" style="margin-top:12px">Sửa thông tin</button>
     </div>
-    <div class="group-t">Người thân nhận cảnh báo</div>
+    <div class="group-t">Người thân nhận cảnh báo (${Math.min(hoSo.nguoiThan.length, TOI_DA_NT)}/${TOI_DA_NT})</div>
     <div class="card" style="margin-top:0">
-      ${hoSo.nguoiThan.length ? hoSo.nguoiThan.map((n, i) => `<div class="tk-row"><span>${esc(n.ten)}${i === 0 ? '<br><small>Nhận tin nhắn và cuộc gọi từ thiết bị</small>' : ''}</span>
+      ${hoSo.nguoiThan.length ? `<div class="sub" style="margin-bottom:6px">Khi nhà bị ngập, thiết bị nhắn tin cho tất cả, rồi gọi lần lượt theo thứ tự dưới đây đến khi có người nghe máy.</div>`
+        + hoSo.nguoiThan.slice(0, TOI_DA_NT).map((n, i) => `<div class="tk-row"><span>${i + 1}. ${esc(n.ten)}</span>
         <b>${esc(n.sdt)} <button class="xoa" data-xoant="${i}" aria-label="Xoá">×</button></b></div>`).join('')
-        : '<div class="sub">Chưa có số nào. Thêm số để thiết bị nhắn tin, gọi điện khi nhà bị ngập.</div>'}
-      <button class="btn btn-ghost" id="tkThemNT" style="margin-top:12px">+ Thêm người thân</button>
+        : '<div class="sub">Chưa có số nào. Thêm tối đa ' + TOI_DA_NT + ' số để thiết bị nhắn tin, gọi điện khi nhà bị ngập.</div>'}
+      ${hoSo.nguoiThan.length < TOI_DA_NT ? '<button class="btn btn-ghost" id="tkThemNT" style="margin-top:12px">+ Thêm người thân</button>' : ''}
     </div>`;
   $('khuTaiKhoanCuoi').innerHTML = `
     <button class="btn btn-ghost" id="tkDangXuat">${laKhach ? 'Thoát chế độ dùng thử' : 'Đăng xuất'}</button>
@@ -2321,8 +2328,10 @@ document.addEventListener('click', async e => {
     await luuHoSo(); vaoApp();
   }
   else if (t.dataset.xoant !== undefined) {
+    const nt = hoSo.nguoiThan[+t.dataset.xoant];
+    if (!nt || !confirm('Xoá ' + nt.ten + ' (' + nt.sdt + ') khỏi danh sách nhận cảnh báo?')) return;
     hoSo.nguoiThan.splice(+t.dataset.xoant, 1);
-    await luuHoSo(); dongBoThietBi(); veTaiKhoan();
+    await luuHoSo(); dongBoThietBi(true); veTaiKhoan();
   }
   else if (t.dataset.xacminh) {  // thiết bị thêm từ bản cũ (chưa có mã kích hoạt): xác minh để chia sẻ với xã
     const tb = hoSo.thietBi.find(x => x.ma === t.dataset.xacminh);
@@ -2343,10 +2352,12 @@ document.addEventListener('click', async e => {
   else if (t.id === 'tkDangKy') man('dangky');
   else if (t.id === 'tkThemNT') {
     if (laKhach) { window.toast('Đăng ký tài khoản để thêm số người thân'); return; }
+    if (hoSo.nguoiThan.length >= TOI_DA_NT) { window.toast('Tối đa ' + TOI_DA_NT + ' người thân'); return; }
     const ten = prompt('Tên người thân (VD: Con trai, Chị Lan):');
     if (ten === null) return;
     const sdt = chuanHoa(prompt('Số điện thoại của ' + (ten || 'người thân') + ':') || '').sdt;
     if (!sdt) { window.toast('Số điện thoại chưa đúng'); return; }
+    if (hoSo.nguoiThan.some(n => n.sdt === sdt)) { window.toast('Số này đã có trong danh sách'); return; }
     hoSo.nguoiThan.push({ ten: ten.trim() || 'Người thân', sdt });
     await luuHoSo(); dongBoThietBi(); veTaiKhoan(); window.toast('Đã thêm người thân');
   }
