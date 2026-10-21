@@ -337,10 +337,10 @@
     .toast { bottom:28px; left:calc(50% + 126px); }
     /* Tổng quan: bảng điều khiển 2 cột */
     #tab-tongquan.active { display:grid; grid-template-columns:minmax(0, 1.4fr) minmax(0, 1fr); gap:18px; align-items:start;
-      grid-template-areas:"cai cai" "hero ai" "stats ai" "dien nk"; }
+      grid-template-areas:"cai cai" "hero ai" "stats ai" "dien nk" "loa nk"; }
     #tab-tongquan > * { margin-top:0 !important; }
     #goiYCai { grid-area:cai; } #theTT { grid-area:hero; } #tab-tongquan > .stats { grid-area:stats; }
-    .the-ai { grid-area:ai; } .the-dien { grid-area:dien; } .the-nk { grid-area:nk; }
+    .the-ai { grid-area:ai; } .the-dien { grid-area:dien; } .the-nk { grid-area:nk; } .the-loa { grid-area:loa; }
     .the-nk .timeline { max-height:340px; }
     .hero { padding:26px; }
     .hero-title { font-size:30px; }
@@ -468,6 +468,13 @@
   .btn-bat-dien svg { width:18px; height:18px; }
   .btn-bat-dien[hidden] { display:none; }
   .btn-vien svg { width:18px; height:18px; }
+  /* Âm lượng loa trên thiết bị */
+  .loa-so { font-size:14px; font-weight:700; color:var(--text-2); font-variant-numeric:tabular-nums; }
+  .loa-chinh { display:grid; grid-template-columns:48px minmax(0, 1fr) 48px; align-items:center; gap:10px; }
+  .loa-nut { height:44px; border-radius:14px; border:1.5px solid var(--line); background:var(--surface); color:var(--text);
+    font-size:22px; font-weight:700; line-height:1; padding:0; }
+  .loa-nut:disabled, #amLuong:disabled { opacity:.45; }
+  #amLuong { width:100%; accent-color:var(--primary); height:28px; }
   .cam-bien { margin-top:12px; padding-top:10px; border-top:1px solid var(--line); }
   @media (min-width:1000px) {
     #tab-tongquan > .chi-so { grid-area:stats; }
@@ -569,7 +576,7 @@
   #htNoiDung ul { margin:0; padding-left:18px; }
   #htNoiDung li { margin:4px 0; line-height:1.5; }
   @media (min-width:1000px) {
-    #tab-tongquan.active { grid-template-areas:"cai cai" "hero ai" "stats ai" "khan ai" "dien nk"; }
+    #tab-tongquan.active { grid-template-areas:"cai cai" "hero ai" "stats ai" "khan ai" "dien nk" "loa nk"; }
     .the-khan { grid-area:khan; }
   }
 
@@ -598,6 +605,7 @@
   <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></symbol>
   <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-vol" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></symbol>
   <symbol id="i-set" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
   <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2.7l5.7 5.6a8 8 0 1 1-11.3 0z"/></symbol>
   <symbol id="i-trend" viewBox="0 0 24 24"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></symbol>
@@ -836,6 +844,17 @@
       <div class="cam-bien" id="camBien">Cảm biến: chưa có số liệu</div>
     </div>
 
+    <div class="card the-loa">
+      <div class="card-h"><div class="card-t"><span class="ic"><svg class="i"><use href="#i-vol"/></svg></span>Loa trên thiết bị</div><span class="loa-so" id="soAmLuong">—</span></div>
+      <div class="loa-chinh">
+        <button type="button" class="loa-nut" id="btnLoaGiam" aria-label="Giảm âm lượng loa">−</button>
+        <input type="range" id="amLuong" min="5" max="30" step="1" value="20" aria-label="Âm lượng loa trên thiết bị">
+        <button type="button" class="loa-nut" id="btnLoaTang" aria-label="Tăng âm lượng loa">+</button>
+      </div>
+      <div class="note"><svg class="i"><use href="#i-info"/></svg><span id="ghiChuLoa">Mỗi lần chỉnh, loa kêu "ting tong" để nghe thử. Loa là báo động chính nên nhỏ nhất là 5.
+        Trên 20 cần nguồn khoẻ: nếu thiết bị tự khởi động lại khi loa kêu, thiết bị tự giảm âm lượng.</span></div>
+    </div>
+
     <div class="card the-nk">
       <div class="card-h"><div class="card-t"><span class="ic"><svg class="i"><use href="#i-clock"/></svg></span>Hoạt động gần đây</div></div>
       <ul class="timeline" id="nhatKy"><li class="empty" style="display:block">Chưa có sự kiện nào.</li></ul>
@@ -932,16 +951,13 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.13.2';
+const PHIEN_BAN_APP = '1.14.0';
 const CO_GI_MOI = [
-  'Bớt báo "Mất kết nối" nhầm: thiết bị nối lại máy chủ trong vài chục giây thì app không báo mất kết nối nữa.',
-  'Bảo mật: lệnh ngắt điện, đổi số người thân... gửi tới thiết bị đều có chữ ký bằng mã kích hoạt in trên tem. Thiết bị bỏ qua lệnh giả.',
-  'Thiết bị đang ngắt điện mà khởi động lại (mất điện, sụt nguồn) vẫn giữ nguyên ngắt điện; chỉ đóng lại khi nước đã rút, bằng nút trên thiết bị hoặc nút Bật lại điện trong app.',
-  'Vị trí trên thiết bị tự khớp với vị trí nhà đã lưu trong app (gửi lại xuống thiết bị khi thấy lệch).',
-  'Cài Wi-Fi cho thiết bị bằng điện thoại, không cần nạp code: thiết bị tự phát Wi-Fi "NgapLaNgat-…", điện thoại kết nối vào là trang cài đặt tự hiện. Màn hình kết nối thiết bị báo ngay khi thiết bị đã vào mạng.',
-  'Chuyển thiết bị sang chỗ khác: thiết bị tự nhận ra (Wi-Fi xung quanh khác hẳn), app hiện nhắc "Cập nhật vị trí". Đứng cạnh thiết bị, bấm Cập nhật là xong.',
-  'Mục Tài khoản: mỗi thiết bị có nút "Cập nhật vị trí" dùng GPS điện thoại. Vị trí mới gửi xuống thiết bị và lên bảng điều hành xã.',
-  'Vị trí mới thuộc xã khác thì app hỏi để đổi luôn địa chỉ ngôi nhà.',
+  'Chỉnh âm lượng loa trên thiết bị ngay trong app (thẻ "Loa trên thiết bị" ở Tổng quan): bấm − / + hoặc kéo thanh, loa kêu "ting tong" để nghe thử.',
+  'Nút "Bật lại điện" khi nước đã rút: thiết bị tự kiểm tra lại, còi bíp báo 5 giây rồi mới đóng điện.',
+  'Thêm tối đa 6 người thân nhận cảnh báo: thiết bị nhắn tin cho tất cả, gọi lần lượt đến khi có người nghe máy.',
+  'Đổi Wi-Fi cho thiết bị bằng điện thoại: giữ nút trên nắp 10 giây, xem mục Tài khoản → Cài Wi-Fi.',
+  'Thiết bị bị mang sang chỗ khác: tự nhận ra, app nhắc bấm "Cập nhật vị trí".',
 ];
 // Máy chủ MQTT: 2 máy chủ dự phòng nhau, khai báo trong lib/ben_vung.js (khớp với code ESP32)
 const MUC_CANH_BAO = 3, MUC_NGAT_MAC_DINH = 10, MUC_NGAT_HET_MAC_DINH = 14, MUC_BAO_TRUOC_HET = 12;  // cm, khớp code ESP32
@@ -1010,6 +1026,7 @@ let lanNhanCuoi = 0;           // lúc nhận số liệu thiết bị lần cu�
 const MAT_KET_NOI_MS = 60000;   // thiết bị gửi 5 giây/lần; 60 giây không thấy mới báo mất kết nối (thiết bị nối lại, đổi máy chủ dự phòng mất tới ~35 giây)
 const thietBiOnline = () => lanNhanCuoi > 0 && Date.now() - lanNhanCuoi < MAT_KET_NOI_MS;
 let lenhCho = null;            // lệnh ngắt đang chờ thiết bị xác nhận: { cap, luc }
+let amLuongCho = null, henGuiLoa = 0, hetChoLoa = 0;  // chỉnh âm lượng loa đang chờ thiết bị xác nhận (xem ÂM LƯỢNG LOA)
 let ttTruoc = docLuu('ttCuoi_' + cauHinh.ma, 0);  // trạng thái lần trước, để mở lại app không báo trùng
 const lichSu = [];             // {t: ms, muc: cm}
 const cacNha = new Map();      // id -> dữ liệu (cho bản đồ)
@@ -1168,6 +1185,7 @@ function capNhatGiaoDien() {
   $('tocDo').textContent = (td >= 0.05 ? '+' : '') + so1(td);
   $('btnBatDien').hidden = tt < 2;
   $('chuBatDien').textContent = duLieu.chodongdien ? 'Bật lại điện (nước đã rút)' : 'Bật lại điện';
+  capNhatLoa();
   $('dien1').textContent = tt >= 2 ? 'Đã ngắt' : 'Có điện';
   $('o1').className = 'tang ' + (tt >= 2 ? 'tat' : 'sang');
   $('dien2').textContent = tt === 3 ? 'Đã ngắt' : 'Có điện';
@@ -1401,7 +1419,7 @@ function locDuLieu(d) {
     motang: d.motang === 1 || d.motang === 0 ? d.motang : null,
     baotruoc2: +d.baotruoc2 === 1 ? 1 : 0, muccb: soTrong(d.muccb, 0.5, 100) || MUC_CANH_BAO,
     phao1: +d.phao1 === 1 ? 1 : 0, phao2: +d.phao2 === 1 ? 1 : 0, sieuamloi: +d.sieuamloi === 1 ? 1 : 0, chuyencho: +d.chuyencho === 1 ? 1 : 0,
-    chodongdien: +d.chodongdien === 1 ? 1 : 0, kh: /^[0-9a-f]{2}$/.test(d.kh) ? d.kh : null, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
+    chodongdien: +d.chodongdien === 1 ? 1 : 0, amluong: d.amluong === undefined ? null : Math.round(soTrong(d.amluong, 0, 30)), kh: /^[0-9a-f]{2}$/.test(d.kh) ? d.kh : null, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
 }
 const lanThayTB = new Map();  // mã thiết bị -> lúc nhận tin gần nhất
 // Vị trí thiết bị gửi lên lệch với vị trí nhà chủ nhà đã lưu trong app (VD: kết nối thiết bị đúng lúc thiết bị đang phát
@@ -1504,6 +1522,48 @@ async function batDienTuXa() {
   }, 25000);
 }
 $('btnBatDien').onclick = batDienTuXa;
+
+// ===================== ÂM LƯỢNG LOA TRÊN THIẾT BỊ =====================
+// Lệnh AMLUONG:<5-30> (có chữ ký như lệnh ngắt). Thiết bị lưu vào bộ nhớ, kêu "ting tong" để nghe thử,
+// rồi báo lại mức đang dùng trong trường "amluong". Bấm +/− liên tiếp thì chỉ gửi 1 lệnh sau khi ngừng bấm 0,7 giây.
+function capNhatLoa() {
+  const coSo = duLieu.amluong !== null && duLieu.amluong !== undefined;
+  if (amLuongCho !== null && duLieu.amluong === amLuongCho) { toast('Đã chỉnh âm lượng loa: ' + amLuongCho + '/30'); amLuongCho = null; }
+  const dangChinh = amLuongCho !== null || henGuiLoa;
+  if (!dangChinh && document.activeElement !== $('amLuong')) {
+    if (coSo) $('amLuong').value = duLieu.amluong;
+    $('soAmLuong').textContent = coSo ? duLieu.amluong + '/30' : '—';
+  }
+  const khoa = !coSo || !thietBiOnline();
+  $('amLuong').disabled = khoa; $('btnLoaGiam').disabled = khoa; $('btnLoaTang').disabled = khoa;
+  if (!coSo && thietBiOnline()) $('soAmLuong').textContent = 'Cần cập nhật code thiết bị';
+}
+function hienMucLoa(v) { $('soAmLuong').textContent = v + '/30' + (v > 20 ? ' · to' : ''); }
+function henGuiAmLuong(v) {
+  if (window.laCheDoKhach && window.laCheDoKhach()) { toast('Đăng nhập tài khoản để chỉnh thiết bị'); capNhatLoaVe(); return; }
+  if (!thietBiOnline()) { toast('Thiết bị đang mất kết nối nên chưa chỉnh được'); capNhatLoaVe(); return; }
+  clearTimeout(henGuiLoa);
+  henGuiLoa = setTimeout(async () => {
+    henGuiLoa = 0;
+    if (!(await window.guiLenhThietBi(cauHinh.ma, 'cmd', 'AMLUONG:' + v))) {
+      toast('Chưa gửi được lệnh: chưa đọc được mã kích hoạt của thiết bị.'); capNhatLoaVe(); return;
+    }
+    amLuongCho = v;
+    const luc = hetChoLoa = Date.now();
+    setTimeout(() => {
+      if (amLuongCho !== null && hetChoLoa === luc) { amLuongCho = null; toast('Thiết bị chưa nhận lệnh chỉnh loa'); capNhatLoaVe(); }
+    }, 15000);
+  }, 700);
+}
+function capNhatLoaVe() { amLuongCho = null; clearTimeout(henGuiLoa); henGuiLoa = 0; $('amLuong').blur(); capNhatLoa(); }
+function doiAmLuong(buoc) {
+  const v = Math.min(30, Math.max(5, (+$('amLuong').value || 20) + buoc));
+  $('amLuong').value = v; hienMucLoa(v); henGuiAmLuong(v);
+}
+$('btnLoaGiam').onclick = () => doiAmLuong(-1);
+$('btnLoaTang').onclick = () => doiAmLuong(1);
+$('amLuong').oninput = () => hienMucLoa(+$('amLuong').value);
+$('amLuong').onchange = () => henGuiAmLuong(+$('amLuong').value);
 
 // ===================== DÙNG CHUNG VỚI PHẦN TÀI KHOẢN =====================
 // HMAC-SHA256 (dạng chữ hex), giống hàm hmacHex trong code ESP32
@@ -2422,6 +2482,7 @@ const VAN_BAN = {
       <li><b>Giữ 10 giây</b> (khi nhà đang có điện): đổi Wi-Fi bằng điện thoại, xem mục Cài Wi-Fi.</li></ul>
     <h4>Trên app</h4>
     <ul><li><b>Ngắt điện từ xa</b>: dùng khi cả nhà đã sơ tán.</li>
+      <li><b>Loa trên thiết bị</b>: chỉnh âm lượng từ 5 đến 30 (nhỏ nhất là 5 vì loa là báo động chính). Mỗi lần chỉnh loa kêu "ting tong" để nghe thử.</li>
       <li><b>AI dự báo</b>: ước tính còn bao nhiêu phút nữa nước chạm mức ngắt, dựa trên tốc độ nước 2 phút gần nhất và dự báo mưa.</li>
       <li><b>Đóng điện lại</b>: khi nước đã rút và sàn, ổ cắm đã khô: giữ nút trên thiết bị 3 giây, hoặc bấm <b>Bật lại điện</b> trong app (thiết bị tự kiểm tra nước đã rút, còi bíp báo 5 giây rồi mới đóng).</li></ul>`],
   khancap: ['Số điện thoại khẩn cấp', `
