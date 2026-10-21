@@ -848,11 +848,11 @@
       <div class="card-h"><div class="card-t"><span class="ic"><svg class="i"><use href="#i-vol"/></svg></span>Loa trên thiết bị</div><span class="loa-so" id="soAmLuong">—</span></div>
       <div class="loa-chinh">
         <button type="button" class="loa-nut" id="btnLoaGiam" aria-label="Giảm âm lượng loa">−</button>
-        <input type="range" id="amLuong" min="5" max="30" step="1" value="20" aria-label="Âm lượng loa trên thiết bị">
+        <input type="range" id="amLuong" min="5" max="21" step="1" value="20" aria-label="Âm lượng loa trên thiết bị">
         <button type="button" class="loa-nut" id="btnLoaTang" aria-label="Tăng âm lượng loa">+</button>
       </div>
       <div class="note"><svg class="i"><use href="#i-info"/></svg><span id="ghiChuLoa">Mỗi lần chỉnh, loa kêu "ting tong" để nghe thử. Loa là báo động chính nên nhỏ nhất là 5.
-        Trên 20 cần nguồn khoẻ: nếu thiết bị tự khởi động lại khi loa kêu, thiết bị tự giảm âm lượng.</span></div>
+        To nhất là 21: to hơn nữa loa làm sụt nguồn, thiết bị bị ngắt.</span></div>
     </div>
 
     <div class="card the-nk">
@@ -951,7 +951,7 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.14.0';
+const PHIEN_BAN_APP = '1.14.1';
 const CO_GI_MOI = [
   'Chỉnh âm lượng loa trên thiết bị ngay trong app (thẻ "Loa trên thiết bị" ở Tổng quan): bấm − / + hoặc kéo thanh, loa kêu "ting tong" để nghe thử.',
   'Nút "Bật lại điện" khi nước đã rút: thiết bị tự kiểm tra lại, còi bíp báo 5 giây rồi mới đóng điện.',
@@ -1027,6 +1027,7 @@ const MAT_KET_NOI_MS = 60000;   // thiết bị gửi 5 giây/lần; 60 giây kh
 const thietBiOnline = () => lanNhanCuoi > 0 && Date.now() - lanNhanCuoi < MAT_KET_NOI_MS;
 let lenhCho = null;            // lệnh ngắt đang chờ thiết bị xác nhận: { cap, luc }
 let amLuongCho = null, henGuiLoa = 0, hetChoLoa = 0;  // chỉnh âm lượng loa đang chờ thiết bị xác nhận (xem ÂM LƯỢNG LOA)
+const LOA_MIN = 5, LOA_MAX = 21;  // khớp AM_LUONG_MIN / AM_LUONG_MAX trong code ESP32
 let ttTruoc = docLuu('ttCuoi_' + cauHinh.ma, 0);  // trạng thái lần trước, để mở lại app không báo trùng
 const lichSu = [];             // {t: ms, muc: cm}
 const cacNha = new Map();      // id -> dữ liệu (cho bản đồ)
@@ -1524,21 +1525,21 @@ async function batDienTuXa() {
 $('btnBatDien').onclick = batDienTuXa;
 
 // ===================== ÂM LƯỢNG LOA TRÊN THIẾT BỊ =====================
-// Lệnh AMLUONG:<5-30> (có chữ ký như lệnh ngắt). Thiết bị lưu vào bộ nhớ, kêu "ting tong" để nghe thử,
+// Lệnh AMLUONG:<5-21> (có chữ ký như lệnh ngắt). To hơn 21 loa làm sụt nguồn, thiết bị khởi động lại (khớp AM_LUONG_MAX trong code ESP32). Thiết bị lưu vào bộ nhớ, kêu "ting tong" để nghe thử,
 // rồi báo lại mức đang dùng trong trường "amluong". Bấm +/− liên tiếp thì chỉ gửi 1 lệnh sau khi ngừng bấm 0,7 giây.
 function capNhatLoa() {
   const coSo = duLieu.amluong !== null && duLieu.amluong !== undefined;
-  if (amLuongCho !== null && duLieu.amluong === amLuongCho) { toast('Đã chỉnh âm lượng loa: ' + amLuongCho + '/30'); amLuongCho = null; }
+  if (amLuongCho !== null && duLieu.amluong === amLuongCho) { toast('Đã chỉnh âm lượng loa: ' + amLuongCho + '/' + LOA_MAX); amLuongCho = null; }
   const dangChinh = amLuongCho !== null || henGuiLoa;
   if (!dangChinh && document.activeElement !== $('amLuong')) {
     if (coSo) $('amLuong').value = duLieu.amluong;
-    $('soAmLuong').textContent = coSo ? duLieu.amluong + '/30' : '—';
+    $('soAmLuong').textContent = coSo ? Math.min(duLieu.amluong, LOA_MAX) + '/' + LOA_MAX : '—';
   }
   const khoa = !coSo || !thietBiOnline();
   $('amLuong').disabled = khoa; $('btnLoaGiam').disabled = khoa; $('btnLoaTang').disabled = khoa;
   if (!coSo && thietBiOnline()) $('soAmLuong').textContent = 'Cần cập nhật code thiết bị';
 }
-function hienMucLoa(v) { $('soAmLuong').textContent = v + '/30' + (v > 20 ? ' · to' : ''); }
+function hienMucLoa(v) { $('soAmLuong').textContent = v + '/' + LOA_MAX + (v >= LOA_MAX ? ' · to nhất' : ''); }
 function henGuiAmLuong(v) {
   if (window.laCheDoKhach && window.laCheDoKhach()) { toast('Đăng nhập tài khoản để chỉnh thiết bị'); capNhatLoaVe(); return; }
   if (!thietBiOnline()) { toast('Thiết bị đang mất kết nối nên chưa chỉnh được'); capNhatLoaVe(); return; }
@@ -1557,7 +1558,7 @@ function henGuiAmLuong(v) {
 }
 function capNhatLoaVe() { amLuongCho = null; clearTimeout(henGuiLoa); henGuiLoa = 0; $('amLuong').blur(); capNhatLoa(); }
 function doiAmLuong(buoc) {
-  const v = Math.min(30, Math.max(5, (+$('amLuong').value || 20) + buoc));
+  const v = Math.min(LOA_MAX, Math.max(LOA_MIN, (+$('amLuong').value || 20) + buoc));
   $('amLuong').value = v; hienMucLoa(v); henGuiAmLuong(v);
 }
 $('btnLoaGiam').onclick = () => doiAmLuong(-1);
@@ -2482,7 +2483,7 @@ const VAN_BAN = {
       <li><b>Giữ 10 giây</b> (khi nhà đang có điện): đổi Wi-Fi bằng điện thoại, xem mục Cài Wi-Fi.</li></ul>
     <h4>Trên app</h4>
     <ul><li><b>Ngắt điện từ xa</b>: dùng khi cả nhà đã sơ tán.</li>
-      <li><b>Loa trên thiết bị</b>: chỉnh âm lượng từ 5 đến 30 (nhỏ nhất là 5 vì loa là báo động chính). Mỗi lần chỉnh loa kêu "ting tong" để nghe thử.</li>
+      <li><b>Loa trên thiết bị</b>: chỉnh âm lượng từ 5 đến 21 (nhỏ nhất là 5 vì loa là báo động chính; to hơn 21 loa làm sụt nguồn, thiết bị bị ngắt). Mỗi lần chỉnh loa kêu "ting tong" để nghe thử.</li>
       <li><b>AI dự báo</b>: ước tính còn bao nhiêu phút nữa nước chạm mức ngắt, dựa trên tốc độ nước 2 phút gần nhất và dự báo mưa.</li>
       <li><b>Đóng điện lại</b>: khi nước đã rút và sàn, ổ cắm đã khô: giữ nút trên thiết bị 3 giây, hoặc bấm <b>Bật lại điện</b> trong app (thiết bị tự kiểm tra nước đã rút, còi bíp báo 5 giây rồi mới đóng).</li></ul>`],
   khancap: ['Số điện thoại khẩn cấp', `
