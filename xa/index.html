@@ -394,6 +394,9 @@
       <label class="o"><span>Mật khẩu (ít nhất 8 ký tự)</span><div class="mk"><input id="tlMk" type="password" autocomplete="new-password"><button type="button" class="hien-mk" data-cho="tlMk">Hiện</button></div></label>
       <label class="o"><span>Nhập lại mật khẩu</span><input id="tlMk2" type="password" autocomplete="new-password"></label>
       <button class="btn btn-primary btn-day" id="btnTL">Gửi đăng ký</button>
+      <div class="hoac-mxh" id="tlHoac">hoặc không cần mật khẩu</div>
+      <div class="mxh" id="mxhTL"></div>
+      <div class="dn-ghi" id="tlGoogleGhi" style="text-align:left">Đã dùng app người dân bằng Google, hoặc muốn đăng nhập bằng Gmail: điền các ô phía trên (bỏ trống email, mật khẩu) rồi bấm "Đăng ký bằng Google".</div>
       <div class="dn-ghi" id="tlCheDo"></div>
     </div>
 
@@ -401,7 +404,8 @@
       <div class="dn-dau"><span class="dn-xa">Đã gửi đăng ký</span><h1>Đang chờ xác minh</h1>
         <div class="sub" id="daGuiTxt"></div></div>
       <div class="dn-ghi" style="text-align:left;margin-bottom:18px">Nhóm phát triển sẽ gọi vào số điện thoại bạn đã đăng ký để xác minh với UBND xã.
-        Sau khi được duyệt, bạn đăng nhập bằng email và mật khẩu vừa tạo. Trong lúc chờ, bạn vẫn xem thử được bản đồ của xã.</div>
+        Sau khi được duyệt, bạn đăng nhập bằng email và mật khẩu vừa tạo (đăng ký bằng Google thì bấm "Tiếp tục với Google").
+        Trong lúc chờ, bạn vẫn xem thử được bản đồ của xã.</div>
       <button class="btn btn-primary btn-day" data-den="dangnhap">Về trang đăng nhập</button>
     </div>
 
@@ -1391,6 +1395,12 @@ const Firebase = {
     try { await au.getRedirectResult(this.auth); } catch (e) { this.loiChuyenHuong = e; }  // hoàn tất đăng nhập Google kiểu chuyển hướng
     await this.auth.authStateReady();
     if (!this.auth.currentUser) return null;
+    const don = docJ('nln_xa_dkCho', null, sessionStorage);
+    if (don) {  // vừa quay về từ trang Google khi đăng ký (cửa sổ bật lên bị chặn): gửi nốt đơn
+      try { await this.guiDonCho(this.auth.currentUser, don); this.daGuiDon = don; }
+      catch (e) { this.loiChuyenHuong = e; await this.au.signOut(this.auth).catch(() => {}); }
+      return null;
+    }
     try { return await this.sauDangNhap(this.auth.currentUser); }
     catch (e) { this.loiChuyenHuong = e; return null; }
   },
@@ -1450,24 +1460,48 @@ const Firebase = {
     const cu = await this.fs.getDoc(this.fs.doc(this.db, 'xa', 'caiDat'));
     return cu.exists() ? cu.data() : null;
   },
-  // Đăng ký xã mới: tạo tài khoản quản trị và cài đặt xã cùng lúc (máy chủ chỉ cho phép khi xã chưa có quản trị)
-  // Xã mới ở trạng thái chờ duyệt: nhóm phát triển xác minh với UBND xã rồi mới kích hoạt. Trả về null (chưa đăng nhập được).
-  // Đăng ký tài khoản (chờ nhóm phát triển duyệt). Quản trị: chỉ khi xã chưa có quản trị; xã đã có cài đặt (danh sách
-  // thôn...) mà chưa có quản trị (VD: Xã Đoan Hùng từ bản một xã) thì nhận xã đó, giữ nguyên cài đặt.
-  // Cán bộ xã, trưởng thôn: chỉ tạo tài khoản chờ duyệt, không đụng tới cài đặt xã.
-  async thietLapLanDau({ xa, tenXa, tinh, hoTen, chucVu, sdt, email, mk, vaiTro = 'quanTri', thon = '' }) {
+  // Đăng ký tài khoản (chờ nhóm phát triển duyệt). Trả về null: chưa đăng nhập được cho tới khi được duyệt.
+  // Quản trị: chỉ khi xã chưa có quản trị; xã đã có cài đặt (danh sách thôn...) mà chưa có quản trị (VD: Xã Đoan Hùng
+  // từ bản một xã) thì nhận xã đó, giữ nguyên cài đặt. Cán bộ xã, trưởng thôn: chỉ tạo hồ sơ chờ duyệt.
+  // Email đã có tài khoản (VD: từng dùng app người dân bằng email + mật khẩu): nhập đúng mật khẩu đó thì dùng lại tài khoản.
+  async thietLapLanDau(f) {
+    let c, moi = true;
+    try { c = await this.au.createUserWithEmailAndPassword(this.auth, f.email, f.mk); }
+    catch (e) {
+      if (!e || e.code !== 'auth/email-already-in-use') throw e;
+      moi = false;
+      try { c = await this.au.signInWithEmailAndPassword(this.auth, f.email, f.mk); }
+      catch { throw { code: 'email-co-tk' }; }  // tài khoản Google, hoặc sai mật khẩu
+    }
+    try { await this.guiDonCho(c.user, f); }
+    catch (e) { if (moi) { try { await this.au.deleteUser(c.user); } catch {} } await this.au.signOut(this.auth).catch(() => {}); throw e; }
+    return null;
+  },
+  // Đăng ký bằng tài khoản Google (VD: người đã dùng app người dân bằng Google). Phải chuyển cả trang sang Google
+  // (cửa sổ bật lên bị chặn) thì giữ đơn trong phiên, quay về trang này khoiTao() gửi nốt.
+  async dangKyGoogle(f) {
+    ghiJ('nln_xa_dkCho', f, sessionStorage);
+    const u = await window.dangNhapMXH(this.au, this.auth, 'google');
+    if (!u) return 'chuyen-huong';
+    try { await this.guiDonCho(u, f); }
+    catch (e) { await this.au.signOut(this.auth).catch(() => {}); throw e; }
+    return null;
+  },
+  // Ghi hồ sơ cán bộ chờ duyệt cho tài khoản đang đăng nhập (và nhận xã nếu đăng ký làm quản trị), rồi đăng xuất
+  async guiDonCho(u, { xa, tenXa, tinh, hoTen, chucVu, sdt, vaiTro = 'quanTri', thon = '' }) {
+    ghiJ('nln_xa_dkCho', null, sessionStorage);
+    const refCB = this.fs.doc(this.db, 'canBo', u.uid), daCo = await this.fs.getDoc(refCB);
+    if (daCo.exists()) throw { code: daCo.data().trangThai === 'choDuyet' ? 'cho-duyet' : 'da-la-can-bo' };
     const refXa = this.fs.doc(this.db, 'dsXa', xa), sXa = await this.fs.getDoc(refXa);
     const xaCo = sXa.exists() ? sXa.data() : null, laQT = vaiTro === 'quanTri';
     if (laQT && (xaCo ? xaCo.uidQuanTri : xa === MA_XA_CU && (await this.layXa(xa)))) throw { code: 'xa-da-co' };
-    const c = await this.au.createUserWithEmailAndPassword(this.auth, email, mk);
     const luc = new Date().toISOString(), b = this.fs.writeBatch(this.db);
-    b.set(this.fs.doc(this.db, 'canBo', c.user.uid), { email, hoTen, chucVu, sdt, vaiTro, thon: vaiTro === 'thon' ? thon : '', trangThai: 'choDuyet', taoLuc: luc, xa });
-    if (laQT && xaCo) b.update(refXa, { trangThai: 'choDuyet', uidQuanTri: c.user.uid, dangKyLuc: luc });
-    else if (laQT) b.set(refXa, { tenXa, tinh, dsThon: [], taoLuc: luc, trangThai: 'choDuyet', uidQuanTri: c.user.uid });
+    b.set(refCB, { email: (u.email || '').toLowerCase(), hoTen, chucVu, sdt, vaiTro, thon: vaiTro === 'thon' ? thon : '', trangThai: 'choDuyet', taoLuc: luc, xa });
+    if (laQT && xaCo) b.update(refXa, { trangThai: 'choDuyet', uidQuanTri: u.uid, dangKyLuc: luc });
+    else if (laQT) b.set(refXa, { tenXa, tinh, dsThon: [], taoLuc: luc, trangThai: 'choDuyet', uidQuanTri: u.uid });
     try { await b.commit(); }
-    catch (e) { try { await this.au.deleteUser(c.user); } catch {} throw e && e.code === 'permission-denied' && laQT ? { code: 'xa-da-co' } : e; }
+    catch (e) { throw e && e.code === 'permission-denied' && laQT ? { code: 'xa-da-co' } : e; }
     await this.au.signOut(this.auth);
-    return null;
   },
   async dangNhap(email, mk, nho) {
     await this.au.setPersistence(this.auth, nho ? this.au.browserLocalPersistence : this.au.browserSessionPersistence);
@@ -1562,7 +1596,9 @@ const LOI = {
   'permission-denied': 'Bạn không có quyền thực hiện thao tác này.', 'da-thiet-lap': 'Hệ thống đã được thiết lập trước đó.',
   'xa-da-co': 'Xã, phường này đã có quản trị (đang hoạt động hoặc chờ duyệt). Bạn đăng ký làm cán bộ xã hoặc trưởng thôn.',
   'tb-da-co': 'Mã thiết bị này đã có trong kho.',
-  'cho-duyet': 'Đăng ký của xã đang chờ nhóm phát triển xác minh. Bạn đăng nhập được ngay sau khi được duyệt.',
+  'cho-duyet': 'Đăng ký của bạn đang chờ nhóm phát triển xác minh. Bạn đăng nhập được ngay sau khi được duyệt.',
+  'email-co-tk': 'Email này đã có tài khoản (VD: đã dùng app người dân). Nếu từng đăng nhập bằng Google, bấm "Đăng ký bằng Google" bên dưới; nếu dùng mật khẩu, nhập đúng mật khẩu cũ.',
+  'da-la-can-bo': 'Tài khoản này đã là cán bộ trong hệ thống. Quay lại trang đăng nhập để vào.',
   'demo-quen': 'Bản demo lưu tài khoản trên máy này nên không gửi email được. Nhờ quản trị viên tạo lại tài khoản.',
   'demo-mxh': 'Đăng nhập bằng Google cần bật máy chủ Firebase (xem app/HUONG_DAN_FIREBASE.txt). Trong lúc chờ, hãy dùng email cán bộ.',
   'auth/popup-closed-by-user': '', 'auth/cancelled-popup-request': '', 'auth/user-cancelled': '',
@@ -1617,6 +1653,7 @@ async function batDau() {
   const demo = TK.ten === 'demo';
   $('dnCheDo').textContent = demo ? 'Bản demo: tài khoản lưu trên trình duyệt của máy này.' : 'Kết nối máy chủ bảo mật.';
   $('tlCheDo').textContent = $('dnCheDo').textContent;
+  if (demo || !$('mxhTL').children.length) ['tlHoac', 'mxhTL', 'tlGoogleGhi'].forEach(id => { $(id).style.display = 'none'; });
   let loiMang = false;
   try { nd = await TK.khoiTao(); } catch { nd = null; loiMang = !navigator.onLine; }
   const xaKhach = docJ('nln_xa_khach', null, sessionStorage);
@@ -1624,6 +1661,7 @@ async function batDau() {
   if (nd) return vaoHeThong(false);
   // Đường dẫn có ?xa=<mã xã>: hiện tên xã ở màn hình đăng nhập
   if (maXaUrl()) thongTinXa(maXaUrl()).then(c => { if (!nd) { caiDat = c; hienTenXa(); } }).catch(() => {});
+  if (TK.daGuiDon) return hienDaGui(TK.daGuiDon);  // vừa đăng ký bằng Google kiểu chuyển trang
   man('dangnhap');
   if (TK.loiChuyenHuong) loi('loiDN', loiTV(TK.loiChuyenHuong));
   if (loiMang) loi('loiDN', 'Không kết nối được máy chủ. Kiểm tra mạng rồi tải lại trang.');
@@ -1721,27 +1759,57 @@ $('tlXa').addEventListener('change', capNhatVaiTroTL);
 $('tlTinh').addEventListener('change', capNhatVaiTroTL);
 $('tlVaiTro').onchange = () => { $('tlThon').disabled = $('tlVaiTro').value !== 'thon' || !$('tlThon').value; };
 
-$('btnTL').onclick = () => cho($('btnTL'), async () => {
-  const xa = $('tlXa').value, hoTen = $('tlHoTen').value.trim(), email = $('tlEmail').value.trim().toLowerCase(), mk = $('tlMk').value;
+// Đọc các ô của mẫu đăng ký (canMk: đăng ký bằng email + mật khẩu). Trả về đơn, hoặc chuỗi lỗi.
+async function docDonTL(canMk) {
+  const xa = $('tlXa').value, hoTen = $('tlHoTen').value.trim();
   const chucVu = $('tlChucVu').value.trim().slice(0, 60), sdt = $('tlSdt').value.replace(/[^\d+]/g, '').slice(0, 15);
-  if (!/^\d{5}$/.test(xa)) return loi('loiTL', 'Chọn tỉnh, thành phố và xã, phường.');
-  if (chucVu.length < 2) return loi('loiTL', 'Nhập chức vụ của bạn tại UBND xã.');
-  if (!/^(\+84|0)\d{9,10}$/.test(sdt)) return loi('loiTL', 'Nhập số điện thoại để nhóm phát triển gọi xác minh.');
+  if (!/^\d{5}$/.test(xa)) return 'Chọn tỉnh, thành phố và xã, phường.';
   const vaiTro = $('tlVaiTro').value, thon = vaiTro === 'thon' ? $('tlThon').value : '';
-  if (vaiTro === 'quanTri' && $('tlVaiTro').options[0].disabled) return loi('loiTL', 'Xã này đã có quản trị: đăng ký làm cán bộ xã hoặc trưởng thôn.');
-  if (vaiTro === 'thon' && !thon) return loi('loiTL', 'Chọn thôn bạn phụ trách. Xã chưa khai báo thôn thì đăng ký làm cán bộ xã.');
-  if (hoTen.length < 2) return loi('loiTL', 'Nhập họ và tên.');
-  if (!laEmail(email)) return loi('loiTL', 'Email không hợp lệ.');
-  if (mk.length < 8) return loi('loiTL', 'Mật khẩu cần ít nhất 8 ký tự.');
-  if (mk !== $('tlMk2').value) return loi('loiTL', 'Hai mật khẩu chưa khớp nhau.');
+  if (vaiTro === 'quanTri' && $('tlVaiTro').options[0].disabled) return 'Xã này đã có quản trị: đăng ký làm cán bộ xã hoặc trưởng thôn.';
+  if (vaiTro === 'thon' && !thon) return 'Chọn thôn bạn phụ trách. Xã chưa khai báo thôn thì đăng ký làm cán bộ xã.';
+  if (hoTen.length < 2) return 'Nhập họ và tên.';
+  if (chucVu.length < 2) return 'Nhập chức vụ của bạn tại UBND xã.';
+  if (!/^(\+84|0)\d{9,10}$/.test(sdt)) return 'Nhập số điện thoại để nhóm phát triển gọi xác minh.';
+  const don = { xa, hoTen, chucVu, sdt, vaiTro, thon };
+  if (canMk) {
+    don.email = $('tlEmail').value.trim().toLowerCase(); don.mk = $('tlMk').value;
+    if (!laEmail(don.email)) return 'Email không hợp lệ.';
+    if (don.mk.length < 8) return 'Mật khẩu cần ít nhất 8 ký tự.';
+    if (don.mk !== $('tlMk2').value) return 'Hai mật khẩu chưa khớp nhau.';
+  }
+  const x = (await napDVHC()).xa.get(xa);
+  return Object.assign(don, { tenXa: x.ten, tinh: x.tinh });
+}
+function hienDaGui(don) {
+  $('daGuiTxt').textContent = `${don.tenXa}, ${don.tinh}. Đăng ký làm ${VAI_TRO[don.vaiTro].toLowerCase()}${don.thon ? ' ' + don.thon : ''}: ${don.hoTen} (${don.chucVu}), ${don.sdt}.`;
+  man('dagui');
+}
+// Đăng ký bằng Google: người đã dùng app người dân bằng Google (email đó đã có tài khoản) vẫn gửi được đơn
+if (window.veNutMXH) {
+  window.veNutMXH($('mxhTL'), ['google']);
+  const chu = $('mxhTL').querySelector('span');
+  if (chu) chu.textContent = 'Đăng ký bằng Google';
+}
+$('mxhTL').addEventListener('click', e => {
+  const b = e.target.closest('[data-mxh]');
+  if (!b) return;
+  loi('loiTL', '');
+  cho(b, async () => {
+    const don = await docDonTL(false);
+    if (typeof don === 'string') return loi('loiTL', don);
+    try { if (!(await TK.dangKyGoogle(don))) hienDaGui(don); }  // 'chuyen-huong': trang sẽ chuyển sang Google
+    catch (er) { loi('loiTL', loiTV(er)); }
+  });
+});
+
+$('btnTL').onclick = () => cho($('btnTL'), async () => {
+  const don = await docDonTL(true);
+  if (typeof don === 'string') return loi('loiTL', don);
+  const { xa, hoTen, chucVu, sdt, email, mk, vaiTro, thon } = don, x = { ten: don.tenXa, tinh: don.tinh };
   try {
-    const x = (await napDVHC()).xa.get(xa);
     const u = await TK.thietLapLanDau({ xa, tenXa: x.ten, tinh: x.tinh, hoTen, chucVu, sdt, email, mk, vaiTro, thon });
     ['tlMk', 'tlMk2'].forEach(id => { $(id).value = ''; });
-    if (!u) {  // máy chủ thật: chờ duyệt
-      $('daGuiTxt').textContent = `${x.ten}, ${x.tinh}. Đăng ký làm ${VAI_TRO[vaiTro].toLowerCase()}${thon ? ' ' + thon : ''}: ${hoTen} (${chucVu}), ${sdt}.`;
-      return man('dagui');
-    }
+    if (!u) return hienDaGui(don);  // máy chủ thật: chờ duyệt
     nd = u;
     await vaoHeThong(false);
     ghiNK('Đăng ký ' + x.ten + ', tạo tài khoản quản trị');
