@@ -715,6 +715,8 @@ const escH = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&
 const soGH = (v, nho, lon) => { const x = +v; return Number.isFinite(x) ? Math.min(lon, Math.max(nho, x)) : 0; };
 const chuSach = (v, dai) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, dai);
 const trongVN = (lat, lon) => lat > 8 && lat < 24 && lon > 102 && lon < 110;
+// Vị trí mặc định trong code ESP32 (thiết bị chưa nhận vị trí GPS từ app): không phải vị trí thật của ngôi nhà
+const laViTriMacDinh = (lat, lon) => Math.abs(lat - 21.62) < 0.0001 && Math.abs(lon - 105.18) < 0.0001;
 function cachTamXaKm(lat, lon) {
   const dy = (lat - TAM_XA[0]) * 110.6, dx = (lon - TAM_XA[1]) * 111.3 * Math.cos(TAM_XA[0] * Math.PI / 180);
   return Math.hypot(dx, dy);
@@ -787,7 +789,8 @@ window.datHoDan = ds => {
       nguoiGia: soGH(x.nguoiGia, 0, 20), treEm: soGH(x.treEm, 0, 20), khuyetTat: soGH(x.khuyetTat, 0, 20), oMotMinh: x.oMotMinh === true,
     });
     if (!h.lanCuoi) h.motTang = x.motTang === true;  // thiết bị đã gửi số liệu thì lấy loại nhà theo thiết bị
-    if (trongVN(lat, lon)) { h.lat = lat; h.lon = lon; }
+    // Vị trí hộ khai trong app; còn là vị trí mặc định (chưa lấy GPS) mà thiết bị đã gửi vị trí thật thì giữ của thiết bị
+    if (trongVN(lat, lon) && !(laViTriMacDinh(lat, lon) && h.lat && !laViTriMacDinh(h.lat, h.lon))) { h.lat = lat; h.lon = lon; }
     xepThon(h);
   }
   // Hộ đã thôi chia sẻ (hoặc cán bộ đăng xuất): xoá thông tin cá nhân khỏi trang
@@ -1128,8 +1131,10 @@ function ketNoiMQTT() {
         if (MA_XA !== 'toanhethong' && (!trongVN(lat, lon) || !trongXa(lat, lon))) return;
         h = taoHo(id);
       }
-      // Hộ chưa chia sẻ thông tin: vị trí theo thiết bị gửi lên (chủ nhà cập nhật vị trí mới thì chấm dời theo)
-      if (trongVN(lat, lon) && (!h.lat || !h.dangKy)) { h.lat = lat; h.lon = lon; }
+      // Hộ chưa chia sẻ thông tin, hoặc hộ chia sẻ mà vị trí còn là mặc định (chưa lấy GPS): vị trí theo thiết bị gửi lên
+      // (chủ nhà cập nhật vị trí mới thì chấm dời theo). Vị trí mặc định của thiết bị thì không dùng.
+      if (trongVN(lat, lon) && !laViTriMacDinh(lat, lon) && (!h.lat || !h.dangKy || laViTriMacDinh(h.lat, h.lon))) { h.lat = lat; h.lon = lon; }
+      else if (trongVN(lat, lon) && !h.lat) { h.lat = lat; h.lon = lon; }
       if (d.motang === 1 || d.motang === 0) h.motTang = d.motang === 1;
       // Mức ngắt riêng của thiết bị (để tô màu mực nước đúng như app của hộ đó)
       h.chuyenCho = +d.chuyencho === 1;  // thiết bị báo bị chuyển chỗ, chủ nhà chưa cập nhật vị trí mới

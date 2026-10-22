@@ -951,7 +951,7 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.14.2';
+const PHIEN_BAN_APP = '1.14.3';
 const CO_GI_MOI = [
   'Chỉnh âm lượng loa trên thiết bị ngay trong app (thẻ "Loa trên thiết bị" ở Tổng quan): bấm − / + hoặc kéo thanh, loa kêu "ting tong" để nghe thử.',
   'Nút "Bật lại điện" khi nước đã rút: thiết bị tự kiểm tra lại, còi bíp báo 5 giây rồi mới đóng điện.',
@@ -1423,23 +1423,35 @@ function locDuLieu(d) {
     chodongdien: +d.chodongdien === 1 ? 1 : 0, amluong: d.amluong === undefined ? null : Math.round(soTrong(d.amluong, 0, 30)), kh: /^[0-9a-f]{2}$/.test(d.kh) ? d.kh : null, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
 }
 const lanThayTB = new Map();  // mã thiết bị -> lúc nhận tin gần nhất
-// Đồng bộ vị trí nhà giữa app và thiết bị. Thiết bị CHƯA có vị trí (còn vị trí mặc định của code ESP32, VD: kết nối
-// thiết bị đúng lúc đang phát Wi-Fi cài đặt nên chưa nhận được): gửi vị trí đã lưu trong app xuống. Thiết bị ĐÃ có vị trí
-// khác: đó là vị trí mới vừa cập nhật (có thể từ máy khác của chủ nhà), app lấy theo thiết bị, KHÔNG gửi vị trí cũ đè lên.
+// Đồng bộ vị trí nhà giữa tài khoản và thiết bị (vị trí lấy bằng GPS điện thoại khi bấm "Cập nhật vị trí"):
+//  - Tài khoản vừa có vị trí GPS mới mà thiết bị chưa nhận (lúc đó thiết bị mất mạng), hoặc thiết bị chưa có vị trí
+//    (còn vị trí mặc định của code ESP32): gửi xuống thiết bị, 2 phút 1 lần tới khi khớp.
+//  - Thiết bị đã có vị trí thật khác tài khoản (VD: cập nhật từ máy khác của chủ nhà): lấy theo thiết bị, ghi vào
+//    tài khoản và gửi lại cho xã. KHÔNG gửi vị trí cũ đè lên thiết bị.
 // Không làm gì khi thiết bị báo bị chuyển chỗ (lúc đó app nhắc chủ nhà đứng cạnh thiết bị cập nhật vị trí mới).
 const VI_TRI_MAC_DINH_TB = [21.62, 105.18];  // khớp VI_DO_MAC_DINH, KINH_DO_MAC_DINH trong code ESP32
+const viTriHopLe = (a, b) => a > 8 && a < 24 && b > 102 && b < 110;
+const laViTriMacDinh = (a, b) => Math.abs(a - VI_TRI_MAC_DINH_TB[0]) < 0.0001 && Math.abs(b - VI_TRI_MAC_DINH_TB[1]) < 0.0001;
+window.laViTriMacDinh = laViTriMacDinh;
 let lanGuiViTri = 0;
 function dongBoViTriTB(id, d) {
-  if (id !== cauHinh.ma || +d.chuyencho === 1 || !window.laChuThietBi || !window.laChuThietBi(id)) return;
-  const vd = +cauHinh.viDo, kd = +cauHinh.kinhDo, lat = +d.lat, lon = +d.lon;
-  if (!(vd > 8 && vd < 24 && kd > 102 && kd < 110)) return;
-  if (Math.abs(lat - vd) < 0.0005 && Math.abs(lon - kd) < 0.0005) return;  // lệch dưới khoảng 50 m: coi như khớp
-  const tbChuaCo = !(lat > 8 && lat < 24 && lon > 102 && lon < 110)
-    || (Math.abs(lat - VI_TRI_MAC_DINH_TB[0]) < 0.0001 && Math.abs(lon - VI_TRI_MAC_DINH_TB[1]) < 0.0001);
-  if (!tbChuaCo) { window.datViTriNha(lat, lon); return; }
-  if (Date.now() - lanGuiViTri < 120000) return;
-  lanGuiViTri = Date.now();
-  window.guiLenhThietBi(id, 'cmd', `VITRI:${vd},${kd}`);
+  if (id !== cauHinh.ma || +d.chuyencho === 1 || !window.viTriTB) return;
+  const tk = window.viTriTB(id);
+  if (!tk) return;  // khách, hoặc thiết bị không thuộc tài khoản này
+  const lat = +d.lat, lon = +d.lon;
+  const tbCo = viTriHopLe(lat, lon) && !laViTriMacDinh(lat, lon), tkCo = viTriHopLe(tk.lat, tk.lon) && !laViTriMacDinh(tk.lat, tk.lon);
+  if (Math.abs(lat - tk.lat) < 0.0005 && Math.abs(lon - tk.lon) < 0.0005) {  // lệch dưới khoảng 50 m: coi như khớp
+    if (tk.choGui) window.luuViTriTuTB(id, tk.lat, tk.lon);  // thiết bị đã nhận vị trí mới: thôi gửi lại
+    return;
+  }
+  if (tkCo && (tk.choGui || !tbCo)) {
+    if (Date.now() - lanGuiViTri < 120000) return;
+    lanGuiViTri = Date.now();
+    window.guiLenhThietBi(id, 'cmd', `VITRI:${tk.lat},${tk.lon}`);
+  } else if (tbCo) {
+    window.datViTriNha(lat, lon);
+    window.luuViTriTuTB(id, lat, lon);
+  }
 }
 window.dongBoViTriTB = dongBoViTriTB;
 window.lanThayTB = lanThayTB;
@@ -2212,7 +2224,7 @@ async function capNhatViTriTB(ma, nut) {
     const p = await layGPS(p => { nut.textContent = `Đang dò GPS… ±${Math.round(p.coords.accuracy)} m`; });
     const lat = +p.coords.latitude.toFixed(6), lon = +p.coords.longitude.toFixed(6);
     if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) { window.toast('Vị trí lấy được nằm ngoài Việt Nam, thử lại'); return; }
-    Object.assign(tb, { lat, lon });
+    Object.assign(tb, { lat, lon, choGuiViTri: true });  // gửi lại xuống thiết bị tới khi thiết bị xác nhận
     // Vị trí mới thuộc xã khác: hỏi đổi luôn địa chỉ ngôi nhà. Danh mục chỉ có khung chữ nhật bao quanh từng xã, khung
     // các xã liền kề chồng lên nhau: vị trí còn trong khung xã hiện tại thì giữ nguyên địa chỉ, không đoán sang xã bên cạnh.
     const x = await napDVHC().then(d => {
@@ -2235,6 +2247,23 @@ async function capNhatViTriTB(ma, nut) {
 window.capNhatViTriTB = capNhatViTriTB;
 // Thiết bị này có trong tài khoản đang đăng nhập không (khách dùng thử, chưa đăng nhập: không)
 window.laChuThietBi = ma => !laKhach && !!nguoiDung && !!hoSo && hoSo.thietBi.some(t => t.ma === ma);
+// Vị trí nhà lưu trong tài khoản, cho dongBoViTriTB so với vị trí thiết bị gửi lên.
+// choGui: vừa lấy GPS mới mà thiết bị chưa xác nhận (VD: lúc đó thiết bị mất mạng) -> app gửi lại tới khi khớp.
+window.viTriTB = ma => {
+  const tb = window.laChuThietBi(ma) && hoSo.thietBi.find(t => t.ma === ma);
+  return tb ? { lat: +tb.lat, lon: +tb.lon, choGui: !!tb.choGuiViTri } : null;
+};
+// Thiết bị đã có vị trí mới hơn (cập nhật từ máy khác), hoặc đã xác nhận vị trí app gửi: ghi vào tài khoản, gửi lại cho xã
+window.luuViTriTuTB = async (ma, lat, lon) => {
+  const tb = window.laChuThietBi(ma) && hoSo.thietBi.find(t => t.ma === ma);
+  if (!tb) return;
+  const doi = Math.abs(+tb.lat - lat) >= 0.0005 || Math.abs(+tb.lon - lon) >= 0.0005;
+  if (!doi && !tb.choGuiViTri) return;
+  Object.assign(tb, { lat, lon }); delete tb.choGuiViTri;
+  try { await luuHoSo(); } catch { return; }
+  if (doi && nguoiDung && TK.chiaSeXa) TK.chiaSeXa(nguoiDung, hoSo).catch(() => {});
+  if (doi) veTaiKhoan();
+};
 const pinTB = {};
 window.layPinTB = async ma => {
   if (!window.laChuThietBi(ma)) return null;
@@ -2349,7 +2378,7 @@ function veTaiKhoan() {
         <div class="tt">
           <div class="tb-dong"><b>${esc(t.ten)}</b>${t.ma === hoSo.thietBiChon ? '<span class="pill on">Đang xem</span>' : ''}</div>
           <small class="tb-dc">${esc([t.thon, t.tenXa, t.tinh].filter(Boolean).join(', ') || 'Chưa có địa chỉ: bấm "Sửa thông tin" để thêm')}</small>
-          <div class="tb-the"><span>${esc(t.ma)}</span><span>Nhà ${t.soTang || (t.motTang ? 1 : 2)} tầng</span>${t.xacMinh || laKhach ? '' : `<button class="chua" data-xacminh="${esc(t.ma)}">Chưa xác minh · nhập mã kích hoạt</button>`}${laKhach ? '' : `<button data-vitri="${esc(t.ma)}">Cập nhật vị trí</button><button data-modal="caiwifi">Cài Wi-Fi</button>`}${khoaKhop[t.ma] === false ? '<span class="chua">Mã kích hoạt trên thiết bị chưa khớp tem: lệnh từ app chưa có tác dụng</span>' : ''}</div>
+          <div class="tb-the"><span>${esc(t.ma)}</span><span>Nhà ${t.soTang || (t.motTang ? 1 : 2)} tầng</span>${t.xacMinh || laKhach ? '' : `<button class="chua" data-xacminh="${esc(t.ma)}">Chưa xác minh · nhập mã kích hoạt</button>`}${laKhach ? '' : `<button data-vitri="${esc(t.ma)}">Cập nhật vị trí</button><button data-modal="caiwifi">Cài Wi-Fi</button>`}${!laKhach && (!(+t.lat) || window.laViTriMacDinh(+t.lat, +t.lon)) ? '<span class="chua">Chưa có vị trí GPS của ngôi nhà: đứng cạnh thiết bị bấm Cập nhật vị trí</span>' : ''}${khoaKhop[t.ma] === false ? '<span class="chua">Mã kích hoạt trên thiết bị chưa khớp tem: lệnh từ app chưa có tác dụng</span>' : ''}</div>
         </div>
         ${t.ma === hoSo.thietBiChon ? '' : `<button class="act" data-chon="${esc(t.ma)}">Xem</button>`}
         <button class="xoa" data-xoa="${esc(t.ma)}" aria-label="Xoá thiết bị">×</button></div>`).join('')}
@@ -2410,7 +2439,7 @@ document.addEventListener('click', async e => {
     try {
       const d = await TK.xacMinhThietBi(nguoiDung, tb.ma, pin);
       Object.assign(tb, { soTang: d.soTang, motTang: d.soTang === 1, xacMinh: true });
-      if (d.lat && d.lon) { tb.lat = d.lat; tb.lon = d.lon; }
+      if (d.lat && d.lon && !window.laViTriMacDinh(+d.lat, +d.lon)) { tb.lat = d.lat; tb.lon = d.lon; }  // bỏ vị trí mặc định trong Kho
       await luuHoSo(); dongBoThietBi(); veTaiKhoan();
       if (tb.ma === hoSo.thietBiChon) window.datLoaiNha(tb.motTang, tb.soTang);
       window.toast('Đã xác minh thiết bị');
