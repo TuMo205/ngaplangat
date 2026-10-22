@@ -951,7 +951,7 @@
 <script>
 // ===================== CẤU HÌNH =====================
 // Tăng số này mỗi lần sửa app: máy đã cài sẽ tự nhận bản mới và báo "Có gì mới" (nhớ tăng cả PHIEN_BAN trong sw.js).
-const PHIEN_BAN_APP = '1.14.1';
+const PHIEN_BAN_APP = '1.14.2';
 const CO_GI_MOI = [
   'Chỉnh âm lượng loa trên thiết bị ngay trong app (thẻ "Loa trên thiết bị" ở Tổng quan): bấm − / + hoặc kéo thanh, loa kêu "ting tong" để nghe thử.',
   'Nút "Bật lại điện" khi nước đã rút: thiết bị tự kiểm tra lại, còi bíp báo 5 giây rồi mới đóng điện.',
@@ -1423,15 +1423,20 @@ function locDuLieu(d) {
     chodongdien: +d.chodongdien === 1 ? 1 : 0, amluong: d.amluong === undefined ? null : Math.round(soTrong(d.amluong, 0, 30)), kh: /^[0-9a-f]{2}$/.test(d.kh) ? d.kh : null, lat: lat === 8 || lat === 24 ? null : lat, lon: lon === 102 || lon === 110 ? null : lon };
 }
 const lanThayTB = new Map();  // mã thiết bị -> lúc nhận tin gần nhất
-// Vị trí thiết bị gửi lên lệch với vị trí nhà chủ nhà đã lưu trong app (VD: kết nối thiết bị đúng lúc thiết bị đang phát
-// Wi-Fi cài đặt nên chưa nhận được vị trí): gửi lại xuống thiết bị. Không gửi khi thiết bị báo bị chuyển chỗ
-// (lúc đó app nhắc chủ nhà đứng cạnh thiết bị cập nhật vị trí mới).
+// Đồng bộ vị trí nhà giữa app và thiết bị. Thiết bị CHƯA có vị trí (còn vị trí mặc định của code ESP32, VD: kết nối
+// thiết bị đúng lúc đang phát Wi-Fi cài đặt nên chưa nhận được): gửi vị trí đã lưu trong app xuống. Thiết bị ĐÃ có vị trí
+// khác: đó là vị trí mới vừa cập nhật (có thể từ máy khác của chủ nhà), app lấy theo thiết bị, KHÔNG gửi vị trí cũ đè lên.
+// Không làm gì khi thiết bị báo bị chuyển chỗ (lúc đó app nhắc chủ nhà đứng cạnh thiết bị cập nhật vị trí mới).
+const VI_TRI_MAC_DINH_TB = [21.62, 105.18];  // khớp VI_DO_MAC_DINH, KINH_DO_MAC_DINH trong code ESP32
 let lanGuiViTri = 0;
 function dongBoViTriTB(id, d) {
   if (id !== cauHinh.ma || +d.chuyencho === 1 || !window.laChuThietBi || !window.laChuThietBi(id)) return;
   const vd = +cauHinh.viDo, kd = +cauHinh.kinhDo, lat = +d.lat, lon = +d.lon;
   if (!(vd > 8 && vd < 24 && kd > 102 && kd < 110)) return;
   if (Math.abs(lat - vd) < 0.0005 && Math.abs(lon - kd) < 0.0005) return;  // lệch dưới khoảng 50 m: coi như khớp
+  const tbChuaCo = !(lat > 8 && lat < 24 && lon > 102 && lon < 110)
+    || (Math.abs(lat - VI_TRI_MAC_DINH_TB[0]) < 0.0001 && Math.abs(lon - VI_TRI_MAC_DINH_TB[1]) < 0.0001);
+  if (!tbChuaCo) { window.datViTriNha(lat, lon); return; }
   if (Date.now() - lanGuiViTri < 120000) return;
   lanGuiViTri = Date.now();
   window.guiLenhThietBi(id, 'cmd', `VITRI:${vd},${kd}`);
@@ -2208,9 +2213,13 @@ async function capNhatViTriTB(ma, nut) {
     const lat = +p.coords.latitude.toFixed(6), lon = +p.coords.longitude.toFixed(6);
     if (!(lat > 8 && lat < 24 && lon > 102 && lon < 110)) { window.toast('Vị trí lấy được nằm ngoài Việt Nam, thử lại'); return; }
     Object.assign(tb, { lat, lon });
-    // Vị trí mới thuộc xã khác: hỏi đổi luôn địa chỉ ngôi nhà
-    const x = await napDVHC().then(d => xaTheoViTri(d, lat, lon)).catch(() => null);
-    if (x && x.ma !== tb.xa && confirm(`Vị trí mới thuộc ${x.ten}, ${x.tinh}. Đổi địa chỉ ngôi nhà sang xã này?`)) {
+    // Vị trí mới thuộc xã khác: hỏi đổi luôn địa chỉ ngôi nhà. Danh mục chỉ có khung chữ nhật bao quanh từng xã, khung
+    // các xã liền kề chồng lên nhau: vị trí còn trong khung xã hiện tại thì giữ nguyên địa chỉ, không đoán sang xã bên cạnh.
+    const x = await napDVHC().then(d => {
+      const h = (d.xa.get(tb.xa) || {}).hop;
+      return h && lon >= h[0] && lon <= h[2] && lat >= h[1] && lat <= h[3] ? null : xaTheoViTri(d, lat, lon);
+    }).catch(() => null);
+    if (x && x.ma !== tb.xa && confirm(`Vị trí mới có vẻ thuộc ${x.ten}, ${x.tinh} (đoán theo bản đồ, có thể chưa đúng). Đổi địa chỉ ngôi nhà sang xã này?`)) {
       Object.assign(tb, { xa: x.ma, tenXa: x.ten, tinh: x.tinh, thon: '' });
     }
     await luuHoSo();

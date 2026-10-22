@@ -367,20 +367,25 @@
       <div class="dn-hang"><label class="chk-dong"><input type="checkbox" id="dnNho" checked> Ghi nhớ đăng nhập</label><button class="btn-lien" data-den="quenmk">Quên mật khẩu?</button></div>
       <button class="btn btn-primary btn-day" id="btnDN">Đăng nhập</button>
       <button class="btn btn-ghost btn-day" id="btnXemThu" style="margin-top:10px">Vào xem thử (không cần tài khoản)</button>
-      <div class="dn-ghi">Chưa có tài khoản? Liên hệ quản trị viên của xã để được cấp.<br>Xã, phường chưa dùng hệ thống? <button class="btn-lien" data-den="thietlap" style="font-size:12.5px;padding:0">Đăng ký xã, phường</button></div>
+      <div class="dn-ghi">Chưa có tài khoản? <button class="btn-lien" data-den="thietlap" style="font-size:12.5px;padding:0">Đăng ký tài khoản</button><br>Nhóm phát triển xác minh với UBND xã rồi mới kích hoạt.</div>
       <div class="dn-ghi" id="dnCheDo"></div>
     </div>
 
     <div class="man" data-man="thietlap">
       <button class="lui" data-den="dangnhap">‹ Quay lại đăng nhập</button>
-      <div class="dn-dau"><span class="dn-xa">Dùng được cho mọi xã, phường trên cả nước</span><h1>Đăng ký xã, phường</h1><div class="sub">Dành cho cán bộ UBND xã, phường. Nhóm phát triển sẽ gọi điện xác minh với UBND xã trước khi kích hoạt, thường trong 1 ngày làm việc.</div></div>
+      <div class="dn-dau"><span class="dn-xa">Dùng được cho mọi xã, phường trên cả nước</span><h1>Đăng ký tài khoản</h1><div class="sub">Dành cho cán bộ UBND xã, phường và trưởng thôn. Mọi tài khoản do nhóm phát triển cấp: nhóm sẽ gọi điện xác minh với UBND xã trước khi kích hoạt, thường trong 1 ngày làm việc.</div></div>
       <div class="loi" id="loiTL"></div>
       <div class="hai-cot">
         <label class="o"><span>Tỉnh, thành phố</span><select id="tlTinh"></select></label>
         <label class="o"><span>Xã, phường</span><select id="tlXa"></select></label>
       </div>
       <div class="dn-ghi" id="tlGoiY" style="text-align:left;margin:-6px 0 14px"></div>
-      <label class="o"><span>Họ tên quản trị viên</span><input id="tlHoTen" autocomplete="name"></label>
+      <div class="hai-cot">
+        <label class="o"><span>Đăng ký làm</span><select id="tlVaiTro"><option value="quanTri">Quản trị xã</option><option value="canBo">Cán bộ xã</option><option value="thon">Trưởng thôn</option></select></label>
+        <label class="o"><span>Thôn phụ trách</span><select id="tlThon" disabled><option value="">Chọn xã trước</option></select></label>
+      </div>
+      <div class="dn-ghi" id="tlVaiTroGhi" style="text-align:left;margin:-6px 0 14px"></div>
+      <label class="o"><span>Họ và tên</span><input id="tlHoTen" autocomplete="name"></label>
       <div class="hai-cot">
         <label class="o"><span>Chức vụ</span><input id="tlChucVu" placeholder="VD: Công chức Văn phòng"></label>
         <label class="o"><span>Số điện thoại</span><input id="tlSdt" type="tel" inputmode="tel" autocomplete="tel" placeholder="Để xác minh"></label>
@@ -489,7 +494,7 @@
     <a href="#bao-cao"><svg class="i"><use href="#i-doc"/></svg><span class="dai">Báo cáo nhanh</span><span class="ngan">Báo cáo</span></a>
     <a href="#thong-ke"><svg class="i"><use href="#i-chart"/></svg><span class="dai">Thống kê</span><span class="ngan">Thống kê</span></a>
     <a href="#can-bo" id="navCanBo" style="display:none"><svg class="i"><use href="#i-user"/></svg><span class="dai">Cán bộ</span><span class="ngan">Cán bộ</span></a>
-    <a href="#duyet-xa" id="navDuyet" style="display:none"><svg class="i"><use href="#i-check"/></svg><span class="dai">Duyệt xã đăng ký</span><span class="ngan">Duyệt xã</span></a>
+    <a href="#duyet-xa" id="navDuyet" style="display:none"><svg class="i"><use href="#i-check"/></svg><span class="dai">Duyệt đăng ký</span><span class="ngan">Duyệt</span></a>
     <a href="#kho-tb" id="navKho" style="display:none"><svg class="i"><use href="#i-layers"/></svg><span class="dai">Tổng hệ thống</span><span class="ngan">Tổng</span></a>
     <a href="#nhat-ky" id="navNhatKy" style="display:none"><svg class="i"><use href="#i-clock"/></svg><span class="dai">Nhật ký</span><span class="ngan">Nhật ký</span></a>
   </nav>
@@ -607,7 +612,7 @@
       <div class="chart-wrap"><canvas id="bdThon"></canvas></div>
     </section>
 
-    <!-- QUẢN LÝ CÁN BỘ (chỉ quản trị) -->
+    <!-- TÀI KHOẢN CÁN BỘ: quản trị xã chỉ xem; nhóm phát triển cấp, khoá, xoá -->
     <section class="card full" id="can-bo" style="display:none">
       <div class="card-h">
         <div class="card-t"><span class="ic"><svg class="i"><use href="#i-user"/></svg></span><div>Tài khoản cán bộ<small id="demCanBo">—</small></div></div>
@@ -619,22 +624,25 @@
           <tbody id="bangCanBo"></tbody>
         </table>
       </div>
-      <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span><b>Quản trị:</b> toàn quyền, quản lý tài khoản. <b>Cán bộ xã:</b> xem toàn xã, cử đội, tạo báo cáo. <b>Trưởng thôn:</b> chỉ xem và cử đội cho các hộ trong thôn mình phụ trách.</span></div>
+      <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span><b>Quản trị:</b> xem toàn xã, cài đặt xã (danh sách thôn), xem nhật ký. <b>Cán bộ xã:</b> xem toàn xã, cử đội, tạo báo cáo. <b>Trưởng thôn:</b> chỉ xem và cử đội cho các hộ trong thôn mình phụ trách.
+        Mọi tài khoản do nhóm phát triển cấp, khoá, xoá: cán bộ mới bấm "Đăng ký tài khoản" ở trang đăng nhập.</span></div>
     </section>
 
     <!-- DUYỆT XÃ ĐĂNG KÝ (chỉ nhóm phát triển) -->
     <section class="card full" id="duyet-xa" style="display:none">
       <div class="card-h">
-        <div class="card-t"><span class="ic"><svg class="i"><use href="#i-check"/></svg></span><div>Duyệt xã, phường đăng ký<small id="demDuyet">—</small></div></div>
+        <div class="card-t"><span class="ic"><svg class="i"><use href="#i-check"/></svg></span><div>Duyệt tài khoản đăng ký<small id="demDuyet">—</small></div></div>
         <button class="btn btn-ghost" id="btnTaiDuyet">Làm mới</button>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Xã, phường</th><th>Người đăng ký</th><th>Liên hệ</th><th>Gửi lúc</th><th></th></tr></thead>
+          <thead><tr><th>Xã, phường</th><th>Người đăng ký</th><th>Đăng ký làm</th><th>Liên hệ</th><th>Gửi lúc</th><th></th></tr></thead>
           <tbody id="bangDuyet"></tbody>
         </table>
       </div>
-      <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span>Gọi vào số điện thoại người đăng ký, hoặc số UBND xã trên cổng thông tin của tỉnh, để xác minh đúng là cán bộ xã rồi mới bấm Duyệt. Từ chối thì xã đó được đăng ký lại.</span></div>
+      <div class="foot-note"><svg class="i"><use href="#i-info"/></svg><span>Mọi tài khoản (quản trị xã, cán bộ xã, trưởng thôn) chỉ do bạn duyệt; quản trị xã không cấp quyền cho ai.
+        Gọi vào số điện thoại người đăng ký, hoặc số UBND xã trên cổng thông tin của tỉnh, để xác minh đúng là cán bộ xã rồi mới bấm Duyệt.
+        Từ chối đơn quản trị thì xã đó được đăng ký lại, cài đặt xã (danh sách thôn) vẫn giữ.</span></div>
     </section>
 
     <!-- KHO THIẾT BỊ (chỉ nhóm phát triển) -->
@@ -1429,7 +1437,8 @@ const Firebase = {
       if (cuaNguoiNay) b.update(refXa, { trangThai: 'daDuyet', duyetLuc: luc });
     } else {
       b.delete(this.fs.doc(this.db, 'canBo', u.id));
-      if (cuaNguoiNay) b.delete(refXa);
+      // Từ chối: chỉ gỡ người đăng ký khỏi xã, giữ cài đặt của xã (danh sách thôn...) để người khác đăng ký lại
+      if (cuaNguoiNay) b.update(refXa, { uidQuanTri: this.fs.deleteField(), trangThai: this.fs.deleteField() });
     }
     await b.commit();
   },
@@ -1443,14 +1452,20 @@ const Firebase = {
   },
   // Đăng ký xã mới: tạo tài khoản quản trị và cài đặt xã cùng lúc (máy chủ chỉ cho phép khi xã chưa có quản trị)
   // Xã mới ở trạng thái chờ duyệt: nhóm phát triển xác minh với UBND xã rồi mới kích hoạt. Trả về null (chưa đăng nhập được).
-  async thietLapLanDau({ xa, tenXa, tinh, hoTen, chucVu, sdt, email, mk }) {
-    if (await this.layXa(xa)) throw { code: 'xa-da-co' };
+  // Đăng ký tài khoản (chờ nhóm phát triển duyệt). Quản trị: chỉ khi xã chưa có quản trị; xã đã có cài đặt (danh sách
+  // thôn...) mà chưa có quản trị (VD: Xã Đoan Hùng từ bản một xã) thì nhận xã đó, giữ nguyên cài đặt.
+  // Cán bộ xã, trưởng thôn: chỉ tạo tài khoản chờ duyệt, không đụng tới cài đặt xã.
+  async thietLapLanDau({ xa, tenXa, tinh, hoTen, chucVu, sdt, email, mk, vaiTro = 'quanTri', thon = '' }) {
+    const refXa = this.fs.doc(this.db, 'dsXa', xa), sXa = await this.fs.getDoc(refXa);
+    const xaCo = sXa.exists() ? sXa.data() : null, laQT = vaiTro === 'quanTri';
+    if (laQT && (xaCo ? xaCo.uidQuanTri : xa === MA_XA_CU && (await this.layXa(xa)))) throw { code: 'xa-da-co' };
     const c = await this.au.createUserWithEmailAndPassword(this.auth, email, mk);
     const luc = new Date().toISOString(), b = this.fs.writeBatch(this.db);
-    b.set(this.fs.doc(this.db, 'canBo', c.user.uid), { email, hoTen, chucVu, sdt, vaiTro: 'quanTri', thon: '', trangThai: 'choDuyet', taoLuc: luc, xa });
-    b.set(this.fs.doc(this.db, 'dsXa', xa), { tenXa, tinh, dsThon: [], taoLuc: luc, trangThai: 'choDuyet', uidQuanTri: c.user.uid });
+    b.set(this.fs.doc(this.db, 'canBo', c.user.uid), { email, hoTen, chucVu, sdt, vaiTro, thon: vaiTro === 'thon' ? thon : '', trangThai: 'choDuyet', taoLuc: luc, xa });
+    if (laQT && xaCo) b.update(refXa, { trangThai: 'choDuyet', uidQuanTri: c.user.uid, dangKyLuc: luc });
+    else if (laQT) b.set(refXa, { tenXa, tinh, dsThon: [], taoLuc: luc, trangThai: 'choDuyet', uidQuanTri: c.user.uid });
     try { await b.commit(); }
-    catch (e) { try { await this.au.deleteUser(c.user); } catch {} throw e && e.code === 'permission-denied' ? { code: 'xa-da-co' } : e; }
+    catch (e) { try { await this.au.deleteUser(c.user); } catch {} throw e && e.code === 'permission-denied' && laQT ? { code: 'xa-da-co' } : e; }
     await this.au.signOut(this.auth);
     return null;
   },
@@ -1478,22 +1493,41 @@ const Firebase = {
   async dsCanBo(nd) {
     const q = this.fs.query(this.fs.collection(this.db, 'canBo'), this.fs.where('xa', '==', xaCua(nd)));
     const ds = (await this.fs.getDocs(q)).docs.map(d => Object.assign({ id: d.id }, d.data()));
-    if (!ds.some(u => u.id === nd.id)) ds.push(nd);  // tài khoản từ bản một xã chưa có trường xa
+    // tài khoản từ bản một xã chưa có trường xa (không thêm nhóm phát triển: không phải cán bộ của xã)
+    if (nd.vaiTro !== 'sieuQuanTri' && !ds.some(u => u.id === nd.id)) ds.push(nd);
     return ds;
   },
-  async themCanBo({ hoTen, email, mk, vaiTro, thon, xa }) {
-    // Tạo tài khoản bằng một phiên Firebase phụ để quản trị viên không bị đăng xuất khỏi phiên của mình
+  // Chỉ nhóm phát triển cấp tài khoản (luật máy chủ chặn quản trị xã). Tạo bằng một phiên Firebase phụ để người cấp
+  // không bị đăng xuất khỏi phiên của mình. Cấp quản trị cho xã chưa có quản trị thì ghi luôn vào cài đặt xã,
+  // để không ai khác đăng ký làm quản trị xã đó nữa.
+  async themCanBo({ hoTen, email, mk, vaiTro, thon, xa, tenXa, tinh }) {
     const phu = this.a.initializeApp(cfg, 'phu-' + Date.now());
     try {
       const authPhu = this.au.getAuth(phu);
       const c = await this.au.createUserWithEmailAndPassword(authPhu, email, mk);
+      const luc = new Date().toISOString();
       await this.fs.setDoc(this.fs.doc(this.db, 'canBo', c.user.uid),
-        { email, hoTen, vaiTro, thon: thon || '', trangThai: 'hoatDong', taoLuc: new Date().toISOString(), xa });
+        { email, hoTen, vaiTro, thon: thon || '', trangThai: 'hoatDong', taoLuc: luc, xa });
+      if (vaiTro === 'quanTri') {
+        const refXa = this.fs.doc(this.db, 'dsXa', xa), s = await this.fs.getDoc(refXa);
+        if (!s.exists()) await this.fs.setDoc(refXa, { tenXa, tinh, dsThon: [], taoLuc: luc, trangThai: 'daDuyet', uidQuanTri: c.user.uid, duyetLuc: luc });
+        else if (!s.data().uidQuanTri) await this.fs.updateDoc(refXa, { trangThai: 'daDuyet', uidQuanTri: c.user.uid, duyetLuc: luc });
+      }
       await this.au.signOut(authPhu);
     } finally { await this.a.deleteApp(phu); }
   },
   async capNhatCanBo(id, thayDoi) { await this.fs.updateDoc(this.fs.doc(this.db, 'canBo', id), thayDoi); },
-  async xoaCanBo(id) { await this.fs.deleteDoc(this.fs.doc(this.db, 'canBo', id)); },
+  // Xoá quản trị đang giữ xã thì gỡ khỏi cài đặt xã: xã đó lại cho người khác đăng ký làm quản trị
+  async xoaCanBo(id) {
+    const ref = this.fs.doc(this.db, 'canBo', id), s = await this.fs.getDoc(ref);
+    const xa = s.exists() ? xaCua(s.data()) : null, b = this.fs.writeBatch(this.db);
+    b.delete(ref);
+    if (xa) {
+      const refXa = this.fs.doc(this.db, 'dsXa', xa), sXa = await this.fs.getDoc(refXa);
+      if (sXa.exists() && sXa.data().uidQuanTri === id) b.update(refXa, { uidQuanTri: this.fs.deleteField(), trangThai: this.fs.deleteField() });
+    }
+    await b.commit();
+  },
   async ghiNhatKy(nd, hanhDong) {
     await this.fs.addDoc(this.fs.collection(this.db, 'nhatKy'), { luc: new Date().toISOString(), boi: nd.hoTen, email: nd.email, hanhDong, xa: xaCua(nd) });
   },
@@ -1522,11 +1556,11 @@ const TK = cfg && cfg.apiKey ? Firebase : Demo;
 const LOI = {
   sai: 'Sai email hoặc mật khẩu.', 'auth/invalid-credential': 'Sai email hoặc mật khẩu.', 'auth/wrong-password': 'Sai email hoặc mật khẩu.',
   'auth/user-not-found': 'Sai email hoặc mật khẩu.', trung: 'Email này đã có tài khoản.', 'auth/email-already-in-use': 'Email này đã có tài khoản.',
-  'bi-khoa': 'Tài khoản đã bị khoá. Liên hệ quản trị viên của xã.', 'khong-phai-can-bo': 'Tài khoản này chưa được cấp quyền vào hệ thống. Nhờ quản trị viên thêm email của bạn vào danh sách cán bộ.',
+  'bi-khoa': 'Tài khoản đã bị khoá. Liên hệ nhóm phát triển.', 'khong-phai-can-bo': 'Tài khoản này chưa được cấp quyền vào hệ thống. Bấm "Đăng ký tài khoản" bên dưới (dùng email và mật khẩu), nhóm phát triển xác minh rồi kích hoạt.',
   'sai-mk-cu': 'Mật khẩu hiện tại chưa đúng.', 'auth/weak-password': 'Mật khẩu quá yếu.', 'auth/invalid-email': 'Email không hợp lệ.',
   'auth/network-request-failed': 'Không có mạng, vui lòng thử lại.', 'auth/too-many-requests': 'Thử sai quá nhiều lần, vui lòng đợi ít phút.',
   'permission-denied': 'Bạn không có quyền thực hiện thao tác này.', 'da-thiet-lap': 'Hệ thống đã được thiết lập trước đó.',
-  'xa-da-co': 'Xã, phường này đã có người đăng ký (đang hoạt động hoặc chờ duyệt). Liên hệ quản trị viên của xã để được cấp tài khoản cán bộ.',
+  'xa-da-co': 'Xã, phường này đã có quản trị (đang hoạt động hoặc chờ duyệt). Bạn đăng ký làm cán bộ xã hoặc trưởng thôn.',
   'tb-da-co': 'Mã thiết bị này đã có trong kho.',
   'cho-duyet': 'Đăng ký của xã đang chờ nhóm phát triển xác minh. Bạn đăng nhập được ngay sau khi được duyệt.',
   'demo-quen': 'Bản demo lưu tài khoản trên máy này nên không gửi email được. Nhờ quản trị viên tạo lại tài khoản.',
@@ -1544,7 +1578,7 @@ let nd = null, caiDat = null, cuDoiHienTai = {}, huyCuDoi = null, huyHoDan = nul
 const dangXuLyCuDoi = new Set();
 
 function man(ten) {
-  if (ten === 'thietlap') dungChonXa('tl', maXaUrl());
+  if (ten === 'thietlap') dungChonXa('tl', maXaUrl()).then(capNhatVaiTroTL);
   document.querySelectorAll('#manDN .man').forEach(m => m.classList.toggle('hien', m.dataset.man === ten));
   $('manDN').classList.add('hien');
   document.body.classList.add('chua-dn');
@@ -1613,7 +1647,10 @@ async function vaoHeThong(ghiLog) {
   $('umTen2').textContent = nd.hoTen;
   $('umEmail').textContent = nd.email || 'Chế độ xem thử';
   $('umDoiMk').style.display = nd.vaiTro === 'khach' || nd.vaiTro === 'sieuQuanTri' ? 'none' : '';
-  ['navCanBo', 'navNhatKy', 'can-bo', 'nhat-ky'].forEach(id => { $(id).style.display = laQT ? '' : 'none'; });
+  ['navNhatKy', 'nhat-ky'].forEach(id => { $(id).style.display = laQT ? '' : 'none'; });
+  // Tài khoản cán bộ: quản trị xã chỉ xem danh sách; nhóm phát triển (đang xem một xã) cấp, khoá, xoá tài khoản
+  const xemCanBo = laQT || (nd.sieu && ma && ma !== XA_TOAN_HT);
+  ['navCanBo', 'can-bo'].forEach(id => { $(id).style.display = xemCanBo ? '' : 'none'; });
   $('umCaiDat').style.display = laQT ? '' : 'none';
   const chiXem = nd.vaiTro === 'khach' || nd.vaiTro === 'sieuQuanTri';
   $('umDoiXa').style.display = chiXem ? '' : 'none';
@@ -1637,7 +1674,8 @@ async function vaoHeThong(ghiLog) {
   if (huyCuDoi) { huyCuDoi(); huyCuDoi = null; }
   cuDoiHienTai = {}; window.nhanCuDoi({});
   if (!laKhachMay()) huyCuDoi = TK.theoDoiCuDoi(nd, ds => { cuDoiHienTai = ds; window.nhanCuDoi(ds); }) || null;
-  if (laQT) { veCanBo(); veNhatKy(); }
+  if (xemCanBo) veCanBo();
+  if (laQT) veNhatKy();
   if (ghiLog) ghiNK('Đăng nhập hệ thống');
 }
 
@@ -1661,22 +1699,47 @@ $('btnDN').onclick = () => cho($('btnDN'), async () => {
 });
 $('dnMk').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnDN').click(); });
 
+// Đăng ký tài khoản: xã chưa có quản trị thì đăng ký làm quản trị được; đã có (đang hoạt động hoặc chờ duyệt) thì chỉ
+// đăng ký làm cán bộ xã, trưởng thôn. Mọi đăng ký đều chờ nhóm phát triển duyệt (quản trị xã không cấp quyền cho ai).
+let lanXetVaiTro = 0;
+async function capNhatVaiTroTL() {
+  const xa = $('tlXa').value, so = ++lanXetVaiTro, chonQT = $('tlVaiTro').options[0];
+  let doc = null;
+  if (/^\d{5}$/.test(xa)) { try { doc = await TK.layXa(xa); } catch {} }
+  if (so !== lanXetVaiTro) return;  // đã chọn xã khác trong lúc chờ máy chủ
+  const coQT = !!(doc && (doc.uidQuanTri || (TK.ten === 'demo' && doc)));
+  chonQT.disabled = coQT;
+  if (coQT && $('tlVaiTro').value === 'quanTri') $('tlVaiTro').value = 'canBo';
+  if (!coQT && xa) $('tlVaiTro').value = 'quanTri';
+  const thon = (doc && doc.dsThon) || [];
+  $('tlThon').innerHTML = thon.length ? thon.map(t => `<option>${esc(t)}</option>`).join('') : '<option value="">Xã chưa khai báo thôn</option>';
+  $('tlThon').disabled = $('tlVaiTro').value !== 'thon' || !thon.length;
+  $('tlVaiTroGhi').textContent = !xa ? '' : coQT ? 'Xã này đã có quản trị: bạn đăng ký làm cán bộ xã hoặc trưởng thôn.'
+    : 'Xã này chưa có quản trị: người đầu tiên đăng ký làm quản trị xã.';
+}
+$('tlXa').addEventListener('change', capNhatVaiTroTL);
+$('tlTinh').addEventListener('change', capNhatVaiTroTL);
+$('tlVaiTro').onchange = () => { $('tlThon').disabled = $('tlVaiTro').value !== 'thon' || !$('tlThon').value; };
+
 $('btnTL').onclick = () => cho($('btnTL'), async () => {
   const xa = $('tlXa').value, hoTen = $('tlHoTen').value.trim(), email = $('tlEmail').value.trim().toLowerCase(), mk = $('tlMk').value;
   const chucVu = $('tlChucVu').value.trim().slice(0, 60), sdt = $('tlSdt').value.replace(/[^\d+]/g, '').slice(0, 15);
   if (!/^\d{5}$/.test(xa)) return loi('loiTL', 'Chọn tỉnh, thành phố và xã, phường.');
   if (chucVu.length < 2) return loi('loiTL', 'Nhập chức vụ của bạn tại UBND xã.');
   if (!/^(\+84|0)\d{9,10}$/.test(sdt)) return loi('loiTL', 'Nhập số điện thoại để nhóm phát triển gọi xác minh.');
-  if (hoTen.length < 2) return loi('loiTL', 'Nhập họ tên quản trị viên.');
+  const vaiTro = $('tlVaiTro').value, thon = vaiTro === 'thon' ? $('tlThon').value : '';
+  if (vaiTro === 'quanTri' && $('tlVaiTro').options[0].disabled) return loi('loiTL', 'Xã này đã có quản trị: đăng ký làm cán bộ xã hoặc trưởng thôn.');
+  if (vaiTro === 'thon' && !thon) return loi('loiTL', 'Chọn thôn bạn phụ trách. Xã chưa khai báo thôn thì đăng ký làm cán bộ xã.');
+  if (hoTen.length < 2) return loi('loiTL', 'Nhập họ và tên.');
   if (!laEmail(email)) return loi('loiTL', 'Email không hợp lệ.');
-  if (mk.length < 8) return loi('loiTL', 'Mật khẩu quản trị cần ít nhất 8 ký tự.');
+  if (mk.length < 8) return loi('loiTL', 'Mật khẩu cần ít nhất 8 ký tự.');
   if (mk !== $('tlMk2').value) return loi('loiTL', 'Hai mật khẩu chưa khớp nhau.');
   try {
     const x = (await napDVHC()).xa.get(xa);
-    const u = await TK.thietLapLanDau({ xa, tenXa: x.ten, tinh: x.tinh, hoTen, chucVu, sdt, email, mk });
+    const u = await TK.thietLapLanDau({ xa, tenXa: x.ten, tinh: x.tinh, hoTen, chucVu, sdt, email, mk, vaiTro, thon });
     ['tlMk', 'tlMk2'].forEach(id => { $(id).value = ''; });
     if (!u) {  // máy chủ thật: chờ duyệt
-      $('daGuiTxt').textContent = `${x.ten}, ${x.tinh}. Người đăng ký: ${hoTen} (${chucVu}), ${sdt}.`;
+      $('daGuiTxt').textContent = `${x.ten}, ${x.tinh}. Đăng ký làm ${VAI_TRO[vaiTro].toLowerCase()}${thon ? ' ' + thon : ''}: ${hoTen} (${chucVu}), ${sdt}.`;
       return man('dagui');
     }
     nd = u;
@@ -1819,13 +1882,18 @@ async function veCanBo() {
   try { ds = await TK.dsCanBo(nd); }
   catch (e) { $('bangCanBo').innerHTML = `<tr><td colspan="6" class="empty">${esc(loiTV(e))}</td></tr>`; return; }
   const thuTu = { quanTri: 0, canBo: 1, thon: 2 };
+  // Chỉ nhóm phát triển cấp, khoá, xoá tài khoản; quản trị xã chỉ xem. Đơn chờ duyệt nằm ở mục Duyệt đăng ký.
+  const quanLy = !!nd.sieu;
+  $('btnMoThemCB').style.display = quanLy ? '' : 'none';
+  ds = ds.filter(u => u.trangThai !== 'choDuyet');
   ds.sort((a, b) => (thuTu[a.vaiTro] - thuTu[b.vaiTro]) || String(a.hoTen).localeCompare(String(b.hoTen), 'vi'));
   $('demCanBo').textContent = `${ds.length} tài khoản · ${ds.filter(u => u.trangThai === 'hoatDong').length} đang hoạt động`;
+  if (!ds.length) { $('bangCanBo').innerHTML = '<tr><td colspan="6" class="empty">Xã này chưa có tài khoản cán bộ nào.</td></tr>'; return; }
   $('bangCanBo').innerHTML = ds.map(u => {
-    const toi = u.id === nd.id, hd = u.trangThai === 'hoatDong';
+    const toi = u.id === nd.id || !quanLy, hd = u.trangThai === 'hoatDong';
     return `<tr${hd ? '' : ' class="da-cu"'}>
       <td><div class="ho"><span class="av" style="background:var(--primary-soft);color:var(--primary)">${esc(vietTat(u.hoTen))}</span>
-        <div><b>${esc(u.hoTen)}${toi ? ' (bạn)' : ''}</b><small>${esc(u.email)}</small></div></div></td>
+        <div><b>${esc(u.hoTen)}${u.id === nd.id ? ' (bạn)' : ''}</b><small>${esc(u.email)}</small></div></div></td>
       <td>${nhan(VAI_TRO[u.vaiTro] || u.vaiTro, MAU_VT[u.vaiTro] || MAU_VT.canBo)}</td>
       <td>${esc(u.vaiTro === 'thon' ? u.thon : 'Toàn xã')}</td>
       <td>${hd ? nhan('Hoạt động', ['var(--ok)', 'var(--ok-soft)']) : nhan('Đã khoá', ['var(--off)', 'var(--off-soft)'])}</td>
@@ -1875,7 +1943,7 @@ $('btnThemCB').onclick = () => cho($('btnThemCB'), async () => {
   if (mk.length < 8) return loi('loiCB', 'Mật khẩu tạm cần ít nhất 8 ký tự.');
   if (vaiTro === 'thon' && !thon) return loi('loiCB', 'Khai báo danh sách thôn trong "Cài đặt xã" trước khi tạo tài khoản trưởng thôn.');
   try {
-    await TK.themCanBo({ hoTen, email, mk, vaiTro, thon, xa: xaCua(nd) });
+    await TK.themCanBo({ hoTen, email, mk, vaiTro, thon, xa: xaCua(nd), tenXa: caiDat.tenXa, tinh: caiDat.tinh });
     dongMD('mdThemCB');
     ghiNK('Thêm cán bộ ' + hoTen + ' (' + VAI_TRO[vaiTro] + (thon ? ', ' + thon : '') + ')');
     veCanBo();
@@ -1887,17 +1955,18 @@ $('btnThemCB').onclick = () => cho($('btnThemCB'), async () => {
 async function veDuyet() {
   let ds, d;
   try { [ds, d] = await Promise.all([TK.dsChoDuyet(), napDVHC().catch(() => null)]); }
-  catch (e) { $('bangDuyet').innerHTML = `<tr><td colspan="5" class="empty">${esc(loiTV(e))}</td></tr>`; return; }
+  catch (e) { $('bangDuyet').innerHTML = `<tr><td colspan="6" class="empty">${esc(loiTV(e))}</td></tr>`; return; }
   ds.sort((a, b) => String(a.taoLuc).localeCompare(String(b.taoLuc)));
-  $('demDuyet').textContent = ds.length ? ds.length + ' xã, phường đang chờ duyệt' : 'Không có đăng ký nào đang chờ';
+  $('demDuyet').textContent = ds.length ? ds.length + ' tài khoản đang chờ duyệt' : 'Không có đăng ký nào đang chờ';
   $('bangDuyet').innerHTML = ds.length ? ds.map(u => {
     const x = d && d.xa.get(u.xa);
     return `<tr><td><b>${esc(x ? x.ten : 'Mã ' + u.xa)}</b><br><small style="color:var(--text-3)">${esc(x ? x.tinh : '')} · mã ${esc(u.xa)}</small></td>
       <td><b>${esc(u.hoTen)}</b><br><small style="color:var(--text-3)">${esc(u.chucVu || '')}</small></td>
+      <td>${nhan(VAI_TRO[u.vaiTro] || u.vaiTro, MAU_VT[u.vaiTro] || MAU_VT.canBo)}${u.thon ? `<br><small style="color:var(--text-3)">${esc(u.thon)}</small>` : ''}</td>
       <td>${u.sdt ? `<a href="tel:${esc(u.sdt)}">${esc(u.sdt)}</a><br>` : ''}<small style="color:var(--text-3)">${esc(u.email)}</small></td>
       <td style="color:var(--text-3)">${esc(ngayGio(u.taoLuc))}</td>
       <td style="white-space:nowrap"><button class="act" data-duyet="${esc(u.id)}">Duyệt</button> <button class="act" data-tuchoi="${esc(u.id)}">Từ chối</button></td></tr>`;
-  }).join('') : '<tr><td colspan="5" class="empty">Không có đăng ký nào đang chờ duyệt.</td></tr>';
+  }).join('') : '<tr><td colspan="6" class="empty">Không có đăng ký nào đang chờ duyệt.</td></tr>';
   veDuyet.ds = ds;
 }
 $('btnTaiDuyet').onclick = veDuyet;
@@ -1907,7 +1976,8 @@ $('bangDuyet').onclick = async e => {
   const dongY = !!b.dataset.duyet, u = (veDuyet.ds || []).find(x => x.id === (b.dataset.duyet || b.dataset.tuchoi));
   if (!u) return;
   const ten = (await napDVHC().catch(() => null))?.xa.get(u.xa)?.ten || u.xa;
-  if (!confirm(dongY ? `Duyệt ${ten}? ${u.hoTen} sẽ thành quản trị viên của xã.` : `Từ chối đăng ký ${ten} của ${u.hoTen}?`)) return;
+  const vt = (VAI_TRO[u.vaiTro] || 'cán bộ').toLowerCase() + (u.thon ? ' ' + u.thon : '');
+  if (!confirm(dongY ? `Duyệt ${u.hoTen} làm ${vt} của ${ten}?` : `Từ chối đăng ký làm ${vt} của ${ten} (${u.hoTen})?`)) return;
   try { await TK.duyetXa(u, dongY); veDuyet(); } catch (er) { alert(loiTV(er)); }
 };
 
